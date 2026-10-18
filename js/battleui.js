@@ -1,7 +1,7 @@
 // หน้าจอต่อสู้: วาดฉากบน canvas + แผงข้อมูล/เมนูเป็น HTML แล้วเล่นเหตุการณ์จาก G.Battle ทีละอัน
 (function (G) {
   'use strict';
-  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  const wait = (ms) => new Promise((r) => setTimeout(r, G.settings.fast ? ms / 2 : ms));   // ต่อสู้เร็ว ×2
   const V = (G.battleView = { active: false });
 
   function panelsHTML(b) {
@@ -81,7 +81,8 @@
         const m = b.me;
         if (m.moves.every((s) => s.pp <= 0)) return { type: 'move', idx: 0 };
         const i = await G.ui.choose(m.moves.map((s) => { const mv = G.DATA.moves[s.id];
-          return { icon: `type:${mv.type}`, label: mv.name, sub: `${G.TYPE_TH[mv.type]} ${s.pp}/${mv.pp}`, disabled: s.pp <= 0 }; }),
+          const e = mv.cat === 'status' ? 1 : G.typeEff(mv.type, G.DATA.species[b.foe.sp].type);   // บอกผลธาตุก่อนกดใช้
+          return { icon: `type:${mv.type}`, label: mv.name + (e > 1 ? ' ▲×2' : e < 1 ? ' ▼×½' : ''), sub: `${G.TYPE_TH[mv.type]} ${s.pp}/${mv.pp}`, disabled: s.pp <= 0 }; }),
           { grid: true, cls: 'bmoves', info: (k) => { const s = m.moves[k]; if (!s) return ''; const mv = G.DATA.moves[s.id];
             const eff = mv.cat === 'status' ? '' : ` · ต่อ${b.foe.name}: ${{ 2: 'ได้ผลดีมาก', 1: 'ปกติ', 0.5: 'ไม่ค่อยได้ผล' }[G.typeEff(mv.type, G.DATA.species[b.foe.sp].type)]}`;
             return `${mv.desc}${mv.power ? ' · พลัง ' + mv.power : ''}${eff}`; } });

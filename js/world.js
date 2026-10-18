@@ -180,6 +180,7 @@
     S.map = id; S.x = x; S.y = y; if (dir) S.dir = dir;
     W.map = id; W.rows = G.DATA.maps[id]; W.moving = null; W.fmove = null;
     W.def = G.DATA.world.maps[id];
+    if (!W.def.indoor) (S.visited = S.visited || {})[id] = 1;   // ที่ที่เคยมาแล้ว ใช้เดินทางเร็วได้
     G.refreshNpcs();
     // คนเดินตามโผล่ข้างหลังเรา
     const [dx, dy] = DIRS[S.dir] || [0, 1];

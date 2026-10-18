@@ -72,8 +72,9 @@
       if (!wasSeen) G.ui.skipping = false;
       const chars = Array.from(text);
       let n = 0, done = false;
-      const speed = G.settings.textSpeed;
-      const complete = () => { clearInterval(tick); n = chars.length; body.textContent = text; done = true; box.classList.add('done'); if (track) markSeen(key); if (opt.auto) setTimeout(finish, opt.auto); };
+      const fast = opt.battle && G.settings.fast;   // ต่อสู้เร็ว ×2: พิมพ์เร็วขึ้นและรอสั้นลงครึ่งหนึ่ง
+      const speed = G.settings.textSpeed * (fast ? 2 : 1), auto = opt.auto && fast ? Math.max(1, opt.auto / 2) : opt.auto;
+      const complete = () => { clearInterval(tick); n = chars.length; body.textContent = text; done = true; box.classList.add('done'); if (track) markSeen(key); if (auto) setTimeout(finish, auto); };
       const tick = setInterval(() => {
         n += speed; body.textContent = chars.slice(0, n).join('');
         if (n >= chars.length) complete();
@@ -481,6 +482,23 @@
       ${hidden ? `<div class="hint">ยังมีเควสต์ช่วยชาวบ้านที่ยังไม่เจออีก ${hidden} อัน</div>` : ''}`, 'notebook');
   };
 
+  // ---------- เดินทางเร็ว: นั่งสองแถว/เรือไปที่ที่เคยไปแล้ว (ต้องอยู่ข้างนอก) ----------
+  const SPOTS = [['village', 'บ้านโนนสะอาด', 4, 11, 'down'], ['market', 'ตลาดนัดตำบล', 21, 8, 'down'], ['kku', 'มหาวิทยาลัยขอนแก่น', 5, 13, 'down'],
+    ['phong', 'ริมลำน้ำพอง', 20, 11, 'down'], ['amphoe', 'ตัวอำเภอ (หน้าโรงพยาบาล)', 32, 8, 'down']];
+  G.travelSpots = () => SPOTS.filter(([m]) => (G.state.visited || {})[m]);
+  G.ui.travel = async function () {
+    const S = G.state;
+    if (G.world.def.indoor) { await G.ui.say('ออกไปข้างนอกก่อน ลุงสองแถวรออยู่ริมถนน'); return; }
+    const spots = G.travelSpots().filter(([m]) => m !== S.map);
+    const i = await G.ui.choose(spots.map(([, n]) => n), { title: 'นั่งสองแถวลุงไปไหนดี? (ไปได้เฉพาะที่เคยไปแล้ว)', cls: 'small' });
+    if (i < 0) return;
+    const [m, n, x, y, dir] = spots[i];
+    G.ui.closeAll(); G.sfx('door');
+    await G.fadeTo(() => G.showToast(`นั่งสองแถวไป${n}...`));
+    await G.wait(400);
+    await G.fadeTo(() => G.loadMap(m, x, y, dir));
+  };
+
   // ---------- เมนูหลัก ----------
   G.ui.mainMenu = async function () {
     const S = G.state;
@@ -489,6 +507,7 @@
     items.push('กระเป๋า');
     if (S.flags.starter_chosen) items.push('สมุดบันทึก');
     if (S.flags.intro_done) items.push('สมุดเควสต์');
+    if (G.travelSpots().length > 1) items.push('เดินทาง');
     items.push('ตรา', 'วิธีเล่น', 'บันทึกเกม', 'ตั้งค่า', 'ปิด');
     const i = await G.ui.choose(items, { cls: 'mainmenu', title: `${S.name} · ${S.money} บาท` });
     const pick = items[i];
@@ -496,6 +515,7 @@
     else if (pick === 'กระเป๋า') await G.ui.bagMenu();
     else if (pick === 'สมุดบันทึก') await G.ui.notebook();
     else if (pick === 'สมุดเควสต์') await G.ui.questLog();
+    else if (pick === 'เดินทาง') await G.ui.travel();
     else if (pick === 'ตรา') await G.ui.panel(`<div class="choice-title">ตรายิม</div><div class="badges">${
       [['gym1', 'ผ้าโพก'], ['gym2', 'เฟือง'], ['gym3', 'หูฟัง'], ['gym4', 'ไม้เรียว']].map(([f, n]) =>
         `<div class="badge ${S.flags[f + '_done'] ? 'on' : ''}"><canvas width="16" height="16" data-sprite="badge:${f}"></canvas>ตรา${n}</div>`).join('')}</div>`);
@@ -505,22 +525,23 @@
       const on = (b) => (b ? 'เปิด' : 'ปิด');
       const s = await G.ui.choose([`ความเร็วข้อความ: ${['ช้า', 'กลาง', 'เร็ว'][G.settings.textSpeed - 1]}`, `เพลง: ${on(G.settings.music)}`,
         `เสียงเอฟเฟกต์: ${on(G.settings.sound)}`, `ไกด์และลูกศรชี้ทาง: ${on(G.settings.guide)}`, `แถบทีมและมินิแมพ: ${on(G.settings.hud !== false)}`, `เก็บเวลเร็ว + ติดคริง่าย: ${on(G.settings.easy !== false)}`, 'สำรองเซฟเป็นไฟล์', 'ใส่รหัสลับ', `บันทึกอัตโนมัติ: ${on(G.settings.autosave !== false)}`,
-        `เสียงบรรยากาศ: ${on(G.settings.ambient !== false)}`, `ลดการสั่นจอและแฟลช: ${on(G.settings.calm)}`, `ข้ามบทที่เคยอ่าน (ปุ่ม X): ${on(G.settings.skipRead !== false)}`], { cls: 'small',
+        `เสียงบรรยากาศ: ${on(G.settings.ambient !== false)}`, `ลดการสั่นจอและแฟลช: ${on(G.settings.calm)}`, `ข้ามบทที่เคยอ่าน (ปุ่ม X): ${on(G.settings.skipRead !== false)}`, `ความเร็วการต่อสู้: ${G.settings.fast ? '×2 เร็ว' : 'ปกติ'}`], { cls: 'small',
         info: (k) => ({ 5: 'เปิด: EXP ×3 แบ่งให้ทั้งแก๊ง และฝั่งเราติดคริ 25%', 8: `บันทึกลงช่อง ${G.slot} เองหลังเหตุการณ์ การต่อสู้ เปลี่ยนแผนที่ และทุก 1 นาที`,
           9: 'จิ้งหรีดกับกบตอนกลางคืน นกตอนเช้า ลมในทุ่งนา และเสียงฝน', 10: 'สำหรับคนที่ตาล้าง่าย: ตอนตีโดนสั่นน้อยลง และไม่กะพริบจอตอนเข้าต่อสู้',
-          11: 'บทที่เคยอ่านแล้วจะมีป้าย "X ข้าม" กด X แล้วข้ามรวดจนถึงบทใหม่หรือตัวเลือก' }[k] || '') });
+          11: 'บทที่เคยอ่านแล้วจะมีป้าย "X ข้าม" กด X แล้วข้ามรวดจนถึงบทใหม่หรือตัวเลือก', 12: '×2: ข้อความและท่าทางในการต่อสู้เร็วขึ้นเท่าตัว เก็บเลเวลได้ไวขึ้น' }[k] || '') });
       if (s === 0) G.settings.textSpeed = (G.settings.textSpeed % 3) + 1;
       if (s === 1) { G.settings.music = !G.settings.music; G.restartMusic(); }
       if (s === 2) { G.settings.sound = !G.settings.sound; G.restartMusic(); }
       if (s === 3) G.settings.guide = !G.settings.guide;
       if (s === 4) G.settings.hud = G.settings.hud === false;
       if (s === 5) G.settings.easy = G.settings.easy === false;
-      if (s === 6) G.exportSave();
+      if (s === 6) await G.exportSave();
       if (s === 7) await G.ui.secretCode();
       if (s === 8) G.settings.autosave = G.settings.autosave === false;
       if (s === 9) G.settings.ambient = G.settings.ambient === false;
       if (s === 10) G.settings.calm = !G.settings.calm;
       if (s === 11) G.settings.skipRead = G.settings.skipRead === false;
+      if (s === 12) G.settings.fast = !G.settings.fast;
       G.saveSettings();
     }
   };

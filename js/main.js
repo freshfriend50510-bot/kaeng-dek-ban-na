@@ -3,7 +3,7 @@
   'use strict';
   const SAVE_KEY = 'kaengdekbanna_save', SAVE_VER = 1;
   G.DATA = window.GAME_DATA;
-  G.settings = { textSpeed: 2, sound: true, music: true, guide: true, hud: true, easy: true, autosave: true, ambient: true, calm: false, skipRead: true };
+  G.settings = { textSpeed: 2, sound: true, music: true, guide: true, hud: true, easy: true, autosave: true, ambient: true, calm: false, skipRead: true, fast: false };
   try { Object.assign(G.settings, JSON.parse(localStorage.getItem(SAVE_KEY + '_settings') || '{}')); } catch (e) { /* ไม่มีที่เก็บ */ }
   G.saveSettings = () => { try { localStorage.setItem(SAVE_KEY + '_settings', JSON.stringify(G.settings)); } catch (e) { /* */ } };
   G.wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -111,6 +111,10 @@
     const fix = () => { fixes++; };
     const num = (v, lo, hi, d) => { const n = Math.floor(Number(v)); if (!Number.isFinite(n)) { fix(); return d; } if (n < lo || n > hi) fix(); return Math.min(hi, Math.max(lo, n)); };
     s.flags = s.flags && typeof s.flags === 'object' ? s.flags : (fix(), {});
+    if (!s.visited || typeof s.visited !== 'object') {   // เซฟเก่าก่อนมีเดินทางเร็ว: เดาจากความคืบหน้า
+      const f = s.flags;
+      s.visited = { village: 1, [s.map]: 1, market: f.boss1_done ? 1 : 0, kku: f.kku_arrived ? 1 : 0, phong: f.phong_arrived ? 1 : 0, amphoe: f.h_card || f.rival3_done ? 1 : 0 };
+    }
     s.dex = s.dex && typeof s.dex === 'object' ? s.dex : {}; s.fought = s.fought && typeof s.fought === 'object' ? s.fought : {};
     s.money = num(s.money, 0, 9999999, 0); s.time = num(s.time, 0, 1439, 420); s.playMs = Math.max(0, Number(s.playMs) || 0); s.rainLeft = Math.min(600, Math.max(0, Number(s.rainLeft) || 0));
     s.repel = num(s.repel, 0, 999, 0); s.steps = Math.max(0, Number(s.steps) || 0);
@@ -165,9 +169,18 @@
     if (i + 1 !== G.slot && !G.slotSummary(i + 1).empty && !(await G.ui.confirm(`ช่อง ${i + 1} มีเซฟอยู่แล้ว จะบันทึกทับไหม?`))) return false;
     return G.save(i + 1);
   };
-  G.exportSave = () => {
-    const blob = new Blob([JSON.stringify({ ...G.state, v: SAVE_VER })], { type: 'application/json' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `kaengdekbanna-save-${G.slot}.json`; a.click();
+  // สำรองเซฟเป็นไฟล์: ในลิงก์ artifact ต้องขอผ่านระบบดาวน์โหลดของ Claude (ผู้เล่นกดยืนยัน) เปิดไฟล์ตรงๆ ใช้ลิงก์ดาวน์โหลดปกติ
+  G.exportSave = async () => {
+    const text = JSON.stringify({ ...G.state, v: SAVE_VER }), filename = `kaengdekbanna-save-${G.slot}.json`;
+    let dl = null;
+    try { if (window.claude && window.claude.use) dl = await window.claude.use('downloads'); } catch (e) { dl = null; }
+    if (dl) {
+      try { await dl.save({ filename, data: text }); await G.ui.say(`บันทึกไฟล์ ${filename} แล้ว เก็บไว้ดีๆ นะ ใช้ "นำเข้าเซฟจากไฟล์" ที่หน้าแรกเพื่อเล่นต่อ`); }
+      catch (e) { await G.ui.say(e && e.code === 'declined' ? 'ยกเลิกการบันทึกไฟล์แล้ว' : e && e.code === 'rate_limited' ? 'มีหน้าต่างยืนยันค้างอยู่ ลองใหม่อีกครั้ง' : 'หน้านี้บันทึกไฟล์ไม่ได้ (เซฟในเบราว์เซอร์ยังอยู่ครบ)'); }
+      return;
+    }
+    const blob = new Blob([text], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click();
   };
   const importSave = () => new Promise((resolve) => {
     const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
