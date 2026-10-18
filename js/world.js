@@ -187,6 +187,7 @@
     const bx = x - dx, by = y - dy;
     W.follow = WALK.includes(tileAt(bx, by)) && !npcAt(bx, by) ? { x: bx, y: by, dir: S.dir } : { x, y, dir: S.dir };
     G.showToast(W.def.name);
+    W.amb = makeAmbient();
     G.music(W.def.music);
     if (G.autosave && !G.busy) setTimeout(() => G.autosave({ silent: true }), 0);   // เปลี่ยนแผนที่แล้วบันทึกเงียบๆ
   };
@@ -211,7 +212,8 @@
   G.world.tileAt = tileAt;
   G.world.gateOpen = (x, y) => { const gt = gateAt(x, y); return !!(gt && G.state.flags[gt.flag]); };
   const walkable = (x, y) => WALK.includes(tileAt(x, y)) || (tileAt(x, y) === 'X' && G.world.gateOpen(x, y));
-  G.world.passable = (x, y) => (walkable(x, y) || !!warpAt(x, y)) && !npcAt(x, y) && x >= 0 && y >= 0 && y < W.rows.length && x < W.rows[0].length;
+  const walkerAt = (x, y) => W.amb && W.amb.walkers.some((w) => (w.x === x && w.y === y) || (w.mv && w.mv.tx === x && w.mv.ty === y));
+  G.world.passable = (x, y) => (walkable(x, y) || !!warpAt(x, y)) && !npcAt(x, y) && !walkerAt(x, y) && x >= 0 && y >= 0 && y < W.rows.length && x < W.rows[0].length;
   const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
   G.DIRS = DIRS;
   const dirOf = (dx, dy) => (dx > 0 ? 'right' : dx < 0 ? 'left' : dy < 0 ? 'up' : 'down');
@@ -252,6 +254,7 @@
 
   G.world.update = function () {
     W.anim++;
+    if (W.amb) updateAmbient();
     // ชั่วโมงเปลี่ยน: NPC ไปทำงาน/กลับบ้านตามตารางเวลา
     if (W.hour !== Math.floor(G.state.time / 60) % 24 && !G.busy && !W.moving) {
       // ฝนสุ่มตกได้หลังคางคกยอมให้ฝนกลับมา (โอกาสชั่วโมงละ 15% ตกนาน 1-3 ชั่วโมง)
@@ -435,6 +438,7 @@
       if (ch === 'Y' && tileVariant(ch, x, y) === 'on') lamps.push([x * TS - cx + 8, y * TS - cy + 7, 46]);
       if (ch === '~') drawCurtainSway(ctx, x, y, x * TS - cx, y * TS - cy);
     }
+    if (W.amb) drawAmbientLow(ctx, cx, cy);
     // ตัวละคร เรียงตามแกน y
     const walking = !!W.moving;
     const step = walking ? (Math.floor(W.anim / 7) % 2) + 1 : 0;
@@ -447,7 +451,12 @@
       const fdir = fm ? fm.dir : W.follow.dir;
       if (fx !== px || fy !== py) actors.push({ y: fy - 0.01, draw: () => drawActor(ctx, G.monLook(lead), Math.round(fx * TS - cx), Math.round(fy * TS - cy), fdir, fm && (fm.fx !== fm.tx || fm.fy !== fm.ty) ? step : 0) });
     }
+    if (W.amb) for (const w of W.amb.walkers) {   // คนเดินไปมา (ประกอบฉาก คุยไม่ได้)
+      const m = w.mv, k = m ? m.t : 0, wx = m ? m.fx + (m.tx - m.fx) * k : w.x, wy = m ? m.fy + (m.ty - m.fy) * k : w.y;
+      actors.push({ y: wy - 0.02, draw: () => drawActor(ctx, w.look, Math.round(wx * TS - cx), Math.round(wy * TS - cy), w.dir, m ? (Math.floor(W.anim / 8) % 2) + 1 : 0) });
+    }
     actors.sort((a, b) => a.y - b.y).forEach((a) => a.draw());
+    if (W.amb) drawAmbientHigh(ctx, cx, cy);
     // หญ้าบังขา
     const here = tileAt(S.x, S.y);
     if ('Tgv'.includes(here) && !W.moving) { ctx.fillStyle = here === 'T' ? '#6e9b3a' : here === 'v' ? '#7a9a4a' : '#5f8a3a'; ctx.fillRect(S.x * TS - cx + 2, S.y * TS - cy + 11, 12, 5); }
@@ -466,7 +475,168 @@
       if (G.isNight() || blackout || dk >= 0.3) for (const [lx, ly, r] of lamps) glow(lx, ly, r, 'rgba(255,236,160,0.38)');
       ctx.globalCompositeOperation = 'source-over';
     }
+    ctx.drawImage(vignette(), 0, 0);
   };
+
+  // ---------- ของประกอบฉาก: ปลาว่าย ใบไม้ร่วง รถวิ่ง คนเดิน เงาเมฆ น้ำระยิบ ----------
+  const WALKER_LOOKS = {
+    village: ['elder', 'samorn', 'beedad', 'beemom', 'vendor', 'coop', 'teryai'], market: ['vendor', 'coop', 'samorn', 'driver', 'beemom', 'mkowner'],
+    field: ['beedad', 'tasi'], phong: ['fisher', 'beedad', 'coop'],
+    amphoe: ['receptionist', 'coop', 'guard', 'yaihom', 'eng:med_nurse:1', 'eng:med_doc:3', 'vendor', 'hiatong', 'breadlady'],
+  };
+  const CAR_COLS = ['#d9455a', '#3a7fb0', '#f4f4ec', '#2a2a33', '#e8c034', '#5f9a50'];
+  function makeAmbient() {
+    const A = { fish: [], leaves: [], cars: [], walkers: [], lanes: [], trees: [], ripples: [], clouds: [] };
+    const rows = W.rows, H = rows.length, Wd = rows[0].length, out = !W.def.indoor;
+    const water = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < Wd; x++) {
+      const c = rows[y][x];
+      if (c === 'w' || c === 'i') water.push([x, y]);
+      if (out && '#JP&'.includes(c)) A.trees.push([x, y, c]);
+    }
+    for (let i = 0; i < Math.min(10, Math.floor(water.length / 8)); i++) {
+      const [x, y] = water[Math.floor(G.rng() * water.length)], a = G.rng() * 6.28;
+      A.fish.push({ x: x * TS + 8, y: y * TS + 8, a, sp: 0.25 + G.rng() * 0.25, col: ['#f28c28', '#c8d0d8', '#d9455a', '#e8c034'][i % 4], turn: 0 });
+    }
+    A.water = water;
+    if (out) {   // ช่องทางรถ: แถวถนนลาดยางยาวต่อกันอย่างน้อย 12 ช่อง
+      for (let y = 0; y < H; y++) {
+        let x0 = -1;
+        for (let x = 0; x <= Wd; x++) {
+          const on = x < Wd && '+a@'.includes(rows[y][x]);
+          if (on && x0 < 0) x0 = x;
+          if (!on && x0 >= 0) { if (x - x0 >= 12) A.lanes.push({ y, x0, x1: x - 1, dir: A.lanes.filter((l) => Math.abs(l.y - y) <= 1).length % 2 ? -1 : 1, cd: G.rng() * 200 }); x0 = -1; }
+        }
+      }
+      const looks = WALKER_LOOKS[W.map] || (W.map === 'kku' ? null : []);
+      const n = G.raining() ? 0 : G.isNight() ? 1 : W.map === 'field' ? 1 : 3;
+      for (let i = 0; i < n; i++) {
+        for (let tries = 0; tries < 40; tries++) {
+          const x = Math.floor(G.rng() * Wd), y = Math.floor(G.rng() * H);
+          if (!':eL.'.includes(rows[y][x]) || !ambFree(x, y, A)) continue;
+          const look = looks ? looks[Math.floor(G.rng() * looks.length)] : `eng:${['eng_mech', 'eng_civil', 'eng_elec', 'eng_chem', 'eng_env', 'eng_ie'][i % 6]}:${(i * 3 + 1) % 8}`;
+          if (looks && !looks.length) break;
+          A.walkers.push({ x, y, dir: 'down', look, wait: 30 + G.rng() * 90, mv: null }); break;
+        }
+      }
+      for (let i = 0; i < 3; i++) A.clouds.push({ x: G.rng() * Wd * TS, y: G.rng() * H * TS, r: 40 + G.rng() * 40, v: 0.08 + G.rng() * 0.08 });
+    }
+    return A;
+  }
+  // ช่องว่างสำหรับคนเดิน/รถ: เดินได้ ไม่ใช่ทางออก ไม่มีใครยืนอยู่
+  function ambFree(x, y, A) {
+    const S = G.state;
+    if (!WALK.includes(tileAt(x, y)) || warpAt(x, y) || doorAt(x, y) || npcAt(x, y)) return false;
+    if (x === S.x && y === S.y) return false;
+    if (W.moving && x === W.moving.tx && y === W.moving.ty) return false;
+    if (W.follow && x === W.follow.x && y === W.follow.y) return false;
+    return !(A || W.amb).walkers.some((w) => (w.x === x && w.y === y) || (w.mv && w.mv.tx === x && w.mv.ty === y));
+  }
+  function updateAmbient() {
+    const A = W.amb, S = G.state;
+    for (const f of A.fish) {   // ปลาว่าย: ชนขอบน้ำแล้วหันกลับ บางทีกระโดดเป็นวงน้ำ
+      if (--f.turn <= 0) { f.a += (G.rng() - 0.5) * 1.6; f.turn = 40 + G.rng() * 80; }
+      const nx = f.x + Math.cos(f.a) * f.sp, ny = f.y + Math.sin(f.a) * f.sp, t = tileAt(Math.floor(nx / TS), Math.floor(ny / TS));
+      if (t === 'w' || t === 'i') { f.x = nx; f.y = ny; } else f.a += Math.PI * (0.6 + G.rng() * 0.8);
+      if (G.rng() < 0.0015) A.ripples.push({ x: f.x, y: f.y, t: 0 });
+    }
+    A.ripples = A.ripples.filter((r) => (r.t += 1) < 50);
+    if (A.trees.length && W.cam && A.leaves.length < 24 && G.rng() < (G.raining() ? 0.25 : 0.12)) {   // ใบไม้ร่วงจากต้นไม้ที่อยู่ในจอ
+      const vis = A.trees.filter(([x, y]) => x * TS >= W.cam.cx - 16 && x * TS <= W.cam.cx + 240 && y * TS >= W.cam.cy - 16 && y * TS <= W.cam.cy + 160);
+      if (vis.length) {
+        const [x, y, c] = vis[Math.floor(G.rng() * vis.length)];
+        A.leaves.push({ x: x * TS + G.rng() * 16, y: y * TS + 4 + G.rng() * 6, vx: 0.15 + G.rng() * 0.3, vy: 0.18 + G.rng() * 0.2, ph: G.rng() * 6, life: 160 + G.rng() * 100,
+          col: c === 'J' ? '#f2a0c0' : ['#6cc04a', '#c9b84a', '#d9822b', '#8fbf5a'][Math.floor(G.rng() * 4)] });
+      }
+    }
+    for (const l of A.leaves) { l.ph += 0.06; l.x += l.vx + Math.sin(l.ph) * 0.35; l.y += l.vy; l.life--; }
+    A.leaves = A.leaves.filter((l) => l.life > 0);
+    for (const ln of A.lanes) {   // รถวิ่งตามถนน หยุดรอถ้ามีคนยืนขวางหน้า
+      if (--ln.cd <= 0 && A.cars.filter((c) => c.lane === ln).length < 2) {
+        const kind = W.map === 'kku' && G.rng() < 0.3 ? 'bike' : G.rng() < 0.25 ? 'bike' : W.map === 'kku' && G.rng() < 0.2 ? 'bus' : 'car';
+        A.cars.push({ lane: ln, kind, x: ln.dir > 0 ? ln.x0 * TS - 24 : ln.x1 * TS + 24, sp: (kind === 'bike' ? 1.3 : 0.9) + G.rng() * 0.4, col: CAR_COLS[Math.floor(G.rng() * CAR_COLS.length)] });
+        ln.cd = 200 + G.rng() * 360;
+      }
+    }
+    for (const c of A.cars) {
+      const ln = c.lane, front = c.x + ln.dir * 14;
+      const blocked = [[S.x, S.y], W.follow ? [W.follow.x, W.follow.y] : null, ...A.walkers.map((w) => [w.x, w.y])].some((p) => p && p[1] === ln.y && (p[0] * TS + 8 - front) * ln.dir > -4 && (p[0] * TS + 8 - front) * ln.dir < 14)
+        || W.npcs.some((n) => n.y === ln.y && (n.x * TS + 8 - front) * ln.dir > -4 && (n.x * TS + 8 - front) * ln.dir < 14);
+      if (!blocked) c.x += ln.dir * c.sp;
+    }
+    A.cars = A.cars.filter((c) => c.x > c.lane.x0 * TS - 40 && c.x < c.lane.x1 * TS + 40);
+    for (const w of A.walkers) {   // คนเดินทีละช่อง เดินไปเรื่อยๆ แล้วหยุดพัก
+      if (w.mv) { w.mv.t += 1 / 18; if (w.mv.t >= 1) { w.x = w.mv.tx; w.y = w.mv.ty; w.mv = null; } continue; }
+      if (--w.wait > 0) continue;
+      const dirs = Object.keys(DIRS).sort(() => G.rng() - 0.5);
+      const keep = G.rng() < 0.7 ? [w.dir, ...dirs] : dirs;
+      for (const d of keep) {
+        const [dx, dy] = DIRS[d], nx = w.x + dx, ny = w.y + dy;
+        if (':eL.f'.includes(tileAt(nx, ny)) && ambFree(nx, ny)) { w.dir = d; w.mv = { fx: w.x, fy: w.y, tx: nx, ty: ny, t: 0 }; break; }
+      }
+      w.wait = G.rng() < 0.2 ? 60 + G.rng() * 120 : 4;
+    }
+    for (const c of A.clouds) { c.x += c.v; if (c.x - c.r > W.rows[0].length * TS) c.x = -c.r; }
+  }
+  function drawCar(ctx, c, x, y) {
+    const R = (col, a, b, w, h) => { ctx.fillStyle = col; ctx.fillRect(Math.round(x + a), Math.round(y + b), w, h); };
+    const f = c.lane.dir > 0;
+    if (c.kind === 'bike') {
+      R('#2a2a2a', -6, 4, 4, 4); R('#2a2a2a', 3, 4, 4, 4); R(c.col, -4, 1, 9, 3); R('#3a3f48', f ? 4 : -6, -1, 2, 3);
+      R('#d9a57b', -2, -6, 4, 4); R('#2f3d6b', -2, -2, 4, 4); R(c.col === '#f4f4ec' ? '#d9455a' : '#f4f4ec', -2, -8, 4, 2);
+      return;
+    }
+    const w = c.kind === 'bus' ? 30 : 22, h0 = c.kind === 'bus' ? -10 : -6;
+    R('rgba(0,0,0,0.25)', -w / 2 + 1, 6, w, 2);
+    R(c.kind === 'bus' ? '#2f6fb0' : c.col, -w / 2, h0 + 4, w, 10 - h0 - 4 + 1);
+    R(c.kind === 'bus' ? '#2f6fb0' : c.col, -w / 2 + 4, h0, w - 9, 5);
+    R('#9fc4dc', -w / 2 + 6, h0 + 1, 5, 3); R('#9fc4dc', -w / 2 + 12, h0 + 1, w - 19, 3);
+    R('#2a2a2a', -w / 2 + 3, 5, 5, 4); R('#2a2a2a', w / 2 - 8, 5, 5, 4);
+    R(f ? '#fff2a8' : '#d9455a', f ? w / 2 - 1 : -w / 2, h0 + 6, 1, 2); R(f ? '#d9455a' : '#fff2a8', f ? -w / 2 : w / 2 - 1, h0 + 6, 1, 2);
+    if (c.kind === 'bus') R('#f2d24b', -w / 2, 2, w, 1);
+  }
+  function drawAmbientLow(ctx, cx, cy) {
+    const A = W.amb;
+    for (const f of A.fish) {   // ปลาใต้น้ำ (เงาจางๆ)
+      const x = Math.round(f.x - cx), y = Math.round(f.y - cy); if (x < -8 || x > 248 || y < -8 || y > 168) continue;
+      const dx = Math.cos(f.a) >= 0 ? 1 : -1;
+      ctx.globalAlpha = 0.75; ctx.fillStyle = f.col; ctx.fillRect(x - 3, y, 6, 2); ctx.fillRect(x - 3 - dx * 2, y - (W.anim % 20 < 10 ? 1 : 0), 2, 3);
+      ctx.fillStyle = '#1b1414'; ctx.fillRect(x + dx * 1, y, 1, 1); ctx.globalAlpha = 1;
+    }
+    ctx.strokeStyle = 'rgba(232,248,255,0.7)'; ctx.lineWidth = 1;
+    for (const r of A.ripples) { ctx.globalAlpha = 1 - r.t / 50; ctx.beginPath(); ctx.ellipse(r.x - cx, r.y - cy, 2 + r.t / 5, 1 + r.t / 10, 0, 0, 7); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+    if (A.water.length && !G.isNight()) {   // น้ำระยิบระยับ
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      for (let i = 0; i < 6; i++) { const [x, y] = A.water[(Math.floor(W.anim / 18) * 7 + i * 131) % A.water.length]; const sx = x * TS - cx + ((i * 5) % 12) + 2, sy = y * TS - cy + ((i * 3) % 10) + 3; if (sx > -2 && sx < 242 && sy > -2 && sy < 162) ctx.fillRect(sx, sy, 2, 1); }
+    }
+    for (const c of A.cars) { const x = c.x - cx, y = c.lane.y * TS + 8 - cy; if (x > -40 && x < 280 && y > -20 && y < 180) drawCar(ctx, c, x, y); }
+  }
+  function drawAmbientHigh(ctx, cx, cy) {
+    const A = W.amb;
+    for (const l of A.leaves) {
+      const x = Math.round(l.x - cx), y = Math.round(l.y - cy); if (x < -4 || x > 244 || y < -4 || y > 164) continue;
+      ctx.globalAlpha = Math.min(1, l.life / 40); ctx.fillStyle = l.col;
+      if (Math.sin(l.ph) > 0) { ctx.fillRect(x, y, 3, 2); ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x, y + 1, 3, 1); } else { ctx.fillRect(x, y, 2, 3); ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x + 1, y, 1, 3); }
+      ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.fillRect(x + 2, y + 6, 2, 1);   // เงาใบไม้บนพื้น
+    }
+    ctx.globalAlpha = 1;
+    if (A.clouds.length && !G.isNight() && !G.raining()) {   // เงาเมฆลอยผ่านช้าๆ
+      for (const c of A.clouds) {
+        const x = c.x - cx, y = c.y - cy; if (x < -c.r || x > 240 + c.r || y < -c.r || y > 160 + c.r) continue;
+        const g = ctx.createRadialGradient(x, y, c.r * 0.2, x, y, c.r); g.addColorStop(0, 'rgba(20,30,60,0.12)'); g.addColorStop(1, 'rgba(20,30,60,0)');
+        ctx.fillStyle = g; ctx.fillRect(x - c.r, y - c.r, c.r * 2, c.r * 2);
+      }
+    }
+  }
+  let vig = null;
+  function vignette() {   // ขอบจอมืดลงนิดๆ ให้ภาพดูนุ่มเหมือนเลนส์
+    if (vig) return vig;
+    vig = document.createElement('canvas'); vig.width = 240; vig.height = 160;
+    const g = vig.getContext('2d'), grd = g.createRadialGradient(120, 80, 60, 120, 80, 150);
+    grd.addColorStop(0, 'rgba(0,0,0,0)'); grd.addColorStop(1, 'rgba(10,10,30,0.28)'); g.fillStyle = grd; g.fillRect(0, 0, 240, 160);
+    return vig;
+  }
 
   function drawGate(ctx, x, y, indoor) {
     if (indoor) {   // ประตูเหล็กโรงช็อป
