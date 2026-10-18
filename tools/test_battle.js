@@ -49,5 +49,22 @@ const tank = G.makeMon('bee', 10, { ivs: 15 }); tank.held = 'yantra';
 ok(G.heldMult(G.makeMon('pob', 10), tank, G.DATA.moves.raw_bite) === 0.9, 'ผ้ายันต์ต้อง ×0.9');
 const hitter = G.makeMon('bee', 10, { ivs: 15 }); hitter.held = 'gloves';
 ok(Math.abs(G.heldMult(hitter, G.makeMon('pob', 10), G.DATA.moves.tackle) - 1.1) < 1e-9, 'ถุงมือช่างต้อง ×1.1');
+// 7) ยิม 3: พี่บูมใช้ยาฟื้น 2 ครั้ง, ยาหม้อดินแก้สถานะ, ท้องเสียทำให้ฟื้นได้น้อยลง
+G.rng = G.makeRng(5);
+const boom = G.makeMon('boom', 26, { ivs: 25 }); boom.hp = 5;
+const b3 = new G.Battle([G.makeMon('tle', 10)], [boom], { kind: 'master', trainerName: 'พี่บูม', ai: 2, potions: 2 });
+const ev3 = b3.turnAction({ type: 'move', idx: 0 });
+ok(b3.potions === 1 && ev3.some((e) => e.t === 'msg' && e.text.includes('ใช้ยาฟื้น')), 'พี่บูมต้องใช้ยาฟื้นเมื่อ HP ต่ำ');
+const sick = G.makeMon('boom', 26, { ivs: 25 }); sick.hp = 40; sick.status = 'psn';
+const b4 = new G.Battle([G.makeMon('tle', 10)], [sick], { kind: 'master', trainerName: 'พี่บูม', ai: 2 });
+b4.applyEffect('heal50cure', 'f', [], false);
+ok(sick.status === null && sick.hp === Math.min(sick.stats.hp, 40 + Math.floor(sick.stats.hp / 2)), 'ยาหม้อดินต้องแก้ท้องเสียและฟื้นครึ่งหนึ่ง');
+const sick2 = G.makeMon('pret', 20); sick2.hp = 10; sick2.status = 'psn';
+const b5 = new G.Battle([G.makeMon('tle', 10)], [sick2], { kind: 'wild' });
+b5.applyEffect('heal50', 'f', [], false);
+ok(sick2.hp === 10 + Math.floor(sick2.stats.hp / 4), 'ท้องเสียอยู่ ฟื้นได้แค่ 1/4');
+// 8) น้องหมอพยาบาล: ชื่อเฉพาะคน ชวนด้วยขนมปังสังขยาได้เต็ม
+const nurse = G.spawn('med_nurse', 20);
+ok(/^eng:med_nurse:\d$/.test(nurse.look) && G.isPerson(nurse), 'น้องพยาบาลต้องได้หน้าตาเฉพาะคน');
 console.log(fails ? `ไม่ผ่าน ${fails} ข้อ` : 'ผ่านทุกข้อ');
 process.exit(fails ? 1 : 0);

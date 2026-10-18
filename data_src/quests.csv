@@ -14,3 +14,16 @@ m_gym2,main,ตราเฟือง,friend,,,gym2_done,npc:friend,,,,ผ่า�
 s_calf,side,ลูกควายหลงทุ่ง,beedad,boss1_done,calf_asked,calf_done,npc:calf,calf_found,npc:beedad,rice_pork:3;money:150,ลูกควายเจ้าทองของพ่อบีหลุดไปในทุ่งนา ตามหาแล้วพากลับมาหาพ่อบี
 s_lunch,side,ข้าวห่อให้ตาสี,tle_mom,boss1_done,lunch_got,lunch_done,npc:tasi,,,herb_big:2;money:100,แม่เติ้ลฝากห่อข้าวเหนียวไก่ย่างไปให้ตาสีที่เถียงนา
 s_notes,side,สมุดโน้ตของอาจารย์,prof,kku_arrived,notes_asked,notes_done,npc:notes,notes_found,npc:prof,coupon:3;money:300,อาจารย์สมศักดิ์ลืมสมุดโน้ตไว้ในโรงอาหาร ไปหามาคืน
+m_phong,main,ข้ามลำน้ำพอง,guard,,,phong_arrived,map:phong:2:11,,,,ข้ามสะพานลำน้ำพองทางขวาของ มข. ไปฝั่งตะวันออก
+m_rival3,main,โจ้ดักทาง,joe3,,,rival3_done,npc:joe3,,,,โจ้แก๊งบ้านเหนือดักรออยู่ที่ศาลาริมน้ำ (แนะนำ Lv 20)
+m_hosp,main,บัตรคิวเบอร์ 113,reception,,,h_card,npc:reception,,,,ไปโรงพยาบาลอำเภอ ทำบัตรคิวที่เวชระเบียน
+m_screen,main,จุดคัดกรอง,screen,,,h_screen,npc:screen,,,,เดินตามเส้นเขียวไปจุดคัดกรอง วัดความดัน
+m_needle,main,ห้องเจาะเลือด,needle,,,tr_needle,npc:needle,,,,เดินตามเส้นฟ้าเข้าห้องเจาะเลือด ชนะน้องเข็ม
+m_xray,main,ห้องเอกซเรย์,xraytech,,,h_xray,npc:xraytech,,,,เดินตามเส้นเหลืองเข้าห้องเอกซเรย์ สับสวิตช์ไฟแล้วถ่ายเอกซเรย์
+m_samlee,main,ห้องยาชั้น 2,samlee,,,tr_samlee,npc:samlee,,,,ขึ้นลิฟต์ตามเส้นแดง ดันเตียงที่ขวางทาง แล้วชนะน้องสำลีที่ห้องยา
+m_rx,main,ใบสั่งยา,pharm,,,h_rx,npc:pharm,,,,รับใบสั่งยาจากพี่เภสัชที่เคาน์เตอร์ห้องยา
+m_intern,main,อินเทิร์นเฝ้าประตู,intern,,,tr_intern,npc:intern,,,,ลงลิฟต์ เดินตามเส้นม่วงไปประตูหลัง เข้าคลินิกแล้วชนะน้องหมออินเทิร์น
+m_gym3,main,ตราหูฟัง,boom,,,gym3_done,npc:boom,,,,ท้าพี่บูมที่คลินิก (แนะนำ Lv 23 · ธาตุน้ำได้เปรียบ ธาตุสายฟ้าเสียเปรียบ)
+s_worm,side,ไส้เดือนให้ลุงเปลี่ยน,plian,phong_arrived,worm_asked,worm_done,npc:worm1,worms_all,npc:plian,rod:1;money:150,หาไส้เดือนในพงอ้อริมพอง 3 ตัว ให้ลุงเปลี่ยนที่ท่าน้ำ
+s_card,side,ใบนัดของยายหอม,yaihom,h_card,card_asked,card_done,npc:card,card_found,npc:yaihom,herb_big:3;money:300,ยายหอมลืมใบนัดหมอไว้ที่ตลาดเช้า (เปิดตี 5 – 9 โมง) ไปหาแล้วเอามาคืน
+s_porridge,side,ข้าวต้มให้น้องจ๋า,joe3,rival3_done,porridge_asked,porridge_done,npc:porridge,porridge_got,npc:sister,sangkaya:3;money:300,ซื้อข้าวต้มหมูสับที่ตลาดเช้า (ตี 5 – 9 โมง) ไปให้น้องสาวโจ้ที่วอร์ดชั้น 2

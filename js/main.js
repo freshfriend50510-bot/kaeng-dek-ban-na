@@ -140,7 +140,7 @@
     if (!s.party.length && s.storage.length) { s.party.push(s.storage.shift()); fix(); }
     // ตำแหน่งต้องอยู่บนแผนที่ที่มีจริงและยืนได้
     const rows = D.maps[s.map], st = D.world.start;
-    const ok = rows && rows[s.y] && rows[s.y][s.x] && '.:fTL_-x~><O2aeg+0'.includes(rows[s.y][s.x]);
+    const ok = rows && rows[s.y] && rows[s.y][s.x] && '.:fTL_-x~><O2aeg+0dv1345='.includes(rows[s.y][s.x]);
     if (!ok) { fix(); s.map = st.map; s.x = st.x; s.y = st.y; s.dir = st.dir; }
     if (!['up', 'down', 'left', 'right'].includes(s.dir)) s.dir = 'down';
     s.name = String(s.name || 'หัวหน้า').slice(0, 12);

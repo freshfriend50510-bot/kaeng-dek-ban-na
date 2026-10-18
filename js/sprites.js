@@ -68,6 +68,7 @@
     apron: { 10: '....AAAAAAAA....', 11: '....AAAAAAAA....', 12: '....AAAAAAAA....', 13: '....AAAAAAAA....' },
     megaphone: { 9: '.zz.............', 10: 'zzzr............', 11: '.zz.............' },
     headband: { 3: '...WWWWWWWWWW...' },
+    nursecap: { 0: '.....WWWWWW.....', 1: '......WRRW......' },   // หมวกพยาบาลกาชาด
   };
   // ของประจำตัวเด็กขั้น 2 และ 3 (อักษรเล็ก = สีในพาเลต ACC)
   const ACC = {
@@ -229,6 +230,74 @@
         '.....BBBBBb.....',
         '.....PPPPPP.....',
         '......FF.FF.....'] },
+    // พี่บูม: หมอหนุ่มหล่อสไตล์เกาหลี ผมหน้าม้าปัดข้างนุ่มๆ ผิวขาวใส เสื้อกาวน์ขาวคลุมเสื้อยืดสีเขียวหัวเป็ด หูฟังสีเงินคล้องคอ
+    boom: {
+      pal: { H: '#2a1d18', h: '#5a4438', S: '#fbe0c8', s: '#e8bfa0', K: '#1b1218', j: '#5a3a2a', m: '#d48f86', E: '#3a2622', W: '#f6f6f2', w: '#d4dae2',
+        T: '#2f8f86', y: '#b8c0cc', P: '#2a3042', F: '#3a2a22' },
+      rows: [
+        '.....HHHHHH.....',
+        '...HHHHHHHHHH...',
+        '..HHHhhhHHHHHH..',
+        '..HHHHHhhHHHHH..',
+        '..HHHHHHHHHSHH..',
+        '..HSEESSSSEESH..',
+        '..HSSSSSSSSSSH..',
+        '..HSSKjSSjKSSH..',
+        '...SSSSSSSSSS...',
+        '....sSSmmSSs....',
+        '.....sSSSSs.....',
+        '..WWWwTTTTwWWW..',
+        '..WWWyTTTTyWWW..',
+        '..SWWWTyyTWWWS..',
+        '...WPPPPPPPPW...',
+        '....FF....FF....'],
+      up: [
+        '.....HHHHHH.....',
+        '...HHHHHHHHHH...',
+        '..HHHHHhHHHHHH..',
+        '..HHHHhHHHHHHH..',
+        '..HHHHHHHHHHHH..',
+        '..HHHHHHHHHHHH..',
+        '..HHHHHHHHHHHH..',
+        '..HHHHHHHHHHHH..',
+        '..HHHHHHHHHHHH..',
+        '...HHHHHHHHHH...',
+        '.....sSSSSs.....',
+        '..WWWWWWWWWWWW..',
+        '..WWWWWWWWWWWW..',
+        '..SWWWWWWWWWWS..',
+        '...WPPPPPPPPW...',
+        '....FF....FF....'],
+      side: [
+        '.....HHHHHH.....',
+        '....HHHHHHHHH...',
+        '...HHHhhhHHHHH..',
+        '...HHHHHHhhHHHH.',
+        '...HHHHHHHHHHH..',
+        '...HHHHSSSSEES..',
+        '...HHHHSSSSSSS..',
+        '...HHHSSSSSjKS..',
+        '....HHSSSSSSSSS.',
+        '.....HSSSSSSmS..',
+        '......sSSSSs....',
+        '.....WWwTTy.....',
+        '....WWWWWTy.....',
+        '....WWWWWWT.....',
+        '.....WPPPPW.....',
+        '......FF.FF.....'] },
+    // คนในโรงพยาบาลและตัวอำเภอ
+    receptionist: { hair: 'tied', H: C.hairBlack, S: C.skinMid, C: '#8ab8d8', P: '#2f3d6b', extra: ['glasses'] },
+    headnurse: { hair: 'bob', H: C.hairGray, S: C.skinMid, C: '#f4f4ec', P: '#f4f4ec', F: '#f4f4ec', extra: ['glasses'], patch: ['nursecap'], R: '#d9455a' },
+    nurse: { hair: 'long', H: C.hairBlack, S: C.skinFair, C: '#f4f4ec', P: '#f4f4ec', F: '#f4f4ec', extra: [], patch: ['nursecap'], R: '#d9455a' },
+    xraytech: { hair: 'short', H: C.hairBlack, S: C.skinMid, C: '#4a6a8a', P: '#4a6a8a', extra: [] },
+    pharmacist: { hair: 'neat', H: C.hairBlack, S: C.skinFair, C: '#f4f4ec', P: '#3b3b3b', extra: ['glasses'] },
+    hiatong: { hair: 'buzz', H: C.hairGray, S: C.skinFair, C: '#c5482b', P: '#3b3b3b', extra: ['grin'] },
+    yaihom: { hair: 'tied', H: C.hairGray, S: C.skinOld, C: '#8a3f6b', P: '#4a3b2f', extra: ['robe'] },
+    plian: { hair: 'cap', B: '#d9b25a', H: C.hairGray, S: C.skinTan, C: '#2f3d6b', P: '#2f3d6b', extra: ['grin', 'shorts', 'barefoot'] },
+    sister: { hair: 'bob', H: C.hairBrown, S: C.skinTan, C: '#9fd8f0', P: '#9fd8f0', extra: [] },
+    boommom: { hair: 'tied', H: C.hairBlack, S: C.skinTan, C: '#e9b949', P: '#4a3b2f', extra: ['grin'], patch: ['apron'], A: '#d9455a' },
+    breadlady: { hair: 'tied', H: C.hairBrown, S: C.skinMid, C: '#f2a0c0', P: '#3d3260', extra: ['grin'], patch: ['apron'], A: '#f4f4ec' },
+    fisher: { hair: 'buzz', H: C.hairBlack, S: C.skinTan, C: '#5a7a4a', P: '#2f3d6b', extra: ['shorts', 'barefoot'] },
     wak1: { hair: 'buzz', H: C.hairBlack, S: C.skinTan, shop: 'eng_civil', P: '#2a2a33', extra: ['shop'], patch: ['brows', 'mustache'] },
     wak2: { hair: 'spiky', H: C.hairBlack, S: C.skinMid, shop: 'eng_elec', P: '#2a2a33', extra: ['shop', 'shout'], patch: ['brows', 'megaphone'], z: '#f4f4ec', r: '#c5482b' },
   };
@@ -240,6 +309,8 @@
     eng_chem: { C: '#6b3f8a', E: '#c8f0ff', mark: ['.X.', '.X.', 'XXX'] },   // ขวดแก้ว
     eng_env: { C: '#2f7a4a', E: '#c8ec8a', mark: ['.XX', 'XXX', 'XX.'] },    // ใบไม้
     eng_ie: { C: '#6f7480', E: '#ffb84a', mark: ['..X', '.XX', 'XXX'] },     // กราฟแท่ง
+    med_nurse: { C: '#f4f4ec', E: '#d9455a', mark: ['.X.', 'XXX', '.X.'] },  // กาชาด (ชุดพยาบาล)
+    med_doc: { C: '#f4f4ec', E: '#2f8f86', mark: ['X.X', '.X.', '.X.'] },    // คทาหมอ (เสื้อกาวน์)
   };
 
   // ผีสาง คางคก ควาย หมา ไอเท็ม: วาดเองทั้งตัว
@@ -271,6 +342,37 @@
     dog: { pal: { B: '#b07a44', D: '#7a5030', W: '#f2e2c4', K: '#1b1414', R: '#c5482b' }, rows: [
       '................', '................', '...DD......DD...', '...DBD....DBD...', '...DBBBBBBBBD...', '...BBBBBBBBBB...', '...BKBBBBBBKB...', '...BBBWWWWBBB...',
       '....BBWKKWBB....', '.....BWWWWB.....', '....RRRRRRRR....', '....BBBBBBBB....', '...BBWBBBBWBB...', '...BBWBBBBWBB..D', '...DD.DD.DD.DDD.', '................'] },
+    // ด่าน 3: ผีริมลำน้ำพอง ตัวอำเภอ และโรงพยาบาล + เตียงคนไข้ (ดันได้)
+    nangngueak: { pal: { G: '#3fae9a', g: '#2a7a6e', S: '#f2d2b6', K: '#1b1414', M: '#d9758a', W: '#f4e8d8', T: '#6fb8d8', t: '#4a8ab0', F: '#c8ecf8' }, rows: [
+      '......GGGG......', '....GGGGGGGG....', '...GGGgGGGGGG...', '...GGSSSSSSGG...', '..GGSKSSSSKSGG..', '..GGSSSSSSSSGG..', '..GgGSSMMSSGgG..', '..GG.SSSSSS.GG..',
+      '..Gg.SWWWWS.gG..', '..G..SSSSSS..G..', '.....TTTTTT.....', '......TTtTT.....', '.......TTtT.....', '........TTT.....', '.......FFTFF....', '......FF...FF...'] },
+    takhian: { pal: { H: '#1e2a1e', L: '#6cc04a', S: '#e8c8a4', K: '#1b1414', M: '#b8485a', C: '#3f8a4a', c: '#2a6a36', Y: '#e2b84a', W: '#d8f0d8' }, rows: [
+      '.....HHHHHH.....', '...LHHHHHHHHL...', '..LHHHHHHHHHHL..', '..HHSSSSSSSSHH..', '..HHSKKSSKKSHH..', '..HHSSSSSSSSHH..', '..HHHSSMMSSHHH..', '..HHH.SSSS.HHH..',
+      '..HHYCCCCCCYHH..', '..HHSCcCCcCSHH..', '..HH.CCCCCC.HH..', '..H..CCccCC..H..', '.....CCCCCC.....', '.....WCCCCW.....', '......WWWW......', '.......WW.......'] },
+    taehak: { pal: { N: '#d9b25a', n: '#a8823a', S: '#c08a62', K: '#1b1414', M: '#7a2e2a', W: '#e8e2d0', C: '#2f3d6b', P: '#24305e', Y: '#d9b25a', h: '#8a6440', y: '#b8bcc4' }, rows: [
+      '......NNNN......', '....NNNNNNNN....', '..NNnnnnnnnnNN..', '.....SSSSSS.....', '.....SKSSKS.....', '.....SSSSSS.....', '.....SWMMWS..yy.', '......WWWW...yh.',
+      '....CCCCCCCC.h..', '...CCCCCCCCCSh..', '..YCCCCCCCCC.h..', '..Y.CCCCCCCC.h..', '....YPPPPPPY.h..', '.....PP..PP.....', '.....YY..YY.....', '................'] },
+    krasue: { pal: { H: '#1b1414', S: '#f4d8c0', K: '#1b1414', R: '#d9455a', O: '#f2c84b', Y: '#fff2a8', o: '#e8913a' }, rows: [
+      '................', '.....YYYYYY.....', '....YHHHHHHY....', '...YHHHHHHHHY...', '...YHSSSSSSHY...', '...YHSKSSKSHY...', '...YHSSSSSSHY...', '....YSSRRSSY....',
+      '.....YSSSSY.....', '......OYYO......', '......OYYo......', '.....O.YY.o.....', '.....o.Yo..O....', '....O...O...o...', '....o...o....O..', '...........o....'] },
+    nak: { pal: { B: '#2f6fb0', b: '#5fa8e0', Y: '#e8bf4a', K: '#1b1414', W: '#ffffff', R: '#d9455a', L: '#c8ecf8' }, rows: [
+      '....Y.Y.Y.......', '....YYYYY.......', '...BBBBBBB......', '..BBKWBBKWB.....', '..BBBBBBBBB.....', '...BLLLLLB.R....', '....BBBBB.R.....', '.....BbBB.......',
+      '......BbBB......', '.......BbBB.....', '........BbBB....', '.......BbBB.....', '.....BBbBB......', '...BBbbBB.......', '..BBBBBB........', '.BB.............'] },
+    takhon: { pal: { R: '#d9455a', Y: '#f2d24b', G: '#4f9a5a', B: '#3a6ab0', W: '#f4f4ec', K: '#1b1414', N: '#e8913a', P: '#8a3f6b', S: '#c08a62', w: '#8a6440' }, rows: [
+      '...Y..RRRR..Y...', '...YYRRRRRRYY...', '....RWWRRWWR....', '....RWKRRKWR....', '....RRRNNRRR....', '....YRRNNRRY....', '....YYRNNRYY....', '.....GGNNGG.....',
+      '....BBGGGGRR....', '...BBBGGGRRRw...', '..SBBYYGGRRRSw..', '....PPYYBBPP.w..', '....PPPPBBPP.w..', '....GG....YY....', '....GG....YY....', '...KKK....KKK...'] },
+    pusom: { pal: { S: '#c08a62', K: '#1b1414', W: '#f4f4ec', w: '#cfcfc8', C: '#e8e2d0', c: '#b8b0a0', Y: '#e2b84a', y: '#a8823a' }, rows: [
+      '................', '......SSSS......', '....wSSSSSSw....', '....wSKSSKSw....', '....wSSSSSSw....', '.....WWWWWW.....', '....WWWWWWWW....', '...CWWWWWWWWC...',
+      '..CCCWWWWWWCCC..', '..CSSYYYYYYSSC..', '..CCYYyYYyYYCC..', '..CCYYYYYYYYCC..', '..CCcYYYYYYcCC..', '.cCCCCyyyyCCCCc.', '.cccCCCCCCCCccc.', '................'] },
+    nurseghost: { pal: { W: '#eef4f8', w: '#c8d8e4', R: '#d9455a', H: '#7a7a8a', S: '#dfe8ee', K: '#2a3a4a', M: '#8a9aa8', B: '#9fd8f0', b: '#5fb8e0' }, rows: [
+      '......WWWW......', '.....WWRRWW.....', '....HWWWWWWH....', '....HSSSSSSH..BB', '....HSKSSKSH..BB', '....HSSSSSSH..b.', '.....SSMMSS...b.', '.....wSSSSw...b.',
+      '....WWWWWWWW..b.', '...WWWWRWWWWSSb.', '...WWWWWWWWW....', '....WWWWWWWW....', '....wWWWWWWw....', '.....wWWWWw.....', '......wWWw......', '.......ww.......'] },
+    wheelchair: { pal: { M: '#9aa3ae', m: '#5f6873', B: '#8a3f6b', b: '#a85a8a', W: '#ffffff', K: '#1b1414', G: '#6cf06c', g: '#3a9a3a' }, rows: [
+      '................', '..MM............', '..MM............', '..MBBBBBBB......', '..MBbBBBbB......', '..MBWKBWKB......', '..MBBBBBBBM.....', '..MBBBBBBBMMMM..',
+      '..MMMMMMMMM..M..', '..M.....M....M..', '.GGGG..M.....M..', 'GgmmgG.MMMMMMM..', 'GmMMmG......gGg.', 'GgmmgG......GmG.', '.GGGG.......gGg.', '................'] },
+    bed: { pal: { M: '#9aa3ae', W: '#f4f4ec', B: '#5fb8e0', b: '#4a90c0', K: '#3a3f48' }, rows: [
+      '................', '.MMMMMMMMMMMMMM.', '.MWWWWWWWWWWWWM.', '.MWWWWWWWWWWWWM.', '.MBBBBBBBBBBBBM.', '.MBbBBBBBBBBBBM.', '.MBBBBBBBBBBBBM.', '.MBBBBBBBBBBbBM.',
+      '.MBBBBBBBBBBBBM.', '.MBBBBbBBBBBBBM.', '.MBBBBBBBBBBBBM.', '.MMMMMMMMMMMMMM.', '..K..........K..', '..K..........K..', '.KKK........KKK.', '................'] },
     item: { pal: { W: '#f4f4ec', R: '#c5482b', K: '#2a1d18' }, rows: [
       '................', '................', '................', '................', '................', '......KKKK......', '.....KWWWWK.....', '....KWWRRWWK....',
       '....KWRRRRWK....', '....KWWRRWWK....', '.....KWWWWK.....', '......KKKK......', '................', '................', '................', '................'] },
@@ -297,8 +399,11 @@
   // หน้าตาน้องวิศวะแต่ละคน: "eng:<สาขา>:<ลำดับในรายชื่อ>"
   function engLook(branch, i) {
     const e = ((G.DATA && G.DATA.engNames[branch]) || [])[i] || { sex: 'm', hair: 'short', skin: 'mid', glasses: false };
+    const base = { hair: e.hair, H: i % 3 === 2 ? C.hairBrown : C.hairBlack, S: SKIN[e.skin] || C.skinMid, shop: branch };
+    if (branch === 'med_nurse') return { ...base, P: '#f4f4ec', F: '#f4f4ec', R: '#d9455a', extra: e.glasses ? ['glasses'] : [], patch: ['nursecap'] };
+    if (branch === 'med_doc') return { ...base, P: i % 2 ? '#3b4a6b' : '#2a2a33', N: '#9aa3ae', extra: ['stethoscope', ...(e.glasses ? ['glasses'] : [])] };
     const extra = ['shop']; if (e.glasses) extra.push('glasses');
-    return { hair: e.hair, H: i % 3 === 2 ? C.hairBrown : C.hairBlack, S: SKIN[e.skin] || C.skinMid, shop: branch, P: i % 2 ? '#3b4a6b' : '#2a2a33', extra };
+    return { ...base, P: i % 2 ? '#3b4a6b' : '#2a2a33', extra };
   }
   function defFor(id) {
     if (CUSTOM[id]) return { ...CUSTOM[id], human: false };

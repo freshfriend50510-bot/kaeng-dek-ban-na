@@ -31,9 +31,9 @@
       const side = Q().find((k) => G.questState(k) === 'active');
       if (side) return { text: `[เควสต์รอง] ${side.desc}`, ...G.questTarget(side) };
       const S = G.state;
-      const engs = [...S.party, ...S.storage].filter((m) => G.DATA.species[m.sp].kind === 'eng').length;
+      const engs = [...S.party, ...S.storage].filter((m) => G.isPerson(m)).length;
       const all = Object.values(G.DATA.engNames).reduce((a, l) => a + l.length, 0) + 1;
-      return { text: `ชวนน้องวิศวะเข้าแก๊ง (${engs}/${all} คน) · ยิม 3 พี่บูมมาในเวอร์ชันหน้า` };
+      return { text: `ชวนน้องวิศวะ น้องพยาบาล น้องหมอเข้าแก๊ง (${engs}/${all} คน) · ดอนปู่ตาและยิม 4 มาในเวอร์ชันหน้า` };
     }
     return { text: q.desc, ...G.questTarget(q) };
   };

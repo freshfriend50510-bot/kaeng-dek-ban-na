@@ -9,8 +9,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "data_src"
 OUT = ROOT / "js" / "data.js"
-TILES = ".:#PwTRrHhDSFobf^MmAILKn" + "aeg+JNCqQljiz!&$?@0X" + "_-%xtcksBp~E><OZYVu6789W2G"   # อักษรที่แผนที่ใช้ได้ (ดูความหมายใน js/world.js)
-WALK = ".:fTL_-x~><O2aeg+0"   # ช่องที่เดินได้ (ต้องตรงกับ WALK ใน js/world.js)
+TILES = ".:#PwTRrHhDSFobf^MmAILKn" + "aeg+JNCqQljiz!&$?@0X" + "_-%xtcksBp~E><OZYVu6789W2G" + "dvyU[]1345="   # อักษรที่แผนที่ใช้ได้ (ดูความหมายใน js/world.js)
+WALK = ".:fTL_-x~><O2aeg+0dv1345="   # ช่องที่เดินได้ (ต้องตรงกับ WALK ใน js/world.js)
 
 
 def read_csv(name):

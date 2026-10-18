@@ -112,6 +112,64 @@
    "music": "campus",
    "indoor": true,
    "floor": "-"
+  },
+  "phong": {
+   "name": "ริมลำน้ำพอง",
+   "music": "river",
+   "encounter": true,
+   "bg": "phong"
+  },
+  "amphoe": {
+   "name": "ตัวอำเภอ",
+   "music": "town",
+   "encounter": true,
+   "bg": "amphoe"
+  },
+  "pharmacy": {
+   "name": "ร้านขายยาเฮียตง",
+   "music": "town",
+   "indoor": true,
+   "floor": "-"
+  },
+  "hospital": {
+   "name": "โรงพยาบาลอำเภอ ชั้น 1",
+   "music": "hospital",
+   "indoor": true,
+   "floor": "-",
+   "wet": true
+  },
+  "lab": {
+   "name": "ห้องเจาะเลือด",
+   "music": "hospital",
+   "indoor": true,
+   "floor": "-",
+   "bg": "hospital"
+  },
+  "xray": {
+   "name": "ห้องเอกซเรย์",
+   "music": "hospital",
+   "indoor": true,
+   "floor": "-",
+   "darkUntil": "xray_on",
+   "bg": "hospital"
+  },
+  "ward": {
+   "name": "โรงพยาบาลอำเภอ ชั้น 2 (วอร์ด)",
+   "music": "hospital",
+   "indoor": true,
+   "floor": "-",
+   "wet": true,
+   "encounter": true,
+   "encTiles": "_",
+   "encRate": 0.07,
+   "bg": "hospital"
+  },
+  "clinic": {
+   "name": "คลินิกหมอบูม (ยิม 3)",
+   "music": "hospital",
+   "indoor": true,
+   "floor": "-",
+   "bg": "clinic"
   }
  },
  "warps": [
@@ -290,6 +348,150 @@
    "tx": 27,
    "ty": 23,
    "dir": "down"
+  },
+  {
+   "map": "kku",
+   "x": 46,
+   "y": 15,
+   "to": "phong",
+   "tx": 1,
+   "ty": 11,
+   "dir": "right"
+  },
+  {
+   "map": "kku",
+   "x": 46,
+   "y": 16,
+   "to": "phong",
+   "tx": 1,
+   "ty": 12,
+   "dir": "right"
+  },
+  {
+   "map": "phong",
+   "x": 0,
+   "y": 11,
+   "to": "kku",
+   "tx": 45,
+   "ty": 15,
+   "dir": "left"
+  },
+  {
+   "map": "phong",
+   "x": 0,
+   "y": 12,
+   "to": "kku",
+   "tx": 45,
+   "ty": 16,
+   "dir": "left"
+  },
+  {
+   "map": "phong",
+   "x": 39,
+   "y": 11,
+   "to": "amphoe",
+   "tx": 1,
+   "ty": 13,
+   "dir": "right"
+  },
+  {
+   "map": "phong",
+   "x": 39,
+   "y": 12,
+   "to": "amphoe",
+   "tx": 1,
+   "ty": 14,
+   "dir": "right"
+  },
+  {
+   "map": "amphoe",
+   "x": 0,
+   "y": 13,
+   "to": "phong",
+   "tx": 38,
+   "ty": 11,
+   "dir": "left"
+  },
+  {
+   "map": "amphoe",
+   "x": 0,
+   "y": 14,
+   "to": "phong",
+   "tx": 38,
+   "ty": 12,
+   "dir": "left"
+  },
+  {
+   "map": "hospital",
+   "x": 14,
+   "y": 17,
+   "to": "amphoe",
+   "tx": 32,
+   "ty": 8,
+   "dir": "down"
+  },
+  {
+   "map": "hospital",
+   "x": 15,
+   "y": 17,
+   "to": "amphoe",
+   "tx": 32,
+   "ty": 8,
+   "dir": "down"
+  },
+  {
+   "map": "pharmacy",
+   "x": 4,
+   "y": 7,
+   "to": "amphoe",
+   "tx": 5,
+   "ty": 5,
+   "dir": "down"
+  },
+  {
+   "map": "lab",
+   "x": 4,
+   "y": 7,
+   "to": "hospital",
+   "tx": 8,
+   "ty": 7,
+   "dir": "down"
+  },
+  {
+   "map": "xray",
+   "x": 4,
+   "y": 7,
+   "to": "hospital",
+   "tx": 13,
+   "ty": 7,
+   "dir": "down"
+  },
+  {
+   "map": "ward",
+   "x": 2,
+   "y": 14,
+   "to": "hospital",
+   "tx": 23,
+   "ty": 7,
+   "dir": "down"
+  },
+  {
+   "map": "clinic",
+   "x": 6,
+   "y": 11,
+   "to": "hospital",
+   "tx": 27,
+   "ty": 7,
+   "dir": "down"
+  },
+  {
+   "map": "clinic",
+   "x": 7,
+   "y": 11,
+   "to": "hospital",
+   "tx": 27,
+   "ty": 7,
+   "dir": "down"
   }
  ],
  "doors": [
@@ -445,6 +647,126 @@
    "to": "dorm",
    "tx": 4,
    "ty": 6
+  },
+  {
+   "map": "amphoe",
+   "x": 32,
+   "y": 7,
+   "to": "hospital",
+   "tx": 14,
+   "ty": 16
+  },
+  {
+   "map": "amphoe",
+   "x": 5,
+   "y": 4,
+   "to": "pharmacy",
+   "tx": 4,
+   "ty": 6,
+   "open": [
+    7,
+    21
+   ],
+   "closedText": "ร้านขายยาเฮียตงปิดแล้ว (เปิด 7 โมงเช้า – 3 ทุ่ม)"
+  },
+  {
+   "map": "amphoe",
+   "x": 13,
+   "y": 5,
+   "script": "temple3"
+  },
+  {
+   "map": "amphoe",
+   "x": 27,
+   "y": 19,
+   "script": "nurse_dorm",
+   "label": "เคาะประตูบ้านพักพยาบาล"
+  },
+  {
+   "map": "amphoe",
+   "x": 37,
+   "y": 19,
+   "script": "house3",
+   "label": "เคาะประตู"
+  },
+  {
+   "map": "phong",
+   "x": 32,
+   "y": 16,
+   "script": "plian_hut",
+   "label": "เคาะประตูกระท่อม"
+  },
+  {
+   "map": "hospital",
+   "x": 3,
+   "y": 6,
+   "script": "h_wrong",
+   "label": "เข้าห้องคลอด",
+   "room": "ห้องคลอด"
+  },
+  {
+   "map": "hospital",
+   "x": 8,
+   "y": 6,
+   "to": "lab",
+   "tx": 4,
+   "ty": 6,
+   "need": [
+    "h_screen"
+   ],
+   "script": "h_wrong",
+   "room": "ห้องเจาะเลือด",
+   "label": "เข้าห้องเจาะเลือด (เส้นฟ้า)"
+  },
+  {
+   "map": "hospital",
+   "x": 13,
+   "y": 6,
+   "to": "xray",
+   "tx": 4,
+   "ty": 6,
+   "need": [
+    "tr_needle"
+   ],
+   "script": "h_wrong",
+   "room": "ห้องเอกซเรย์",
+   "label": "เข้าห้องเอกซเรย์ (เส้นเหลือง)"
+  },
+  {
+   "map": "hospital",
+   "x": 18,
+   "y": 6,
+   "script": "h_wrong",
+   "label": "เข้าห้องผ่าตัด",
+   "room": "ห้องผ่าตัด"
+  },
+  {
+   "map": "hospital",
+   "x": 23,
+   "y": 6,
+   "to": "ward",
+   "tx": 3,
+   "ty": 14,
+   "need": [
+    "h_xray"
+   ],
+   "script": "h_wrong",
+   "room": "ลิฟต์ขึ้นวอร์ด",
+   "label": "ขึ้นลิฟต์ (เส้นแดง)"
+  },
+  {
+   "map": "hospital",
+   "x": 27,
+   "y": 6,
+   "to": "clinic",
+   "tx": 6,
+   "ty": 10,
+   "need": [
+    "h_rx"
+   ],
+   "script": "h_wrong",
+   "room": "ประตูหลัง",
+   "label": "ประตูหลังไปคลินิก (เส้นม่วง)"
   }
  ],
  "signs": [
@@ -567,6 +889,60 @@
    "x": 42,
    "y": 18,
    "text": "ระวัง! น้องวิศวะชอบเดินหลงในหญ้ารก ชวนเข้าแก๊งได้ด้วยคูปองหมูกระทะ"
+  },
+  {
+   "map": "phong",
+   "x": 19,
+   "y": 10,
+   "text": "ศาลเจ้าแม่ตะเคียน ↑ · ห้ามตัดกิ่งตะเคียนเด็ดขาด!"
+  },
+  {
+   "map": "phong",
+   "x": 9,
+   "y": 13,
+   "text": "← สะพานกลับ มข.   ตัวอำเภอ →"
+  },
+  {
+   "map": "phong",
+   "x": 36,
+   "y": 13,
+   "text": "ตัวอำเภอ → โรงพยาบาลอำเภอ ตลาดเช้า ร้านขายยา"
+  },
+  {
+   "map": "phong",
+   "x": 8,
+   "y": 17,
+   "text": "ท่าน้ำลุงเปลี่ยน · ตกปลาต้องมีเบ็ด · นั่งเรือข้ามไปเกาะทราย ถามลุงได้"
+  },
+  {
+   "map": "amphoe",
+   "x": 18,
+   "y": 11,
+   "text": "วงเวียนหอนาฬิกา · โรงพยาบาลอำเภอ ↗"
+  },
+  {
+   "map": "amphoe",
+   "x": 17,
+   "y": 16,
+   "text": "ตลาดเช้า เปิดตี 5 – 9 โมงเช้า (ขนมปังสังขยา ข้าวต้ม)"
+  },
+  {
+   "map": "amphoe",
+   "x": 23,
+   "y": 16,
+   "text": "บ้านพักพยาบาล"
+  },
+  {
+   "map": "amphoe",
+   "x": 9,
+   "y": 5,
+   "text": "วัดริมน้ำ · ร้านขายยาเฮียตง (เปิด 7 โมง – 3 ทุ่ม)"
+  },
+  {
+   "map": "amphoe",
+   "x": 30,
+   "y": 10,
+   "text": "โรงพยาบาลอำเภอ · เปิด 24 ชั่วโมง · คนไข้ใหม่ติดต่อเวชระเบียน แล้วเดินตามเส้นสีบนพื้น"
   }
  ],
  "npcs": [
@@ -1552,6 +1928,553 @@
    "script": "notes",
    "showIf": "notes_asked",
    "hideIf": "notes_found"
+  },
+  {
+   "id": "joe3",
+   "name": "โจ้ แก๊งบ้านเหนือ",
+   "map": "phong",
+   "x": 20,
+   "y": 16,
+   "look": "rival",
+   "dir": "left",
+   "script": "joe3",
+   "hideIf": "rival3_done",
+   "trainer": {
+    "name": "โจ้ แก๊งบ้านเหนือ",
+    "team": [],
+    "money": 400,
+    "sight": 4,
+    "flag": "rival3_done",
+    "dyn": "rival3",
+    "intro": "",
+    "lose": ""
+   }
+  },
+  {
+   "id": "plian",
+   "name": "ลุงเปลี่ยน",
+   "map": "phong",
+   "x": 7,
+   "y": 16,
+   "look": "plian",
+   "dir": "left",
+   "script": "plian"
+  },
+  {
+   "id": "plian2",
+   "name": "ลุงเปลี่ยน",
+   "map": "phong",
+   "x": 4,
+   "y": 5,
+   "look": "plian",
+   "dir": "down",
+   "script": "plian2"
+  },
+  {
+   "id": "farmer3",
+   "name": "ลุงทองดี",
+   "map": "phong",
+   "x": 29,
+   "y": 9,
+   "look": "beedad",
+   "dir": "down",
+   "script": "farmer3"
+  },
+  {
+   "id": "worm1",
+   "name": "ไส้เดือน",
+   "map": "phong",
+   "x": 12,
+   "y": 4,
+   "look": "item",
+   "dir": "down",
+   "script": "worm",
+   "flag": "worm1",
+   "showIf": "worm_asked",
+   "hideIf": "worm1"
+  },
+  {
+   "id": "worm2",
+   "name": "ไส้เดือน",
+   "map": "phong",
+   "x": 15,
+   "y": 19,
+   "look": "item",
+   "dir": "down",
+   "script": "worm",
+   "flag": "worm2",
+   "showIf": "worm_asked",
+   "hideIf": "worm2"
+  },
+  {
+   "id": "worm3",
+   "name": "ไส้เดือน",
+   "map": "phong",
+   "x": 34,
+   "y": 20,
+   "look": "item",
+   "dir": "down",
+   "script": "worm",
+   "flag": "worm3",
+   "showIf": "worm_asked",
+   "hideIf": "worm3"
+  },
+  {
+   "id": "pitem1",
+   "name": "ของตกอยู่",
+   "map": "phong",
+   "x": 36,
+   "y": 4,
+   "look": "item",
+   "dir": "down",
+   "script": "item",
+   "item": "saline",
+   "flag": "pit1",
+   "hideIf": "pit1"
+  },
+  {
+   "id": "pitem2",
+   "name": "ของตกอยู่",
+   "map": "phong",
+   "x": 3,
+   "y": 4,
+   "look": "item",
+   "dir": "down",
+   "script": "item",
+   "item": "ovaltine_shake",
+   "flag": "pit2",
+   "hideIf": "pit2"
+  },
+  {
+   "id": "ptr1",
+   "name": "ป้าชาวประมง",
+   "map": "phong",
+   "x": 12,
+   "y": 10,
+   "look": "fisher",
+   "dir": "right",
+   "script": "trainer",
+   "trainer": {
+    "name": "ป้าชาวประมง",
+    "team": [
+     [
+      "nangngueak",
+      20
+     ],
+     [
+      "taehak",
+      20
+     ]
+    ],
+    "money": 250,
+    "sight": 3,
+    "flag": "tr_phong1",
+    "intro": "ปลาไม่กินเบ็ดทั้งวัน! มาสู้กับป้าแก้เซ็งหน่อย!",
+    "lose": "โอ๊ย แพ้เด็กอีกแล้ว วันนี้ดวงไม่ดีจริงๆ"
+   }
+  },
+  {
+   "id": "monk3",
+   "name": "หลวงพ่อวัดริมน้ำ",
+   "map": "amphoe",
+   "x": 13,
+   "y": 6,
+   "look": "monk",
+   "dir": "down",
+   "script": "monk3"
+  },
+  {
+   "id": "porridge",
+   "name": "แม่ค้าข้าวต้ม",
+   "map": "amphoe",
+   "x": 4,
+   "y": 19,
+   "look": "vendor",
+   "dir": "up",
+   "script": "porridge",
+   "hours": [
+    5,
+    9
+   ]
+  },
+  {
+   "id": "bread",
+   "name": "แม่ค้าขนมปังสังขยา",
+   "map": "amphoe",
+   "x": 8,
+   "y": 19,
+   "look": "breadlady",
+   "dir": "up",
+   "script": "bread",
+   "hours": [
+    5,
+    9
+   ]
+  },
+  {
+   "id": "card",
+   "name": "ใบนัดหมอ",
+   "map": "amphoe",
+   "x": 14,
+   "y": 19,
+   "look": "item",
+   "dir": "down",
+   "script": "card",
+   "showIf": "card_asked",
+   "hideIf": "card_found",
+   "hours": [
+    5,
+    9
+   ]
+  },
+  {
+   "id": "hiatong",
+   "name": "เฮียตง",
+   "map": "pharmacy",
+   "x": 4,
+   "y": 3,
+   "look": "hiatong",
+   "dir": "down",
+   "script": "hiatong"
+  },
+  {
+   "id": "townkid",
+   "name": "เด็กตัวอำเภอ",
+   "map": "amphoe",
+   "x": 26,
+   "y": 20,
+   "look": "ter",
+   "dir": "left",
+   "script": "townkid"
+  },
+  {
+   "id": "atr1",
+   "name": "นักวิ่งตอนเช้า",
+   "map": "amphoe",
+   "x": 3,
+   "y": 21,
+   "look": "coop",
+   "dir": "right",
+   "script": "trainer",
+   "hours": [
+    5,
+    10
+   ],
+   "trainer": {
+    "name": "นักวิ่งตอนเช้า",
+    "team": [
+     [
+      "takhon",
+      21
+     ],
+     [
+      "krasue",
+      21
+     ]
+    ],
+    "money": 280,
+    "sight": 4,
+    "flag": "tr_amphoe1",
+    "intro": "วิ่งรอบสวนทุกเช้า เจอเด็กมีแก๊งผีแบบนี้ต้องลองหน่อย!",
+    "lose": "เหนื่อยกว่าวิ่งสิบรอบอีก..."
+   }
+  },
+  {
+   "id": "atr2",
+   "name": "ยามกะดึก",
+   "map": "amphoe",
+   "x": 38,
+   "y": 22,
+   "look": "guard",
+   "dir": "left",
+   "script": "trainer",
+   "hours": [
+    19,
+    5
+   ],
+   "trainer": {
+    "name": "ยามกะดึก",
+    "team": [
+     [
+      "krasue",
+      22
+     ],
+     [
+      "pusom",
+      21
+     ]
+    ],
+    "money": 300,
+    "sight": 4,
+    "flag": "tr_amphoe2",
+    "intro": "ดึกป่านนี้เด็กยังเดินเล่นอีก! เดี๋ยวกระสือก็คาบไปหรอก!",
+    "lose": "ไปนอนได้แล้ว ดึกแล้วนะ"
+   }
+  },
+  {
+   "id": "aitem1",
+   "name": "ของตกอยู่",
+   "map": "amphoe",
+   "x": 41,
+   "y": 27,
+   "look": "item",
+   "dir": "down",
+   "script": "item",
+   "item": "sangkaya",
+   "flag": "ait1",
+   "hideIf": "ait1"
+  },
+  {
+   "id": "reception",
+   "name": "ป้าเวชระเบียน",
+   "map": "hospital",
+   "x": 14,
+   "y": 12,
+   "look": "receptionist",
+   "dir": "down",
+   "script": "reception"
+  },
+  {
+   "id": "screen",
+   "name": "พยาบาลจุดคัดกรอง",
+   "map": "hospital",
+   "x": 4,
+   "y": 9,
+   "look": "nurse",
+   "dir": "down",
+   "script": "screen"
+  },
+  {
+   "id": "headnurse",
+   "name": "ป้าพยาบาลหัวหน้า",
+   "map": "hospital",
+   "x": 25,
+   "y": 15,
+   "look": "headnurse",
+   "dir": "left",
+   "script": "headnurse"
+  },
+  {
+   "id": "yaihom",
+   "name": "ยายหอม",
+   "map": "hospital",
+   "x": 5,
+   "y": 15,
+   "look": "yaihom",
+   "dir": "right",
+   "script": "yaihom"
+  },
+  {
+   "id": "patient1",
+   "name": "คนไข้รอคิว",
+   "map": "hospital",
+   "x": 22,
+   "y": 15,
+   "look": "elder",
+   "dir": "up",
+   "script": "patient1"
+  },
+  {
+   "id": "needle",
+   "name": "น้องเข็ม พยาบาลฝึกหัด",
+   "map": "lab",
+   "x": 4,
+   "y": 3,
+   "look": "eng:med_nurse:2",
+   "dir": "down",
+   "script": "trainer",
+   "trainer": {
+    "name": "น้องเข็ม พยาบาลฝึกหัด",
+    "team": [
+     [
+      "wheelchair",
+      22
+     ],
+     [
+      "nurseghost",
+      22
+     ]
+    ],
+    "money": 350,
+    "sight": 3,
+    "flag": "tr_needle",
+    "intro": "จะผ่านไปเอกซเรย์ต้องเจาะเลือดก่อน! น้องเข็มฝึกเจาะเลือดมาสามเดือน ยังไม่เคยพลาดเลย... ยกเว้นวันจันทร์ที่แล้ว!",
+    "lose": "เจ็บไหมคะ... อ๋อ คนแพ้คือเข็มเอง ไปห้องเอกซเรย์ได้เลย ตามเส้นเหลือง"
+   }
+  },
+  {
+   "id": "xraytech",
+   "name": "พี่เอกซเรย์",
+   "map": "xray",
+   "x": 5,
+   "y": 4,
+   "look": "xraytech",
+   "dir": "left",
+   "script": "xraytech"
+  },
+  {
+   "id": "cleaner",
+   "name": "ป้าแม่บ้าน",
+   "map": "ward",
+   "x": 4,
+   "y": 8,
+   "look": "samorn",
+   "dir": "right",
+   "script": "cleaner"
+  },
+  {
+   "id": "sister",
+   "name": "น้องจ๋า (น้องสาวโจ้)",
+   "map": "ward",
+   "x": 3,
+   "y": 12,
+   "look": "sister",
+   "dir": "down",
+   "script": "sister"
+  },
+  {
+   "id": "joe_ward",
+   "name": "โจ้ แก๊งบ้านเหนือ",
+   "map": "ward",
+   "x": 5,
+   "y": 11,
+   "look": "rival",
+   "dir": "left",
+   "script": "joe_ward",
+   "showIf": "rival3_done"
+  },
+  {
+   "id": "bed1",
+   "name": "เตียงคนไข้",
+   "map": "ward",
+   "x": 13,
+   "y": 7,
+   "look": "bed",
+   "dir": "down",
+   "script": "bed",
+   "push": true
+  },
+  {
+   "id": "bed2",
+   "name": "เตียงคนไข้",
+   "map": "ward",
+   "x": 13,
+   "y": 8,
+   "look": "bed",
+   "dir": "down",
+   "script": "bed",
+   "push": true
+  },
+  {
+   "id": "bed3",
+   "name": "เตียงคนไข้",
+   "map": "ward",
+   "x": 17,
+   "y": 7,
+   "look": "bed",
+   "dir": "down",
+   "script": "bed",
+   "push": true
+  },
+  {
+   "id": "samlee",
+   "name": "น้องสำลี พยาบาลฝึกหัด",
+   "map": "ward",
+   "x": 18,
+   "y": 11,
+   "look": "eng:med_nurse:5",
+   "dir": "right",
+   "script": "trainer",
+   "trainer": {
+    "name": "น้องสำลี พยาบาลฝึกหัด",
+    "team": [
+     [
+      "nurseghost",
+      23
+     ],
+     [
+      "taehak",
+      23
+     ]
+    ],
+    "money": 380,
+    "sight": 2,
+    "flag": "tr_samlee",
+    "intro": "ห้องยาห้ามเข้านะ! ...ยกเว้นชนะสำลีได้ เดี๋ยวสำลีเขียนใบสั่งยาไปหาหมอบูมให้",
+    "lose": "เก่งจัง! ไปรับใบสั่งยาจากพี่เภสัชที่เคาน์เตอร์ได้เลย"
+   }
+  },
+  {
+   "id": "pharm",
+   "name": "พี่เภสัช",
+   "map": "ward",
+   "x": 20,
+   "y": 13,
+   "look": "pharmacist",
+   "dir": "up",
+   "script": "pharm"
+  },
+  {
+   "id": "witem1",
+   "name": "ของตกอยู่",
+   "map": "ward",
+   "x": 24,
+   "y": 3,
+   "look": "item",
+   "dir": "down",
+   "script": "item",
+   "item": "melon_shake",
+   "flag": "wit1",
+   "hideIf": "wit1"
+  },
+  {
+   "id": "intern",
+   "name": "น้องหมออินเทิร์นภูมิใจ",
+   "map": "clinic",
+   "x": 2,
+   "y": 8,
+   "look": "eng:med_doc:0",
+   "dir": "right",
+   "script": "trainer",
+   "trainer": {
+    "name": "น้องหมออินเทิร์นภูมิใจ",
+    "team": [
+     [
+      "med_doc",
+      22
+     ],
+     [
+      "nurseghost",
+      23
+     ]
+    ],
+    "money": 400,
+    "sight": 4,
+    "flag": "tr_intern",
+    "intro": "พี่บูมสั่งว่าห้ามให้เด็กบ้านนอกเข้าไปเจอ... ขอโทษนะ ผมต้องทำตามคำสั่ง",
+    "lose": "...เก่งกว่าที่พี่บูมพูดเยอะเลย เข้าไปเถอะครับ"
+   }
+  },
+  {
+   "id": "boom",
+   "name": "พี่บูม",
+   "map": "clinic",
+   "x": 6,
+   "y": 5,
+   "look": "boom",
+   "dir": "down",
+   "script": "boom"
+  },
+  {
+   "id": "boommom",
+   "name": "แม่พี่บูม",
+   "map": "clinic",
+   "x": 9,
+   "y": 5,
+   "look": "boommom",
+   "dir": "down",
+   "script": "boommom",
+   "showIf": "gym3_done"
   }
  ],
  "rides": [
@@ -1570,6 +2493,22 @@
    "tx": 21,
    "ty": 8,
    "dir": "left"
+  },
+  {
+   "map": "phong",
+   "npc": "plian",
+   "to": "phong",
+   "tx": 2,
+   "ty": 4,
+   "dir": "down"
+  },
+  {
+   "map": "phong",
+   "npc": "plian2",
+   "to": "phong",
+   "tx": 7,
+   "ty": 15,
+   "dir": "down"
   }
  ],
  "gates": [
@@ -1923,6 +2862,76 @@
    "y": 2,
    "script": "blender",
    "label": "ดูเครื่องปั่น"
+  },
+  {
+   "map": "phong",
+   "x": 2,
+   "y": 17,
+   "script": "fish",
+   "label": "ตกปลา"
+  },
+  {
+   "map": "phong",
+   "x": 24,
+   "y": 7,
+   "script": "takhian_shrine",
+   "label": "ไหว้ศาลนางตะเคียน"
+  },
+  {
+   "map": "phong",
+   "x": 2,
+   "y": 3,
+   "script": "ruin",
+   "label": "ดูเจดีย์ร้าง"
+  },
+  {
+   "map": "amphoe",
+   "x": 20,
+   "y": 13,
+   "script": "clocktower",
+   "label": "ดูหอนาฬิกา"
+  },
+  {
+   "map": "amphoe",
+   "x": 2,
+   "y": 8,
+   "script": "ruin2",
+   "label": "ดูซากเจดีย์"
+  },
+  {
+   "map": "amphoe",
+   "x": 1,
+   "y": 20,
+   "script": "vending",
+   "label": "ตู้กดน้ำ"
+  },
+  {
+   "map": "hospital",
+   "x": 2,
+   "y": 9,
+   "script": "bp_machine",
+   "label": "ดูเครื่องวัดความดัน"
+  },
+  {
+   "map": "xray",
+   "x": 7,
+   "y": 2,
+   "script": "xray_switch",
+   "label": "สับสวิตช์ไฟ"
+  },
+  {
+   "map": "xray",
+   "x": 2,
+   "y": 2,
+   "script": "xray_machine",
+   "label": "ดูเครื่องเอกซเรย์"
+  },
+  {
+   "map": "clinic",
+   "x": 1,
+   "y": 2,
+   "script": "skeleton",
+   "label": "ดูตู้"
   }
  ]
 }

@@ -16,10 +16,13 @@
 //  t  โต๊ะ  c  เคาน์เตอร์ (คุยข้ามได้)  k  เตา  s  ชั้นวาง  B  เตียง  p  กระถางต้นไม้  W  ทีวี  G  ไห/ขวดใหญ่
 //  ~  ม่านผ้า (ม่านหลอกดู curtains)  E  เครื่องจักร  > <  สายพานพาเลื่อน  O  คราบน้ำมันลื่น
 //  Z  คัตเอาต์  Y  หลอดไฟบนผนัง  V  แท่นพระ  u  กระดานดำ  6  เครื่องปั่น  7  กระทะ  8  โต๊ะหมูกระทะ  9  คอมพิวเตอร์  2  พรม
+// ด่าน 3 (ริมพอง ตัวอำเภอ โรงพยาบาล):
+//  d  หาดทราย   v  พงอ้อริมน้ำ (สุ่มเจอผี)   y  เจดีย์ร้าง   U  ผนังโรงพยาบาล   [  เก้าอี้รอคิว   ]  ตู้ยา
+//  1 3 4 5 =  เส้นสีบนพื้นโรงพยาบาล (เขียว ฟ้า เหลือง แดง ม่วง) เดินตามไปแผนกต่างๆ
 (function (G) {
   'use strict';
   const TS = 16, VW = 15, VH = 10;
-  const WALK = '.:fTL_-x~><O2aeg+0';   // ต้องตรงกับ WALK ใน tools/build_data.py
+  const WALK = '.:fTL_-x~><O2aeg+0dv1345=';   // ต้องตรงกับ WALK ใน tools/build_data.py
   const COUNTER = 'c67';              // คุยกับคนหลังเคาน์เตอร์ได้
   G.world = { npcs: [], map: null, rows: null, moving: null, anim: 0, follow: null };
   const W = G.world;
@@ -30,7 +33,7 @@
   // var = ตัวเลือกเพิ่ม เช่น ผนังด้านหน้า/บน พื้นของแผนที่ เฟรมน้ำ
   function tileCanvas(ch, x, y, frame, vr) {
     const v = Math.floor(hash(x, y) * 4);
-    const anim = 'w~><i'.includes(ch);   // vr ของน้ำ/ข้าว: dry = ก่อนฝนตก, mud = ขอบหนองแห้ง, lotus = บัวหลังฝน
+    const anim = 'w~><iv'.includes(ch);   // vr ของน้ำ/ข้าว: dry = ก่อนฝนตก, mud = ขอบหนองแห้ง, lotus = บัวหลังฝน
     const key = ch + v + (anim ? frame : '') + (vr || '');
     if (tileCache[key]) return tileCache[key];
     const c = document.createElement('canvas'); c.width = c.height = TS;
@@ -42,7 +45,7 @@
     const water = () => { R('#4f8fb0', 0, 0, 16, 16); R('#7cb6cf', (frame * 5 + v * 3) % 12, 4, 4, 1); R('#7cb6cf', (frame * 3 + 8 + v) % 12, 11, 3, 1); };
     const wood = () => { R('#b8875a', 0, 0, 16, 16); for (let i = 3; i < 16; i += 4) R('#a07448', 0, i, 16, 1); R('#a07448', (v * 5) % 16, 0, 1, 3); R('#a07448', (v * 7 + 8) % 16, 4, 1, 3); };
     const tilefl = () => { R('#d8d6cc', 0, 0, 16, 16); R('#c4c2b8', 0, 0, 16, 1); R('#c4c2b8', 0, 0, 1, 16); R('#c4c2b8', 8, 0, 1, 16); R('#c4c2b8', 0, 8, 16, 1); };
-    const floor = () => (vr === 'F-' ? tilefl() : wood());
+    const floor = () => ((vr || '').startsWith('F-') ? tilefl() : wood());
     switch (ch) {
       case '.': grass(); break;
       case 'f': grass(); [['#e8c34a', 3, 4], ['#f2efe4', 10, 9], ['#d9455a', 6, 12]].forEach(([col, a, b]) => { R(col, a, b, 2, 2); R('#5f7f43', a, b + 2, 1, 2); }); break;
@@ -104,7 +107,9 @@
       case 'j': pave(); R('#8a6440', 1, 7, 14, 2); R('#8a6440', 1, 10, 14, 2); R('#3a3f48', 2, 12, 1, 3); R('#3a3f48', 13, 12, 1, 3); R('#6b4a2f', 1, 4, 14, 2); break;
       case 'z': pave(); for (const [xx, col] of [[1, '#c5482b'], [8, '#2b3f8a']]) { O('#2a2a2a', xx + 1, 12, 2, 2); O('#2a2a2a', xx + 5, 12, 2, 2); R(col, xx, 7, 6, 4); R('#2a2a2a', xx + 4, 5, 1, 3); R('#b8bcc4', xx + 3, 5, 3, 1); } break;
       case 'i': water(); O('#4f8a45', 8, 9, 6, 4); O('#f2a0c0', 8, 7, 2, 3); R('#fff2f6', 8, 5, 1, 1); break;
-      case '!': pave(); R('#8f949e', 3, 11, 10, 5); R('#b8bcc4', 3, 11, 10, 1); g.fillStyle = '#d9b25a'; g.beginPath(); g.arc(8, 6, 5, 0, 7); g.fill();
+      case '!': if (vr === 'clock') {   // หอนาฬิกาวงเวียนตัวอำเภอ
+          pave(); R('#c9bea8', 4, 6, 8, 10); R('#e6dcc8', 5, 6, 6, 9); R('#a63a2a', 3, 1, 10, 5); R('#86281c', 3, 5, 10, 1); O('#f4f4ec', 8, 9, 2.5, 2.5); R('#2a2a2a', 8, 7, 1, 2); R('#2a2a2a', 8, 9, 2, 1); R('#d9b25a', 7, 0, 2, 1); break; }
+        pave(); R('#8f949e', 3, 11, 10, 5); R('#b8bcc4', 3, 11, 10, 1); g.fillStyle = '#d9b25a'; g.beginPath(); g.arc(8, 6, 5, 0, 7); g.fill();
         for (let k = 0; k < 8; k++) { const a = (k * Math.PI) / 4; R('#d9b25a', 7 + Math.round(Math.cos(a) * 6), 5 + Math.round(Math.sin(a) * 6), 2, 2); }
         g.fillStyle = '#8a6a24'; g.beginPath(); g.arc(8, 6, 2, 0, 7); g.fill(); break;
       case '&': grass(); R('#3f7a34', 1, 3, 14, 12); R('#5a9a45', 2, 3, 12, 3); R('#2f5a2a', 1, 14, 14, 1); break;
@@ -114,8 +119,22 @@
       case '0': water(); R('#8a6440', 0, 1, 16, 14); for (let i = 3; i < 16; i += 4) R('#6b4a2f', i, 1, 1, 14); R('#5a3a22', 0, 1, 16, 1); R('#5a3a22', 0, 14, 16, 1); break;
       // ---------- ในตึก ----------
       case '_': floor(); break;
+      // ---------- ด่าน 3 ----------
+      case 'd': R('#e8d4a0', 0, 0, 16, 16); R('#d4bc84', (v * 5) % 13, 3, 2, 1); R('#f4e4b8', (v * 3 + 6) % 13, 9, 2, 1); R('#c9ad74', 4, (v * 4) % 12 + 2, 1, 1); R('#d4bc84', 11, 13, 1, 1); break;
+      case 'v': grass(); for (let i = 0; i < 5; i++) { const xx = i * 3 + 1 + (frame && i % 2 ? 1 : 0); R('#5f7f43', xx, 3 + (i % 2) * 2, 1, 12); R('#8a6a44', xx, 1 + (i % 2) * 2, 1, 3); R('#a8c45a', xx + 1, 8 + (i % 3), 1, 3); } break;
+      case 'y': grass(); R('#8a8070', 3, 10, 10, 5); R('#a89a84', 4, 6, 8, 4); R('#8a8070', 5, 3, 6, 3); R('#a89a84', 7, 0, 2, 3); R('#6b6254', 3, 14, 10, 1); R('#5f7f43', 3 + v, 9, 2, 2); R('#5f7f43', 10, 5 - (v % 2), 2, 1); break;
+      case 'U': R('#f0f0ea', 0, 0, 16, 16); R('#d8d8d0', 0, 15, 16, 1); if (vr === 'cross') { R('#d9455a', 6, 2, 4, 12); R('#d9455a', 2, 6, 12, 4); } else { R('#5a7a9a', 3, 3, 10, 8); R('#9fc4dc', 4, 4, 4, 6); R('#f0f0ea', 7, 3, 1, 8); R('#c4c8c0', 2, 11, 12, 1); } break;
+      case '[': floor(); R('#5a6a7a', 0, 10, 16, 2); R('#3a8ac0', 1, 4, 6, 6); R('#3a8ac0', 9, 4, 6, 6); R('#5fa8e0', 1, 4, 6, 1); R('#5fa8e0', 9, 4, 6, 1); R('#3a3f48', 2, 12, 1, 3); R('#3a3f48', 13, 12, 1, 3); break;
+      case ']': floor(); R('#f4f4ec', 1, 0, 14, 16); R('#c4c8c0', 1, 15, 14, 1); for (const yy of [2, 7]) { R('#9fc4dc', 2, yy, 12, 4); R(['#d9455a', '#f2d24b', '#6cc04a'][(v + yy) % 3], 3, yy + 1, 2, 3); R('#f4f4ec', 6, yy + 2, 3, 2); R(['#5fb8e0', '#e86a9a', '#f28c28'][(v + yy) % 3], 10, yy + 1, 2, 3); } R('#d9455a', 6, 12, 4, 1); R('#d9455a', 7, 11, 2, 3); break;
+      case '1': case '3': case '4': case '5': case '=': {
+        floor(); const col = { 1: '#4fb05a', 3: '#3a8ad8', 4: '#e8c034', 5: '#d9455a', '=': '#9a5ad0' }[ch];
+        const lk = (vr || '').slice(2, 6); R(col, 6, 6, 4, 4);
+        if (lk[0] === '1') R(col, 6, 0, 4, 6); if (lk[1] === '1') R(col, 10, 6, 6, 4); if (lk[2] === '1') R(col, 6, 10, 4, 6); if (lk[3] === '1') R(col, 0, 6, 6, 4);
+        break; }
       case '%':
-        if (vr === 'face') { R('#e8dcc0', 0, 0, 16, 16); R('#d4c6a6', 0, 4, 16, 1); R('#8a6a4a', 0, 13, 16, 3); if (v === 3) { R('#6b8fa8', 4, 3, 8, 6); R('#f4f4ec', 4, 3, 8, 1); } }
+        if (vr === 'faceH') { R('#eef2f4', 0, 0, 16, 16); R('#c8dce4', 0, 10, 16, 1); R('#9fc4dc', 0, 12, 16, 4); if (v === 3) { R('#9fc4dc', 4, 3, 8, 5); R('#f4f4ec', 4, 3, 8, 1); } else if (v === 1) { R('#d9455a', 7, 3, 2, 6); R('#d9455a', 5, 5, 6, 2); } }
+        else if (vr === 'topH') { R('#8a9aa8', 0, 0, 16, 16); R('#9aaab8', 0, 0, 16, 2); }
+        else if (vr === 'face') { R('#e8dcc0', 0, 0, 16, 16); R('#d4c6a6', 0, 4, 16, 1); R('#8a6a4a', 0, 13, 16, 3); if (v === 3) { R('#6b8fa8', 4, 3, 8, 6); R('#f4f4ec', 4, 3, 8, 1); } }
         else { R('#4a3a30', 0, 0, 16, 16); R('#5a4a3e', 0, 0, 16, 2); }
         break;
       case 'x': floor(); R('#c5482b', 2, 2, 12, 12); R('#d9b25a', 3, 3, 10, 1); R('#d9b25a', 3, 12, 10, 1); break;
@@ -134,7 +153,7 @@
         R('#3a3f48', 0, 0, 16, 16); R('#2a2e35', 0, 2, 16, 12); const d = ch === '>' ? 1 : -1;
         for (let k = 0; k < 3; k++) { const xx = (((k * 6 + frame * 3 * d) % 18) + 18) % 18 - 1; for (let j = 0; j < 3; j++) R('#f2d24b', xx + (d > 0 ? j : 2 - j), 5 + j, 1, 1), R('#f2d24b', xx + (d > 0 ? j : 2 - j), 10 - j, 1, 1); }
         R('#5f6873', 0, 1, 16, 1); R('#5f6873', 0, 14, 16, 1); break; }
-      case 'O': floor(); O('#1f1d24', 8, 9, 7, 5); O('#2e2a36', 7, 8, 5, 3); R('#8a7aa8', 5, 7, 3, 1); R('#5fb8e0', 10, 10, 1, 1); break;
+      case 'O': floor(); if (vr && vr.endsWith('wet')) { O('#9fd8f0', 8, 9, 7, 5); O('#c8ecf8', 6, 8, 3, 2); R('#f2d24b', 11, 2, 4, 6); R('#2a2a2a', 12, 3, 2, 1); R('#2a2a2a', 12, 5, 2, 2); R('#f2d24b', 10, 8, 1, 2); R('#f2d24b', 15, 8, 1, 2); break; } O('#1f1d24', 8, 9, 7, 5); O('#2e2a36', 7, 8, 5, 3); R('#8a7aa8', 5, 7, 3, 1); R('#5fb8e0', 10, 10, 1, 1); break;
       case 'Z': R('#e8dcc0', 0, 0, 16, 16); R('#5f6873', 3, 1, 10, 14); R('#9aa3ae', 4, 2, 8, 12); R('#2a2a2a', 7, 3, 2, 10);
         if (vr === 'on') { R('#c5482b', 6, 3, 4, 3); R('#6cc04a', 4, 12, 2, 1); } else { R('#c5482b', 6, 10, 4, 3); R('#d9455a', 4, 12, 2, 1); } break;
       case 'Y': R('#e8dcc0', 0, 0, 16, 16); R('#8a6a4a', 0, 13, 16, 3); R('#5f6873', 6, 0, 4, 4); O(vr === 'on' ? '#fff2a8' : '#5a5a66', 8, 7, 4, 4); if (vr === 'on') O('#ffffff', 7, 6, 1, 1); break;
@@ -210,6 +229,14 @@
     const [dx, dy] = DIRS[dir], nx = S.x + dx, ny = S.y + dy;
     const door = doorAt(nx, ny);
     if (door) { G.world.enterDoor(door); return; }
+    const pushed = npcAt(nx, ny);
+    if (pushed && pushed.push) {   // ดันเตียงคนไข้ไปข้างหน้าหนึ่งช่อง (ถ้าข้างหน้าว่าง)
+      const bx = nx + dx, by = ny + dy;
+      if (walkable(bx, by) && !npcAt(bx, by) && !warpAt(bx, by) && !doorAt(bx, by) && !(W.follow && W.follow.x === bx && W.follow.y === by)) {
+        pushed.x = bx; pushed.y = by; S.npcPos[pushed.id] = { x: bx, y: by }; G.sfx('slide');
+        startMove(nx, ny, 0.1, false); return;
+      }
+    }
     if (!G.world.passable(nx, ny)) { if (!W.bumpCD) { G.sfx('bump'); W.bumpCD = 14; } return; }
     startMove(nx, ny, run ? 0.25 : 0.125, false);
   };
@@ -248,7 +275,7 @@
     S.steps++;
     if (S.repel > 0) { S.repel--; if (S.repel === 0) G.runScript('repel_end'); }
     const wp = warpAt(S.x, S.y);
-    if (wp) { G.sfx('door'); G.fadeTo(() => G.loadMap(wp.to, wp.tx, wp.ty, wp.dir)); return; }
+    if (wp) { G.sfx('door'); G.fadeTo(() => G.loadMap(wp.to, wp.tx, wp.ty, wp.dir)).then(() => G.runScript('enter', wp.to)); return; }
     const here = tileAt(S.x, S.y);
     // ม่านหลอกในร้านราเมง: ผิดผืนแล้ววนกลับทางเข้า
     if (here === '~') {
@@ -274,7 +301,7 @@
       }
     }
     // สุ่มเจอผีสางในนาข้าว / น้องวิศวะในหญ้ารก
-    if (W.def.encounter && (here === 'T' || here === 'g') && G.rng() < 0.14) {
+    if (W.def.encounter && (W.def.encTiles || 'Tgv').includes(here) && G.rng() < (W.def.encRate || 0.14)) {
       const table = G.DATA.encounters[W.map];
       const night = G.isNight(), wet = G.raining();
       const weight = (e) => (night ? e.night : e.day) * (wet && G.DATA.species[e.sp].type === 'water' ? 2.5 : 1);   // ฝนตก ผีน้ำออกมาเยอะ
@@ -294,7 +321,7 @@
   };
 
   // ป้ายชื่อปุ่ม "คุย" ตอนยืนหน้าประตู
-  G.world.doorLabel = (d) => (d.to ? `เข้า${G.DATA.world.maps[d.to].name.replace(/ \(.*\)$/, '')}` : 'เข้าไป');
+  G.world.doorLabel = (d) => d.label || (d.to ? `เข้า${G.DATA.world.maps[d.to].name.replace(/ \(.*\)$/, '')}` : 'เข้าไป');
   const BACK = { up: 'down', down: 'up', left: 'right', right: 'left' };
   // สิ่งที่คุยได้รอบตัว (หันหน้าไปหาก่อน ถ้าไม่มีค่อยดูรอบๆ)
   G.world.nearby = function () {
@@ -304,7 +331,7 @@
       const [dx, dy] = DIRS[dir], x = S.x + dx, y = S.y + dy;
       let n = npcAt(x, y);
       if (!n && COUNTER.includes(tileAt(x, y))) n = npcAt(x + dx, y + dy);   // คนอยู่หลังเคาน์เตอร์
-      if (n) return { kind: 'npc', ref: n, dir, x: n.x, y: n.y, label: n.look === 'item' ? 'เก็บของ' : n.look === 'buffalo' ? 'ดูควาย' : n.look === 'dog' ? 'ลูบหัวหมา' : `คุยกับ${n.name || ''}` };
+      if (n) return { kind: 'npc', ref: n, dir, x: n.x, y: n.y, label: n.look === 'item' ? 'เก็บของ' : n.look === 'buffalo' ? 'ดูควาย' : n.look === 'dog' ? 'ลูบหัวหมา' : n.push ? 'ดูเตียง' : `คุยกับ${n.name || ''}` };
       const f = W.follow, lead = S.party[0];
       if (S.follower && lead && f && f.x === x && f.y === y && dir === S.dir) return { kind: 'follower', ref: lead, dir, x, y, label: `คุยกับ${lead.name}` };
       const sg = signAt(x, y);
@@ -357,9 +384,13 @@
   };
 
   // ---------- วาด ----------
+  // เส้นสีบนพื้น: ต่อไปทางช่องข้างๆ ที่เป็นสีเดียวกันหรือเป็นประตู (บิตบน/ขวา/ล่าง/ซ้าย)
+  const LINK = (ch, x, y) => [[0, -1], [1, 0], [0, 1], [-1, 0]].map(([dx, dy]) => { const t = tileAt(x + dx, y + dy); return t === ch || t === 'D' ? '1' : '0'; }).join('');
   function tileVariant(ch, x, y) {
-    if (ch === '%') return y + 1 < W.rows.length && tileAt(x, y + 1) !== '%' ? 'face' : 'top';
-    if ('_xtcskBpWG~O2678'.includes(ch)) return 'F' + (W.def.floor || '_');
+    if (ch === '%') return (y + 1 < W.rows.length && tileAt(x, y + 1) !== '%' ? 'face' : 'top') + (W.def.floor === '-' && W.def.music === 'hospital' ? 'H' : '');
+    if (ch === 'U') return tileAt(x, y - 1) === 'N' && x % 6 === 2 ? 'cross' : '';
+    if ('_xtcskBpWG~O2678[]1345='.includes(ch)) return 'F' + (W.def.floor || '_') + ('1345='.includes(ch) ? LINK(ch, x, y) : '') + (ch === 'O' && W.def.wet ? 'wet' : '');
+    if (ch === '!' && W.map === 'amphoe') return 'clock';
     if (ch === 'a') return y % 2 === 1 && x % 2 === 0 && tileAt(x, y + 1) === 'a' ? 'lane' : '';
     if (ch === 'D') return 'D' + (tileAt(x - 1, y) === 'C' || tileAt(x + 1, y) === 'C' ? 'C' : tileAt(x - 1, y) === 'Q' || tileAt(x + 1, y) === 'Q' ? 'Q' : '');
     if (ch === 'Z') { const o = objAt(x, y); return o && G.state.flags['sw_' + o.arg] ? 'on' : ''; }
@@ -416,7 +447,7 @@
     actors.sort((a, b) => a.y - b.y).forEach((a) => a.draw());
     // หญ้าบังขา
     const here = tileAt(S.x, S.y);
-    if ((here === 'T' || here === 'g') && !W.moving) { ctx.fillStyle = here === 'T' ? '#6e9b3a' : '#5f8a3a'; ctx.fillRect(S.x * TS - cx + 2, S.y * TS - cy + 11, 12, 5); }
+    if ('Tgv'.includes(here) && !W.moving) { ctx.fillStyle = here === 'T' ? '#6e9b3a' : here === 'v' ? '#7a9a4a' : '#5f8a3a'; ctx.fillRect(S.x * TS - cx + 2, S.y * TS - cy + 11, 12, 5); }
     // ความมืด: ตึกที่ไฟดับ / กลางคืนข้างนอก
     const blackout = W.def.darkUntil && !S.flags[W.def.darkUntil];
     const dk = blackout ? 0.78 : W.def.indoor ? 0 : Math.min(0.6, G.darkness() + (G.raining() ? 0.12 : 0));
@@ -457,7 +488,7 @@
     const custom = !!G._spriteDefs.CUSTOM[look];
     const bob = custom && npc == null && frame ? Math.floor(W.anim / 6) % 2 : 0;
     ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.fillRect(x + 3, y + 14, 10, 2);
-    const spr = custom && (look === 'toad' || look === 'item' || look === 'buffalo') ? G.sprite(look) : G.actorSprite(look, dir, frame);
+    const spr = custom && (look === 'toad' || look === 'item' || look === 'buffalo' || look === 'bed') ? G.sprite(look) : G.actorSprite(look, dir, frame);
     ctx.drawImage(spr, x, y - bob);
     if (npc && npc.trainer && !G.state.flags[npc.trainer.flag]) { ctx.fillStyle = '#c5482b'; ctx.fillRect(x + 7, y - 4, 2, 2); }
     const qm = npc && G.questMark ? G.questMark(npc.id) : null;

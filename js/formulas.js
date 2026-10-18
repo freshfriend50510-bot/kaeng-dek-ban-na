@@ -71,6 +71,10 @@
   // สร้างตัวละครตามชนิด (น้องวิศวะได้ชื่อ/หน้าตาเฉพาะคน)
   G.spawn = (spId, lv, opt = {}) => ((G.DATA.engNames || {})[spId] ? G.makeEng(spId, lv, opt) : G.makeMon(spId, lv, opt));
 
+  // คนที่ชวนเข้าแก๊งได้ (น้องวิศวะ น้องหมอพยาบาล): มีชื่อและหน้าตาเฉพาะคน ชวนด้วยของกินคนละอย่างกับผี
+  G.PERSON_KINDS = ['eng', 'med'];
+  G.isPerson = (m) => G.PERSON_KINDS.includes(G.DATA.species[m.sp || m].kind);
+
   G.refreshStats = function (mon) {
     const old = mon.stats.hp;
     mon.stats = G.calcStats(mon.sp, mon.lv, mon.ivs);

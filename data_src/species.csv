@@ -19,3 +19,15 @@ eng_env,น้องวิศวะสิ่งแวดล้อม,wind,55,40,
 eng_ie,น้องวิศวะอุตสาหการ,normal,50,55,45,45,50,75,120,70,eng,,eng_ie,1:conveyor_rush;1:stopwatch;10:kpi_pressure;17:lean_strike,เสื้อช็อปเทา ตรากราฟแท่ง คิดเรื่องประสิทธิภาพตลอดเวลา
 ungying,อุ๋งอิ๋ง,water,55,40,50,85,65,65,0,90,eng,,ungying,1:acid_splash;1:titrate;1:fumes;14:foam_burst,สาวหมวยผิวขาว ผมยาวตรงหน้าม้า ใส่ชุดนักศึกษาเรียบร้อย เรียนวิศวะเคมีเก่งที่สุดในรุ่น ยิ้มหวานจนใครก็เหลียวมอง แต่มีอดีตกับพี่เฟรนด์
 friend,พี่เฟรนด์,electric,60,70,60,75,55,55,0,160,master,,friend,1:short_circuit;1:wrench_throw;1:cheer_faculty;1:blackout,หัวโจกวิศวะเครื่องกล มข. หนุ่มหล่อประจำคณะ ผมทูบล็อกปัดข้าง ตาคม ยิ้มมุมปาก เสื้อช็อปดำพับแขน สร้อยเฟืองทองห้อยคอ สาวๆ ทั้งมหาลัยกรี๊ด
+nangngueak,นางเงือกน้อย,water,55,35,45,70,60,55,140,85,ghost,,nangngueak,1:river_splash;1:nang_gaze;12:mermaid_song;22:naga_wave,ผมยาวสีเขียวน้ำทะเล หางปลาสีเงิน นั่งร้องเพลงบนโขดหินริมลำน้ำพอง ใครฟังนานๆ จะเผลอหลับ
+takhian,นางตะเคียน,wind,55,40,50,70,60,55,120,90,ghost,,takhian,1:basket_flap;1:nang_gaze;12:takhian_leaf;20:clean_wind,สาวสไบเขียวแห่งต้นตะเคียนริมทาง หวงต้นไม้มาก ใครตัดกิ่งจะโดนตามหลอก
+taehak,ผีตาแฮก,earth,70,65,80,30,55,30,140,85,ghost,,taehak,1:hoe_swing;1:dike_stance;14:pound_ground;20:field_slam,ผีปู่เฝ้านาริมพอง สวมงอบถือจอบ ชาวนาต้องเลี้ยงข้าวทุกต้นฤดูไม่งั้นแกงอน
+krasue,กระสือ,electric,45,40,40,85,55,80,110,95,ghost,,krasue,1:flicker;1:glow_flash;12:ghost_light;20:radio_wave,หัวลอยเรืองแสงสีส้มทอง ออกหากินกลางคืน ชอบบินวนรอบเสาไฟในตัวอำเภอ
+nak,นาคน้อย,water,75,70,70,80,70,65,25,150,ghost,,nak,1:naga_coil;1:river_splash;10:mermaid_song;18:naga_wave,ลูกพญานาคที่พลัดหลงจากแม่ บางคนเชื่อว่าแม่ของมันหลับอยู่ใต้ดอนปู่ตา
+takhon,ผีตาโขน,normal,60,70,50,45,50,70,130,90,ghost,,takhon,1:wood_sword;1:mask_dance;14:spook;20:piston_ram,หน้ากากหลากสีจมูกยาว เต้นไม่หยุดตั้งแต่งานบุญหลวงปีก่อน
+pusom,ผีปู่โสม,earth,80,55,110,40,90,15,45,120,ghost,,pusom,1:stone_drop;1:treasure_guard;12:wail;20:brick_smash,ผีปู่เคราขาวกอดไหสมบัติใต้ซากเจดีย์ ป้องกันแน่นที่สุด แต่ขยับช้ามาก
+nurseghost,ผีพยาบาลกะดึก,water,60,35,55,65,70,45,130,90,ghost,,nurseghost,1:night_round;1:take_meds;12:saline_drip;20:foam_burst,เข้าเวรดึกมาสามสิบปี ตายไปแล้วก็ยังไม่ยอมลงเวร ชอบเดินมาถามว่ากินยาหรือยังจ๊ะ
+wheelchair,รถเข็นผีสิง,normal,50,65,50,30,45,95,130,90,ghost,,wheelchair,1:wheel_ram;1:squeak_wheel;12:wrong_ward;20:piston_ram,รถเข็นคันที่ 13 ของโรงพยาบาล ไม่มีใครเข็นก็วิ่งเองได้ ชอบพาคนไข้ไปผิดตึก
+med_nurse,น้องพยาบาลฝึกหัด,water,60,35,55,65,70,55,110,85,med,,med_nurse,1:inject;1:bandage;12:night_round;18:foam_burst,ชุดขาวหมวกพยาบาล เรียนหนักฝึกงานหนัก แต่ยิ้มให้คนไข้ทุกคน
+med_doc,น้องนักศึกษาแพทย์,earth,65,60,70,45,60,50,110,85,med,,med_doc,1:tackle;1:case_present;12:anatomy_strike;18:mud_therapy,เสื้อกาวน์สั้นหูฟังคล้องคอ อ่านหนังสือทั้งคืนจนตาโหล
+boom,พี่บูม,earth,75,75,75,60,70,55,0,170,master,,boom,1:mud_therapy;1:herbal_pot;1:numb_shot;1:pulse_check,หมอหนุ่มหล่อสไตล์เกาหลีแห่งโรงพยาบาลอำเภอ เก่งแต่ชอบดูถูกเด็กบ้านนอก ทั้งที่ตัวเองก็มาจากบ้านนา

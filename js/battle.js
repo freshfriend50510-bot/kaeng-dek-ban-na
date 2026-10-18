@@ -19,6 +19,7 @@
       this.ai = opt.ai != null ? opt.ai : (opt.kind === 'wild' ? 0 : opt.kind === 'trainer' ? 1 : 2);
       this.bossHealed = false;
       this.rageDone = false;
+      this.potions = opt.potions || 0;   // ยาฟื้นที่มาสเตอร์ใช้ได้ (พี่บูม 2 ครั้ง)
       this.applyRage([]);
     }
     // opt.rage = { sp, st, text }: ศัตรูชนิดนี้ลงสนามมาพร้อมบัฟ (เช่น พี่เฟรนด์โมโหเพราะเห็นอุ๋งอิ๋งในแก๊ง)
@@ -35,7 +36,7 @@
     sp(m) { return G.DATA.species[m.sp]; }
     label(side) {
       if (side === 'p') return this.me.name;
-      if (this.sp(this.foe).kind === 'eng') return this.foe.name + (this.isWild() ? '' : 'ของศัตรู');
+      if (G.isPerson(this.foe)) return this.foe.name + (this.isWild() ? '' : 'ของศัตรู');
       return this.isWild() ? this.foe.name + 'ป่า' : this.foe.name + 'ของศัตรู';
     }
 
@@ -53,7 +54,7 @@
       if (this.ai === 0) return usable[Math.floor(r() * usable.length)].id;
       const M = G.DATA.moves;
       if (this.ai === 2) {
-        const heal = usable.find((m) => M[m.id].effect === 'heal50');
+        const heal = usable.find((m) => M[m.id].effect.startsWith('heal50'));
         if (heal && !this.bossHealed && f.hp < f.stats.hp * 0.25) { this.bossHealed = true; return heal.id; }
         if (this.fv.turns === 0 && !this.rageDone) {
           const buff = usable.find((m) => M[m.id].effect.startsWith('self_'));
@@ -70,7 +71,7 @@
         }
         if (best) return best;
       }
-      const nonHeal = usable.filter((m) => M[m.id].effect !== 'heal50' || f.hp < f.stats.hp / 2);
+      const nonHeal = usable.filter((m) => !M[m.id].effect.startsWith('heal50') || f.hp < f.stats.hp / 2 || (M[m.id].effect === 'heal50cure' && f.status));
       const pool = nonHeal.length ? nonHeal : usable;
       return pool[Math.floor(r() * pool.length)].id;
     }
@@ -80,34 +81,43 @@
       const ev = [];
       if (this.over) return ev;
       this.turn++;
-      const foeMove = this.chooseFoeMove();
+      let foeMove = this.chooseFoeMove();
+      // มาสเตอร์ใช้ยาฟื้นก่อนลงมือ (เสียตาเดินของศัตรูในเทิร์นนั้น)
+      if (this.potions > 0 && this.foe.hp > 0 && this.foe.hp < this.foe.stats.hp * 0.3) {
+        this.potions--;
+        const f = this.foe, amt = Math.floor(f.stats.hp * 0.6 * (f.status === 'psn' ? 0.5 : 1));
+        f.hp = Math.min(f.stats.hp, f.hp + amt);
+        ev.push({ t: 'msg', text: `${this.opt.trainerName} ใช้ยาฟื้นพลังให้ ${f.name}!${f.status === 'psn' ? ' (ท้องเสียอยู่ ยาเลยได้ผลแค่ครึ่งเดียว)' : ''}` });
+        ev.push({ t: 'hp', side: 'f', hp: f.hp });
+        foeMove = null;
+      }
       if (action.type === 'run') {
         this.runTries++;
         const pct = Math.min(100, (this.speedOf('p') / this.speedOf('f')) * 50 + 25 * this.runTries);
         if (this.rng.chance(pct)) { ev.push({ t: 'msg', text: 'หนีมาได้แล้ว!' }); this.over = 'run'; ev.push({ t: 'end', result: 'run' }); return ev; }
         ev.push({ t: 'msg', text: 'หนีไม่พ้น!' });
-        this.doMove('f', foeMove, ev, false);
+        if (foeMove) this.doMove('f', foeMove, ev, false);
       } else if (action.type === 'switch') {
         this.switchIn(action.idx, ev);
-        this.doMove('f', foeMove, ev, false);
+        if (foeMove) this.doMove('f', foeMove, ev, false);
       } else if (action.type === 'item') {
         const done = this.useItem(action.id, action.target, ev);
         if (this.over) return ev;
-        if (done !== 'skipFoe') this.doMove('f', foeMove, ev, false);
+        if (done !== 'skipFoe' && foeMove) this.doMove('f', foeMove, ev, false);
       } else {
         const slot = this.me.moves[action.idx];
         const myMove = slot && slot.pp > 0 ? slot.id : STRUGGLE.id;
         const M = (id) => (id === 'struggle' ? STRUGGLE : G.DATA.moves[id]);
         const pPri = M(myMove).priority + (this.sp(this.me).ability === 'quick' && this.pv.turns === 0 ? 0.5 : 0);
-        const fPri = M(foeMove).priority;
+        const fPri = foeMove ? M(foeMove).priority : -99;
         let first = 'p';
         if (fPri > pPri) first = 'f';
         else if (fPri === pPri) {
           const a = this.speedOf('p'), b = this.speedOf('f');
           first = a > b ? 'p' : a < b ? 'f' : (this.rng() < 0.5 ? 'p' : 'f');
         }
-        const order = first === 'p' ? [['p', myMove], ['f', foeMove]] : [['f', foeMove], ['p', myMove]];
-        for (let i = 0; i < 2; i++) {
+        const order = (first === 'p' ? [['p', myMove], ['f', foeMove]] : [['f', foeMove], ['p', myMove]]).filter((o) => o[1]);
+        for (let i = 0; i < order.length; i++) {
           const [side, mv] = order[i];
           const actor = side === 'p' ? this.me : this.foe;
           if (actor.hp <= 0) continue;
@@ -211,11 +221,14 @@
       const user = side === 'p' ? this.me : this.foe, tgt = side === 'p' ? this.foe : this.me;
       const tv = side === 'p' ? this.fv : this.pv;
       const tname = this.label(tside);
-      if (eff === 'heal50') {
-        if (user.hp >= user.stats.hp) { ev.push({ t: 'msg', text: 'แต่พลังเต็มอยู่แล้ว!' }); return; }
-        user.hp = Math.min(user.stats.hp, user.hp + Math.floor(user.stats.hp / 2));
+      if (eff === 'heal50' || eff === 'heal50cure') {
+        const cure = eff === 'heal50cure' && user.status;
+        if (user.hp >= user.stats.hp && !cure) { ev.push({ t: 'msg', text: 'แต่พลังเต็มอยู่แล้ว!' }); return; }
+        const sick = user.status === 'psn' && !cure;   // ท้องเสียอยู่ ฟื้นได้ครึ่งเดียว
+        user.hp = Math.min(user.stats.hp, user.hp + Math.floor(user.stats.hp / (sick ? 4 : 2)));
         ev.push({ t: 'hp', side, hp: user.hp });
-        ev.push({ t: 'msg', text: `${this.label(side)} ฟื้นพลังขึ้นมา!` });
+        ev.push({ t: 'msg', text: `${this.label(side)} ฟื้นพลังขึ้นมา!${sick ? ' (ท้องเสียอยู่ เลยฟื้นได้นิดเดียว)' : ''}` });
+        if (cure) { user.status = null; if (side === 'p') this.pv.cnf = 0; else this.fv.cnf = 0; ev.push({ t: 'status', side, status: null }); ev.push({ t: 'msg', text: `${this.label(side)} หายจากอาการผิดปกติ!` }); }
       } else if (eff === 'cnf') {
         if (tv.cnf > 0) { if (!secondary) ev.push({ t: 'msg', text: `${tname} มึนอยู่แล้ว!` }); return; }
         tv.cnf = this.rng.int(2, 5) + 1;
@@ -324,10 +337,10 @@
       G.state.bag[id]--;
       if (it.kind === 'recruit') {
         if (!this.isWild()) { ev.push({ t: 'msg', text: 'ผีของคนอื่นชวนไม่ได้!' }); G.state.bag[id]++; return 'skipFoe'; }
-        const eng = this.sp(this.foe).kind === 'eng';
-        const fits = it.for === (eng ? 'eng' : 'ghost');
+        const kind = this.sp(this.foe).kind, eng = G.isPerson(this.foe);
+        const fits = it.for === (eng ? kind : 'ghost');
         ev.push({ t: 'msg', text: eng ? `ยื่น${it.name}ให้ ${this.foe.name}...` : `ถวาย${it.name}ให้ ${this.foe.name}...` });
-        if (!fits) ev.push({ t: 'msg', text: eng ? 'น้องวิศวะไม่ค่อยอยากกินข้าวเหนียวเปล่าๆ...' : 'ผีสางงงๆ กับคูปองหมูกระทะ...' });
+        if (!fits) ev.push({ t: 'msg', text: eng ? `${this.foe.name}ทำหน้างงๆ ไม่ค่อยอยากได้${it.name}...` : `ผีสางงงๆ กับ${it.name}...` });
         const a = G.recruitValue(this.foe, it.value * (fits ? 1 : 0.5));
         ev.push({ t: 'recruit_try' });
         if (this.rng() * 256 < a) {
