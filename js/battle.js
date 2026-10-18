@@ -93,7 +93,8 @@
       }
       if (action.type === 'run') {
         this.runTries++;
-        const pct = Math.min(100, (this.speedOf('p') / this.speedOf('f')) * 50 + 25 * this.runTries);
+        // หนีง่าย: เร็วเท่ากันหรือเลเวลไม่น้อยกว่าศัตรู = หนีได้แน่นอน, ช้ากว่าก็ยังมีโอกาสสูงและเพิ่มขึ้นทุกครั้งที่ลอง
+        const pct = this.me.lv >= this.foe.lv ? 100 : Math.min(100, (this.speedOf('p') / this.speedOf('f')) * 60 + 45 + 30 * (this.runTries - 1));
         if (this.rng.chance(pct)) { ev.push({ t: 'msg', text: 'หนีมาได้แล้ว!' }); this.over = 'run'; ev.push({ t: 'end', result: 'run' }); return ev; }
         ev.push({ t: 'msg', text: 'หนีไม่พ้น!' });
         if (foeMove) this.doMove('f', foeMove, ev, false);
@@ -301,13 +302,13 @@
         if (!fought && !easy) return;
         const g = fought ? gain : Math.floor(gain / 2);   // คนที่ไม่ได้ลงสนามได้ครึ่งหนึ่ง
         m.exp += g;
-        ev.push({ t: 'msg', text: `${m.name} ได้รับประสบการณ์ ${g}` });
+        ev.push({ t: 'msg', text: `${m.name} ได้รับประสบการณ์ ${g}`, reward: true });
         while (m.lv < 100 && m.exp >= G.expFor(m.lv + 1)) {
           const oldStage = G.growthStage(m.lv);
           m.lv++;
           G.refreshStats(m);
           ev.push({ t: 'level', idx, lv: m.lv });
-          ev.push({ t: 'msg', text: `${m.name} เลเวลอัปเป็น ${m.lv}!` });
+          ev.push({ t: 'msg', text: `${m.name} เลเวลอัปเป็น ${m.lv}!`, reward: true });
           if (this.sp(m).kind === 'kid' && G.growthStage(m.lv) > oldStage)
             ev.push({ t: 'msg', text: `${m.name} เติบโตขึ้นเป็นขั้นที่ ${G.growthStage(m.lv)}!` });
           for (const [lv, mid] of this.sp(m).learnset) {

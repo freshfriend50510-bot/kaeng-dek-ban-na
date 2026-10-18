@@ -79,8 +79,12 @@
         if (n >= chars.length) complete();
       }, 22);
       const finish = () => { if (!stack.includes(m)) return; pop(m); resolve(); };
+      let lastPress = 0;
       const m = { el: box, onKey: (k) => {
         if (k !== 'ok' && k !== 'back') return;
+        const now = performance.now();
+        if (opt.onDouble && now - lastPress < 500) { opt.onDouble(); complete(); finish(); return; }   // กดสองครั้งติด = ข้าม
+        lastPress = now;
         if (k === 'back' && wasSeen) { G.ui.skipping = true; complete(); finish(); return; }
         if (!done) complete();
         else if (!opt.auto) { G.sfx('tick'); finish(); }

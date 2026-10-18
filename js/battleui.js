@@ -22,10 +22,20 @@
     for (let i = 1; i <= steps; i++) { V[key] = from + ((to - from) * i) / steps; render(b); await wait(22); }
   }
 
+  // ข้อความ EXP/เลเวลอัป: กด Z สองครั้งติดกัน = ข้ามทั้งหมด แล้วสรุปเลเวลที่ขึ้นในบรรทัดเดียว
   async function play(b, events) {
+    let skip = false;
+    const ups = new Map();
+    const summary = async () => {
+      if (skip && ups.size) await G.ui.say(`เลเวลอัป: ${[...ups].map(([n, lv]) => `${n} Lv ${lv}`).join(' · ')}`, null, { battle: true, auto: 900 });
+      ups.clear();
+    };
     for (const e of events) {
       switch (e.t) {
-        case 'msg': await G.ui.say(e.text, null, { battle: true, auto: 650 }); break;
+        case 'msg':
+          if (e.reward && skip) break;
+          await G.ui.say(e.text, null, { battle: true, auto: 650, onDouble: e.reward ? () => { skip = true; } : null });
+          break;
         case 'anim': V.lunge = { side: e.side, t: 0 }; G.sfx(e.cat === 'status' ? 'status' : 'attack'); await wait(220); break;
         case 'hit': V.shake = { side: e.side, t: 0 }; G.sfx(e.eff > 1 ? 'super' : 'hit'); await wait(200); break;
         case 'crit': V.critFlash = 10; V.shake = { side: e.side, t: 0 }; G.sfx('super'); await wait(160); break;
@@ -38,11 +48,12 @@
           render(b); G.sfx('send'); await wait(250);
           if (e.side === 'p' && V.onSend) await V.onSend(b);
           break;
-        case 'level': if (b.P[e.idx] === b.me) { V.php = b.me.hp; V.pSprite = G.monLook(b.me); render(b); } G.sfx('level'); break;
-        case 'learn': await learnMove(b.P[e.idx], e.move); break;
+        case 'level': ups.set(b.P[e.idx].name, e.lv); if (b.P[e.idx] === b.me) { V.php = b.me.hp; V.pSprite = G.monLook(b.me); render(b); } G.sfx('level'); break;
+        case 'learn': await summary(); await learnMove(b.P[e.idx], e.move); break;   // สรุปเลเวลก่อนถามเรียนท่า
         case 'recruit_try': V.wobble = 0.001; G.sfx('wobble'); await wait(1300); V.wobble = 0; break;
       }
     }
+    await summary();
     render(b);
   }
 
