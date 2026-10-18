@@ -307,7 +307,7 @@
     else if (pick === 'ตั้งค่า') {
       const on = (b) => (b ? 'เปิด' : 'ปิด');
       const s = await G.ui.choose([`ความเร็วข้อความ: ${['ช้า', 'กลาง', 'เร็ว'][G.settings.textSpeed - 1]}`, `เพลง: ${on(G.settings.music)}`,
-        `เสียงเอฟเฟกต์: ${on(G.settings.sound)}`, `ไกด์และลูกศรชี้ทาง: ${on(G.settings.guide)}`, `แถบทีมและมินิแมพ: ${on(G.settings.hud !== false)}`, `เก็บเวลเร็ว + ติดคริง่าย: ${on(G.settings.easy !== false)}`, 'สำรองเซฟเป็นไฟล์'], { cls: 'small',
+        `เสียงเอฟเฟกต์: ${on(G.settings.sound)}`, `ไกด์และลูกศรชี้ทาง: ${on(G.settings.guide)}`, `แถบทีมและมินิแมพ: ${on(G.settings.hud !== false)}`, `เก็บเวลเร็ว + ติดคริง่าย: ${on(G.settings.easy !== false)}`, 'สำรองเซฟเป็นไฟล์', 'ใส่รหัสลับ'], { cls: 'small',
         info: (k) => (k === 5 ? 'เปิด: EXP ×3 แบ่งให้ทั้งแก๊ง และฝั่งเราติดคริ 25%' : '') });
       if (s === 0) G.settings.textSpeed = (G.settings.textSpeed % 3) + 1;
       if (s === 1) { G.settings.music = !G.settings.music; G.restartMusic(); }
@@ -316,8 +316,33 @@
       if (s === 4) G.settings.hud = G.settings.hud === false;
       if (s === 5) G.settings.easy = G.settings.easy === false;
       if (s === 6) G.exportSave();
+      if (s === 7) await G.ui.secretCode();
       G.saveSettings();
     }
+  };
+
+  // ---------- รหัสลับ ----------
+  // ตั้งเลเวลสมาชิกใหม่ (ได้ท่าตามเลเวล ฟื้นพลังเต็ม)
+  const setLevel = (m, lv) => {
+    m.lv = lv; m.exp = G.expFor(lv); G.refreshStats(m); m.hp = m.stats.hp; m.status = null;
+    m.moves = G.movesAt(m.sp, lv).map((id) => ({ id, pp: G.DATA.moves[id].pp }));
+  };
+  const CODES = {
+    BEE50: async () => {
+      const S = G.state;
+      let m = [...S.party, ...S.storage].find((x) => x.sp === 'bee');
+      if (!m) { m = G.makeMon('bee', 50); if (S.party.length < 6) S.party.push(m); else S.storage.push(m); }
+      setLevel(m, 50);
+      G.sfx('level'); await G.ui.say(`${m.name} กลายเป็น Lv 50 แล้ว! (ชุดตำนานหมู่บ้าน)`);
+    },
+  };
+  G.ui.secretCode = async function () {
+    const code = await G.askText('ใส่รหัสลับ', '', 16);
+    if (!code) return;
+    const fn = CODES[code.trim().toUpperCase().replace(/\s+/g, '')];
+    if (!fn) { G.sfx('bump'); await G.ui.say('รหัสไม่ถูกต้อง'); return; }
+    await fn();
+    if (await G.ui.confirm('บันทึกเกมเลยไหม?')) { if (await G.ui.saveMenu()) await G.ui.say(`บันทึกลงช่อง ${G.slot} แล้ว`); }
   };
 
   // วาดสไปรต์ลง canvas เล็กในหน้าต่าง
