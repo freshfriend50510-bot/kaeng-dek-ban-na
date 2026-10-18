@@ -138,6 +138,8 @@
       }
     }
     const result = b.over;
+    S.fought = S.fought || {};
+    b.F.forEach((m, i) => { if (i <= b.fi) S.fought[m.sp] = 1; });   // สมุดบันทึก: เคยสู้แล้ว
     if (result === 'win' && opt.kind !== 'wild' && opt.money) {
       S.money += opt.money;
       await G.ui.say(`ได้เงินรางวัล ${opt.money} บาท`, null, { battle: true, auto: 700 });

@@ -1,32 +1,41 @@
 // ไกด์: บอกเป้าหมายถัดไป ลูกศรชี้ทาง และปุ่ม "คุย" ที่เด้งขึ้นเมื่อเดินเข้าใกล้คน/ป้าย/ประตู
 (function (G) {
   'use strict';
-  const STEPS = [
-    { until: 'starter_chosen', text: 'ไปศาลากลางบ้าน คุยกับผู้ใหญ่บ้านสมบัติ', map: 'village', npc: 'elder' },
-    { until: 'gift_rice', text: 'ไปรับข้าวเหนียวจากป้าสมร หน้าร้านชำ', map: 'village', npc: 'samorn' },
-    { until: 'catch_tutorial', text: 'ไปหาตาสีที่เถียงนา เรียนวิธีชวนผีเข้าแก๊ง', map: 'village', npc: 'tasi' },
-    { until: 'field_open', text: 'ขอให้พ่อบีจูงควายออกจากทางลงทุ่ง', map: 'village', npc: 'beedad' },
-    { until: 'boss1_done', text: 'ลงทุ่งนา เก็บเลเวลในนาข้าว แล้วไปสู้คางคกที่หนองใหญ่ (แนะนำ Lv 8)', map: 'field', npc: 'toad' },
-    { until: 'gym1_done', text: 'ข้ามคันนากลางหนองไปตลาดนัด เข้าร้านราเมงไปท้าพี่ออสซี่ (แนะนำ Lv 10)', map: 'ramen', npc: 'ossie' },
-    { until: 'festival_done', text: 'กลับหมู่บ้าน ไปงานบุญบั้งไฟกับผู้ใหญ่บ้านที่ศาลา', map: 'village', npc: 'elder' },
-    { until: 'kku_arrived', text: 'นั่งรถสองแถวของลุงที่ตลาดนัด ไปมหาวิทยาลัยขอนแก่น', map: 'market', npc: 'driver' },
-    { until: 'tr_wak1', text: 'ไปโรงช็อปวิศวะ ชนะพี่ว้ากหน้าประตู (แนะนำ Lv 14)', map: 'kku', npc: 'wak1' },
-    { until: 'tr_wak2', text: 'ชนะพี่ว้ากอีกคนหน้าโรงช็อป', map: 'kku', npc: 'wak2' },
-    { until: 'shop_gate', text: 'ในโรงช็อปไฟดับ! ไปห้องคัตเอาต์ สับไฟให้ติดครบ 4 ดวง', map: 'kku_shop', x: 5, y: 3 },
-    { until: 'gym2_done', text: 'ผ่านประตูเหล็กไปท้าพี่เฟรนด์ (แนะนำ Lv 16)', map: 'kku_shop', npc: 'friend' },
-  ];
-
+  // เควสต์มาจาก data_src/quests.csv: เควสต์หลักทำตามลำดับในไฟล์ เควสต์รองเริ่มเมื่อมี flag start
+  const Q = () => G.DATA.quests;
+  G.questTarget = function (q) {
+    const t = q.mid && G.state.flags[q.mid] && q.target2 ? q.target2 : q.target;
+    const [kind, a, b, c] = t.split(':');
+    if (kind === 'npc') { const n = G.DATA.world.npcs.find((k) => k.id === a); return { map: n.map, x: n.x, y: n.y }; }
+    return { map: a, x: +b, y: +c };
+  };
+  G.questState = function (q) {
+    const F = G.state.flags;
+    if (F[q.done]) return 'done';
+    if (q.kind === 'main') return Q().filter((k) => k.kind === 'main').find((k) => !F[k.done]) === q ? 'active' : 'locked';
+    return F[q.start] ? 'active' : 'locked';
+  };
+  // เครื่องหมายเหนือหัว: ! คนที่มีเควสต์รองให้รับ, ? เป้าหมายของเควสต์รองที่กำลังทำ
+  G.questMark = function (npcId) {
+    const F = G.state.flags;
+    for (const q of Q()) {
+      if (q.kind !== 'side' || F[q.done]) continue;
+      if (!F[q.start] && q.giver === npcId && (!q.after || F[q.after])) return '!';
+      if (F[q.start]) { const t = q.mid && F[q.mid] && q.target2 ? q.target2 : q.target; if (t === 'npc:' + npcId) return '?'; }
+    }
+    return null;
+  };
   G.objective = function () {
-    const S = G.state, F = S.flags;
-    const st = STEPS.find((s) => !F[s.until]);
-    if (!st) {
+    const q = Q().find((k) => k.kind === 'main' && !G.state.flags[k.done]);
+    if (!q) {
+      const side = Q().find((k) => G.questState(k) === 'active');
+      if (side) return { text: `[เควสต์รอง] ${side.desc}`, ...G.questTarget(side) };
+      const S = G.state;
       const engs = [...S.party, ...S.storage].filter((m) => G.DATA.species[m.sp].kind === 'eng').length;
       const all = Object.values(G.DATA.engNames).reduce((a, l) => a + l.length, 0) + 1;
       return { text: `ชวนน้องวิศวะเข้าแก๊ง (${engs}/${all} คน) · ยิม 3 พี่บูมมาในเวอร์ชันหน้า` };
     }
-    let x = st.x, y = st.y, map = st.map;
-    if (st.npc) { const n = G.DATA.world.npcs.find((n) => n.id === st.npc); x = n.x; y = n.y; map = n.map; }
-    return { text: st.text, map, x, y };
+    return { text: q.desc, ...G.questTarget(q) };
   };
 
   // หาเส้นทางระหว่างแผนที่ (วาร์ป ประตูตึก รถสองแถว) แล้วชี้ไปที่ทางออกแรกที่ต้องเดินไป

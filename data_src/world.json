@@ -307,7 +307,12 @@
    "y": 10,
    "to": "store",
    "tx": 4,
-   "ty": 6
+   "ty": 6,
+   "open": [
+    5,
+    20
+   ],
+   "closedText": "ร้านชำป้าสมรปิดแล้ว (เปิด ตี 5 – 2 ทุ่ม) ป้าคงนอนแล้ว"
   },
   {
    "map": "village",
@@ -331,7 +336,12 @@
    "y": 3,
    "to": "school",
    "tx": 5,
-   "ty": 6
+   "ty": 6,
+   "open": [
+    6,
+    18
+   ],
+   "closedText": "โรงเรียนปิดแล้ว (เปิด 6 โมงเช้า – 6 โมงเย็น)"
   },
   {
    "map": "village",
@@ -387,7 +397,12 @@
    "y": 7,
    "to": "lecture",
    "tx": 8,
-   "ty": 7
+   "ty": 7,
+   "open": [
+    6,
+    22
+   ],
+   "closedText": "ตึกเรียนปิดแล้ว (เปิด 6 โมงเช้า – 4 ทุ่ม)"
   },
   {
    "map": "kku",
@@ -408,7 +423,12 @@
    "y": 22,
    "to": "canteen",
    "tx": 8,
-   "ty": 8
+   "ty": 8,
+   "open": [
+    6,
+    21
+   ],
+   "closedText": "โรงอาหารปิดแล้ว (เปิด 6 โมงเช้า – 3 ทุ่ม)"
   },
   {
    "map": "kku",
@@ -642,7 +662,11 @@
    "y": 4,
    "look": "teacher",
    "dir": "down",
-   "script": "teacher"
+   "script": "teacher",
+   "hours": [
+    6,
+    18
+   ]
   },
   {
    "id": "monk",
@@ -860,7 +884,11 @@
    "y": 6,
    "look": "vendor",
    "dir": "down",
-   "script": "vendor"
+   "script": "vendor",
+   "hours": [
+    6,
+    20
+   ]
   },
   {
    "id": "vendor2",
@@ -870,7 +898,11 @@
    "y": 13,
    "look": "samorn",
    "dir": "up",
-   "script": "vendor2"
+   "script": "vendor2",
+   "hours": [
+    6,
+    20
+   ]
   },
   {
    "id": "bee_mom",
@@ -920,7 +952,11 @@
    "y": 4,
    "look": "student2",
    "dir": "up",
-   "script": "classmate"
+   "script": "classmate",
+   "hours": [
+    7,
+    17
+   ]
   },
   {
    "id": "novice",
@@ -1010,7 +1046,11 @@
    "y": 9,
    "look": "driver",
    "dir": "up",
-   "script": "driver"
+   "script": "driver",
+   "hours": [
+    5,
+    22
+   ]
   },
   {
    "id": "driver2",
@@ -1020,7 +1060,11 @@
    "y": 15,
    "look": "driver",
    "dir": "up",
-   "script": "driver2"
+   "script": "driver2",
+   "hours": [
+    5,
+    22
+   ]
   },
   {
    "id": "guard",
@@ -1040,7 +1084,11 @@
    "y": 12,
    "look": "eng:eng_ie:7",
    "dir": "right",
-   "script": "gossip1"
+   "script": "gossip1",
+   "hours": [
+    7,
+    19
+   ]
   },
   {
    "id": "gossip2",
@@ -1050,7 +1098,11 @@
    "y": 12,
    "look": "eng:eng_env:1",
    "dir": "left",
-   "script": "gossip2"
+   "script": "gossip2",
+   "hours": [
+    7,
+    19
+   ]
   },
   {
    "id": "dog",
@@ -1244,7 +1296,11 @@
    "y": 2,
    "look": "prof",
    "dir": "down",
-   "script": "prof"
+   "script": "prof",
+   "hours": [
+    8,
+    18
+   ]
   },
   {
    "id": "studentk",
@@ -1254,7 +1310,11 @@
    "y": 4,
    "look": "eng:eng_mech:5",
    "dir": "up",
-   "script": "sleepy"
+   "script": "sleepy",
+   "hours": [
+    8,
+    18
+   ]
   },
   {
    "id": "ungying",
@@ -1315,7 +1375,11 @@
    "y": 6,
    "look": "eng:eng_elec:4",
    "dir": "left",
-   "script": "eater1"
+   "script": "eater1",
+   "hours": [
+    7,
+    20
+   ]
   },
   {
    "id": "eater2",
@@ -1325,7 +1389,11 @@
    "y": 4,
    "look": "eng:eng_mech:2",
    "dir": "down",
-   "script": "eater2"
+   "script": "eater2",
+   "hours": [
+    7,
+    20
+   ]
   },
   {
    "id": "mkowner",
@@ -1460,6 +1528,30 @@
    "look": "friend",
    "dir": "down",
    "script": "friend"
+  },
+  {
+   "id": "calf",
+   "name": "ลูกควายเจ้าทอง",
+   "map": "field",
+   "x": 25,
+   "y": 8,
+   "look": "buffalo",
+   "dir": "left",
+   "script": "calf",
+   "showIf": "calf_asked",
+   "hideIf": "calf_found"
+  },
+  {
+   "id": "notes",
+   "name": "สมุดโน้ต",
+   "map": "canteen",
+   "x": 14,
+   "y": 7,
+   "look": "item",
+   "dir": "down",
+   "script": "notes",
+   "showIf": "notes_asked",
+   "hideIf": "notes_found"
   }
  ],
  "rides": [

@@ -1,0 +1,16 @@
+id,kind,name,giver,after,start,done,target,mid,target2,reward,desc
+m_elder,main,ตั้งแก๊ง,elder,,,starter_chosen,npc:elder,,,,ไปศาลากลางบ้าน คุยกับผู้ใหญ่บ้านสมบัติ
+m_rice,main,ข้าวเหนียวจากป้าสมร,samorn,,,gift_rice,npc:samorn,,,,ไปรับข้าวเหนียวจากป้าสมรในร้านชำ
+m_tasi,main,วิธีชวนผี,tasi,,,catch_tutorial,npc:tasi,,,,ไปหาตาสีที่เถียงนา เรียนวิธีชวนผีเข้าแก๊ง
+m_field,main,ควายขวางทาง,beedad,,,field_open,npc:beedad,,,,ขอให้พ่อบีจูงควายออกจากทางลงทุ่ง
+m_toad,main,ฝนแรกแห่งบ้านโนนสะอาด,toad,,,boss1_done,npc:toad,,,,ลงทุ่งนา เก็บเลเวลในนาข้าว แล้วไปสู้คางคกที่หนองใหญ่ (แนะนำ Lv 8)
+m_gym1,main,ตราผ้าโพก,ossie,,,gym1_done,npc:ossie,,,,ข้ามคันนาไปตลาดนัด เข้าร้านราเมงไปท้าพี่ออสซี่ (แนะนำ Lv 10)
+m_fest,main,บุญบั้งไฟ,elder,,,festival_done,npc:elder,,,,กลับหมู่บ้าน ไปงานบุญบั้งไฟกับผู้ใหญ่บ้านที่ศาลา
+m_kku,main,ไป มข.,driver,,,kku_arrived,npc:driver,,,,นั่งรถสองแถวของลุงที่ตลาดนัด ไปมหาวิทยาลัยขอนแก่น (รถวิ่ง ตี 5 – 4 ทุ่ม)
+m_wak1,main,พี่ว้ากคนที่หนึ่ง,wak1,,,tr_wak1,npc:wak1,,,,ไปโรงช็อปวิศวะ ชนะพี่ว้ากหน้าประตู (แนะนำ Lv 14)
+m_wak2,main,พี่ว้ากคนที่สอง,wak2,,,tr_wak2,npc:wak2,,,,ชนะพี่ว้ากอีกคนหน้าโรงช็อป
+m_gate,main,ไฟดับทั้งตึก,,,,shop_gate,map:kku_shop:5:3,,,,ในโรงช็อปไฟดับ! ไปห้องคัตเอาต์ สับไฟให้ติดครบ 4 ดวง
+m_gym2,main,ตราเฟือง,friend,,,gym2_done,npc:friend,,,,ผ่านประตูเหล็กไปท้าพี่เฟรนด์ (แนะนำ Lv 16)
+s_calf,side,ลูกควายหลงทุ่ง,beedad,boss1_done,calf_asked,calf_done,npc:calf,calf_found,npc:beedad,rice_pork:3;money:150,ลูกควายเจ้าทองของพ่อบีหลุดไปในทุ่งนา ตามหาแล้วพากลับมาหาพ่อบี
+s_lunch,side,ข้าวห่อให้ตาสี,tle_mom,boss1_done,lunch_got,lunch_done,npc:tasi,,,herb_big:2;money:100,แม่เติ้ลฝากห่อข้าวเหนียวไก่ย่างไปให้ตาสีที่เถียงนา
+s_notes,side,สมุดโน้ตของอาจารย์,prof,kku_arrived,notes_asked,notes_done,npc:notes,notes_found,npc:prof,coupon:3;money:300,อาจารย์สมศักดิ์ลืมสมุดโน้ตไว้ในโรงอาหาร ไปหามาคืน

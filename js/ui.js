@@ -99,15 +99,52 @@
   const KIND_TH = { kid: 'เด็กบ้านนา', ghost: 'ผีสาง', eng: 'น้องวิศวะ', boss: 'บอส', master: 'หัวโจก' };
   const monRow = (m, extra) => ({ icon: G.monLook(m), label: `${m.name}  Lv${m.lv}`,
     sub: `${m.hp}/${m.stats.hp}${m.status ? ' · ' + STATUS[m.status] : ''}${m.held ? ' · ถือ' + G.DATA.items[m.held].name : ''}${extra || ''}` });
+  // หน้าทีม: การ์ด 2 คอลัมน์ รูป เลเวล ธาตุ หลอด HP/EXP สถานะ ของถือ คืน index หรือ -1
+  const AB_SHORT = { rage: 'บ้าพลัง', analyze: 'วิเคราะห์', eater: 'อิ่มแล้วสู้', quick: 'ดีดเปิดเกม' };
+  G.ui.teamScreen = function (opt = {}) {
+    const S = G.state;
+    return new Promise((resolve) => {
+      const box = el('div', 'panel sheet team-sheet');
+      const card = (m, k) => {
+        const sp = G.DATA.species[m.sp], p = Math.max(0, m.hp / m.stats.hp);
+        const ex = Math.min(100, ((m.exp - G.expFor(m.lv)) / (G.expFor(m.lv + 1) - G.expFor(m.lv))) * 100);
+        const off = opt.mustAlive && m.hp <= 0;
+        return `<div class="tcard ${m.hp <= 0 ? 'down' : ''} ${off ? 'off' : ''}" data-i="${k}">
+          <div class="tc-pic"><canvas width="16" height="16" data-sprite="${esc(G.monLook(m))}"></canvas>${k === 0 && S.follower ? '<em class="tc-lead">เดินตาม</em>' : ''}</div>
+          <div class="tc-body"><div class="tc-top"><b>${esc(m.name)}</b><span class="lv">Lv${m.lv}</span></div>
+            <div class="tc-tags">${G.ui.typeTag(sp.type)}<span class="tag tc-kind">${KIND_TH[sp.kind] || ''}</span>${G.ui.statusTag(m.status)}${m.hp <= 0 ? '<span class="tag tc-ko">หมดแรง</span>' : ''}</div>
+            ${G.ui.hpBar(m.hp, m.stats.hp)}<div class="tc-num"><span>${m.hp}/${m.stats.hp}</span>${m.held ? `<span class="tc-held"><canvas width="16" height="16" data-sprite="item:${m.held}"></canvas>${esc(G.DATA.items[m.held].name)}</span>` : ''}</div>
+            <div class="expbar"><i style="width:${ex}%"></i></div></div></div>`;
+      };
+      box.innerHTML = `<div class="choice-title">${esc(opt.title || 'ทีมของเรา')}</div><div class="tgrid">${S.party.map(card).join('')}${'<div class="tcard empty"><span>ว่าง</span></div>'.repeat(6 - S.party.length)}</div><div class="tinfo"></div>`;
+      const cards = [...box.querySelectorAll('.tcard[data-i]')], info = box.querySelector('.tinfo');
+      let sel = Math.max(0, Math.min(S.party.length - 1, opt.start || 0));
+      if (opt.mustAlive && S.party[sel] && S.party[sel].hp <= 0) sel = Math.max(0, S.party.findIndex((m) => m.hp > 0));
+      const draw = () => {
+        cards.forEach((c, i) => c.classList.toggle('sel', i === sel));
+        const m = S.party[sel]; if (!m) return;
+        const sp = G.DATA.species[m.sp];
+        info.textContent = `${sp.ability ? 'ความสามารถ: ' + AB_SHORT[sp.ability] + ' · ' : ''}โจมตี ${m.stats.atk} · ป้องกัน ${m.stats.def} · พิเศษ ${m.stats.spa} · ความเร็ว ${m.stats.spe} · EXP อีก ${G.expFor(m.lv + 1) - m.exp}`;
+      };
+      const pick = () => { if (opt.mustAlive && S.party[sel].hp <= 0) { G.sfx('bump'); return; } G.sfx('tick'); pop(m); resolve(sel); };
+      const n = S.party.length;
+      const m = { el: box, onKey: (k) => {
+        if (k === 'left' || k === 'right') sel = sel % 2 ? sel - 1 : Math.min(n - 1, sel + 1);
+        else if (k === 'up') sel = sel >= 2 ? sel - 2 : sel;
+        else if (k === 'down') sel = sel + 2 < n ? sel + 2 : sel;
+        else if (k === 'ok') return pick();
+        else if (k === 'back' && opt.cancel !== false) { G.sfx('tick'); pop(m); resolve(-1); return; }
+        draw();
+      } };
+      cards.forEach((c, i) => c.addEventListener('click', () => { sel = i; draw(); pick(); }));
+      push(m); draw();
+    });
+  };
   G.ui.partyMenu = async function (opt = {}) {
     const S = G.state;
     let start = 0;
     for (;;) {
-      const options = S.party.map((m, k) => ({ ...monRow(m, k === 0 && S.follower ? ' · เดินตาม' : ''), disabled: opt.mustAlive && m.hp <= 0 }));
-      const i = await G.ui.choose(options, { title: opt.title || 'ทีมของเรา (คนแรก = เดินตามและลงสู้ก่อน)', cls: 'party', cancel: opt.cancel !== false,
-        start: opt.pick ? Math.max(0, options.findIndex((o) => !o.disabled)) : start,
-        info: (k) => { const m = S.party[k]; if (!m) return ''; const sp = G.DATA.species[m.sp];
-          return `${KIND_TH[sp.kind] || ''} · ${G.TYPE_TH[sp.type]} · EXP ถึงเลเวลถัดไป ${G.expFor(m.lv + 1) - m.exp}`; } });
+      const i = await G.ui.teamScreen({ title: opt.title || 'ทีมของเรา · คนแรกเดินตามและลงสู้ก่อน · Z เลือก X ปิด', mustAlive: opt.mustAlive, cancel: opt.cancel, start: opt.pick ? 0 : start });
       if (i < 0 || opt.pick) return i;
       start = i;
       const m = S.party[i];
@@ -199,18 +236,65 @@
   };
 
   // ---------- กระเป๋า ----------
-  const BAG_ORDER = ['heal', 'healall', 'cure', 'recruit', 'repel', 'held', 'tm'];
-  const BAG_TH = { heal: 'ยา', healall: 'ยา', cure: 'ยา', recruit: 'ของกินชวน', repel: 'ของใช้', held: 'ของถือ', tm: 'ของสำคัญ' };
+  let lastTab = null;
+  const BAG_TABS = [['ยา', ['heal', 'healall', 'cure']], ['ของกินชวน', ['recruit', 'repel']], ['ของถือ', ['held']], ['ของสำคัญ', ['tm']]];
+  const SOURCE = { tm_wind_blade: 'รางวัลชนะยิม 1 พี่ออสซี่', tm_short_circuit: 'รางวัลชนะยิม 2 พี่เฟรนด์', yantra: 'หลวงตามอบให้หลังฝนตก', goggles: 'พ่อแอมให้ (แว่นสมัยเรียนวิศวะ)' };
+  const BADGES = [['gym1', 'ตราผ้าโพก', 'พี่ออสซี่ · ร้านราเมงลมทุ่ง', 'เปิดทางรถสองแถวไป มข.'], ['gym2', 'ตราเฟือง', 'พี่เฟรนด์ · โรงช็อปวิศวะ มข.', 'เปิดสะพานข้ามลำน้ำพอง'],
+    ['gym3', 'ตราหูฟัง', 'พี่บูม · คลินิกหลังโรงพยาบาลอำเภอ', 'เฒ่าจ้ำอนุญาตให้เข้าดอนปู่ตา'], ['gym4', 'ตราไม้เรียว', 'พี่ต้นน้ำ · ห้องสมุดโรงเรียนมัธยม', '—']];
+  G.BADGES = BADGES;
+  // หน้ากระเป๋า: แท็บตามหมวด รายการพร้อมไอคอน และรายละเอียดด้านขวา (แท็บตรายิมดูอย่างเดียว) คืน id ไอเท็มหรือ null
+  G.ui.bagScreen = function (opt = {}) {
+    const S = G.state, I = G.DATA.items;
+    return new Promise((resolve) => {
+      const tabs = BAG_TABS.map(([name, kinds]) => [name, Object.keys(S.bag).filter((k) => S.bag[k] > 0 && I[k] && kinds.includes(I[k].kind) && (!opt.filter || opt.filter(I[k])))])
+        .filter(([, ids]) => ids.length || !opt.filter);
+      if (!opt.filter) tabs.push(['ตรายิม', null]);
+      let t = Math.max(0, Math.min(tabs.length - 1, opt.tab != null ? opt.tab : tabs.findIndex(([, ids]) => ids && ids.length))), sel = 0;
+      const box = el('div', 'panel sheet bag-sheet');
+      const render = () => {
+        const [, ids] = tabs[t];
+        const head = `<div class="bag-tabs">${tabs.map(([n, l], i) => `<span class="${i === t ? 'on' : ''}" data-t="${i}">${n}${l ? ` <small>${l.length}</small>` : ''}</span>`).join('')}</div>`;
+        let list, detail;
+        if (!ids) {   // ตรายิม
+          const b = BADGES[sel];
+          list = BADGES.map(([f, n], i) => `<div class="bag-item ${i === sel ? 'sel' : ''} ${S.flags[f + '_done'] ? '' : 'locked'}" data-i="${i}"><canvas width="16" height="16" data-sprite="badge:${f}"></canvas><span>${S.flags[f + '_done'] ? n : '???'}</span></div>`).join('');
+          detail = S.flags[b[0] + '_done'] ? `<canvas class="bag-big" width="16" height="16" data-sprite="badge:${b[0]}"></canvas><b>${b[1]}</b><p>ได้จาก ${b[2]}</p><p class="bag-src">ผล: ${b[3]}</p>`
+            : `<canvas class="bag-big locked" width="16" height="16" data-sprite="badge:${b[0]}"></canvas><b>ยังไม่ได้</b><p>ชนะ ${b[2].split(' · ')[0]} เพื่อรับตรานี้</p>`;
+        } else if (!ids.length) { list = '<div class="bag-empty">ยังไม่มีของในหมวดนี้</div>'; detail = ''; }
+        else {
+          const id = ids[sel], it = I[id];
+          list = ids.map((k, i) => `<div class="bag-item ${i === sel ? 'sel' : ''}" data-i="${i}"><canvas width="16" height="16" data-sprite="item:${k}"></canvas><span>${esc(I[k].name)}</span><em>${I[k].kind === 'tm' ? '' : '×' + S.bag[k]}</em></div>`).join('');
+          detail = `<canvas class="bag-big" width="16" height="16" data-sprite="item:${id}"></canvas><b>${esc(it.name)}</b>${it.kind === 'tm' ? '' : `<span class="bag-count">มี ${S.bag[id]} ชิ้น</span>`}<p>${esc(it.desc)}</p>${SOURCE[id] ? `<p class="bag-src">${SOURCE[id]}</p>` : ''}${it.price && it.kind !== 'tm' && it.kind !== 'held' ? `<p class="bag-src">ราคาร้าน ${it.price} บาท</p>` : ''}`;
+        }
+        box.innerHTML = `<div class="choice-title">${esc(opt.title || 'กระเป๋า')} · เงิน ${S.money} บาท</div>${head}<div class="bag-body"><div class="bag-list">${list}</div><div class="bag-detail">${detail}</div></div>
+          <div class="hint">← → เปลี่ยนหมวด · ↑ ↓ เลือก · Z ${opt.inBattle ? 'ใช้' : opt.pickOnly ? 'เลือก' : 'ใช้/ดู'} · X ปิด</div>`;
+        const it = box.querySelector('.bag-item.sel'); if (it) it.scrollIntoView({ block: 'nearest' });
+        box.querySelectorAll('[data-t]').forEach((e) => e.addEventListener('click', () => { t = +e.dataset.t; sel = 0; G.sfx('tick'); render(); }));
+        box.querySelectorAll('.bag-item').forEach((e) => e.addEventListener('click', () => { if (sel === +e.dataset.i) pick(); else { sel = +e.dataset.i; render(); } }));
+      };
+      const len = () => (tabs[t][1] ? tabs[t][1].length : BADGES.length);
+      const pick = () => { const ids = tabs[t][1]; if (!ids || !ids.length) { G.sfx('bump'); return; } G.sfx('tick'); pop(m); resolve(ids[sel]); };
+      const m = { el: box, onKey: (k) => {
+        if (k === 'left' || k === 'right') { t = (t + (k === 'left' ? tabs.length - 1 : 1)) % tabs.length; sel = 0; G.sfx('tick'); }
+        else if (k === 'up') sel = (sel - 1 + len()) % Math.max(1, len());
+        else if (k === 'down') sel = (sel + 1) % Math.max(1, len());
+        else if (k === 'ok') return pick();
+        else if (k === 'back') { G.sfx('tick'); pop(m); resolve(null); return; }
+        render();
+      } };
+      push(m); render();
+    });
+  };
   G.ui.bagMenu = async function (opt = {}) {
     const S = G.state, I = G.DATA.items;
     for (;;) {
-      const ids = Object.keys(S.bag).filter((k) => S.bag[k] > 0 && I[k] && (!opt.filter || opt.filter(I[k])))
-        .sort((a, b) => BAG_ORDER.indexOf(I[a].kind) - BAG_ORDER.indexOf(I[b].kind));
-      if (!ids.length) { await G.ui.say(opt.pickOnly ? 'ไม่มีของที่ใช้ได้' : 'กระเป๋าว่างเปล่า'); return null; }
-      const i = await G.ui.choose(ids.map((k) => ({ label: I[k].name, sub: (I[k].kind === 'tm' ? '' : '×' + S.bag[k]) + ' ' + BAG_TH[I[k].kind] })),
-        { title: opt.title || 'กระเป๋า', cls: 'bag', info: (k) => I[ids[k]] && I[ids[k]].desc });
-      if (i < 0) return null;
+      const any = Object.keys(S.bag).some((k) => S.bag[k] > 0 && I[k] && (!opt.filter || opt.filter(I[k])));
+      if (!any && opt.filter) { await G.ui.say(opt.pickOnly ? 'ไม่มีของที่ใช้ได้' : 'ไม่มีของที่ใช้ตอนนี้ได้'); return null; }
+      const picked = await G.ui.bagScreen({ ...opt, tab: lastTab });
+      if (!picked) return null;
+      const ids = [picked], i = 0;
       const it = I[ids[i]];
+      if (!opt.filter) lastTab = BAG_TABS.findIndex(([, kinds]) => kinds.includes(it.kind));
       if (opt.inBattle || opt.pickOnly) return ids[i];
       if (it.kind === 'heal' || it.kind === 'cure') {
         const t = await G.ui.partyMenu({ pick: true, title: `ใช้${it.name}กับใคร?` });
@@ -272,18 +356,40 @@
     }
   };
 
-  // ---------- สมุดบันทึกผีสาง ----------
+  // ---------- สมุดบันทึก: ยังไม่พบ / เคยพบ / เคยสู้ / ชวนสำเร็จ (+ อยู่ในทีม / อยู่ในคลัง) ----------
   G.ui.notebook = function () {
-    const S = G.state, sp = G.DATA.species;
+    const S = G.state, sp = G.DATA.species, fought = S.fought || {};
     const ids = Object.keys(sp).filter((k) => sp[k].kind === 'ghost' || (sp[k].kind === 'eng' && G.DATA.engNames[k]));
-    const rows = ids.map((k) => {
-      const st = S.dex[k] || 0;
-      return `<div class="nb-row ${st ? '' : 'unknown'}"><canvas width="16" height="16" data-sprite="${st ? sp[k].look : ''}"></canvas>
-        <div><b>${st ? esc(sp[k].name) : '???'}</b> ${st ? G.ui.typeTag(sp[k].type) : ''} ${st === 2 ? '<span class="tag got">อยู่ในแก๊ง</span>' : ''}<br>
-        <small>${st ? esc(sp[k].desc) : 'ยังไม่เคยเจอ'}</small></div></div>`;
-    }).join('');
-    const seen = ids.filter((k) => S.dex[k]).length, got = ids.filter((k) => S.dex[k] === 2).length;
-    return G.ui.panel(`<div class="choice-title">สมุดบันทึก (แอมเขียน) — เจอ ${seen}/${ids.length} · ชวนได้ ${got} · น้องวิศวะในแก๊ง ${[...S.party, ...S.storage].filter((m) => sp[m.sp].kind === 'eng').length} คน</div><div class="nb">${rows}</div>`, 'notebook');
+    const inTeam = (k) => S.party.filter((m) => m.sp === k).length, inBox = (k) => S.storage.filter((m) => m.sp === k).length;
+    const stateOf = (k) => (S.dex[k] === 2 ? 3 : fought[k] ? 2 : S.dex[k] ? 1 : 0);
+    const LABEL = ['ยังไม่พบ', 'เคยพบ', 'เคยสู้', 'ชวนสำเร็จ'];
+    const card = (k) => {
+      const st = stateOf(k), t = inTeam(k), b = inBox(k);
+      const tags = (st ? `<span class="tag nb-st${st}">${LABEL[st]}</span>` : '') + (t ? `<span class="tag nb-team">ในทีม ${t}</span>` : '') + (b ? `<span class="tag nb-box">ในคลัง ${b}</span>` : '');
+      const desc = st === 0 ? 'ยังไม่เคยเจอ' : st === 1 ? 'เคยเห็นแวบๆ ต้องลองสู้ดูถึงจะรู้มากกว่านี้' : esc(sp[k].desc);
+      return `<div class="nb-row st${st}"><canvas width="16" height="16" data-sprite="${st ? sp[k].look : ''}"></canvas>
+        <div><b>${st ? esc(sp[k].name) : '???'}</b> ${st >= 2 ? G.ui.typeTag(sp[k].type) : ''}<br>${tags}<br><small>${desc}</small></div></div>`;
+    };
+    const ghosts = ids.filter((k) => sp[k].kind === 'ghost'), engs = ids.filter((k) => sp[k].kind === 'eng');
+    const count = (list) => [1, 2, 3].map((n) => list.filter((k) => stateOf(k) >= n).length);
+    const [gs, gf, gc] = count(ghosts), [es, ef, ec] = count(engs);
+    const people = [...S.party, ...S.storage].filter((m) => sp[m.sp].kind === 'eng').length;
+    return G.ui.panel(`<div class="choice-title">สมุดบันทึก (แอมเขียน)</div>
+      <div class="nb-head">ผีสาง — เจอ ${gs}/${ghosts.length} · สู้ ${gf} · ชวนได้ ${gc}</div><div class="nb">${ghosts.map(card).join('')}</div>
+      <div class="nb-head">น้องวิศวะ — เจอ ${es}/${engs.length} สาขา · สู้ ${ef} · ชวนได้ ${ec} สาขา · อยู่ในแก๊ง ${people} คน</div><div class="nb">${engs.map(card).join('')}</div>`, 'notebook');
+  };
+
+  // ---------- สมุดเควสต์ ----------
+  G.ui.questLog = function () {
+    const Q = G.DATA.quests;
+    const row = (q) => { const st = G.questState(q), mapName = st === 'active' ? (G.DATA.world.maps[G.questTarget(q).map] || {}).name : '';
+      return `<div class="q-row q-${st}"><i>${st === 'done' ? '✓' : st === 'active' ? '▶' : '·'}</i><div><b>${esc(q.name)}</b>${st === 'active' ? `<small> · ${esc(mapName)}</small>` : ''}<br><small>${esc(q.desc)}</small>${q.reward.length && st !== 'done' ? `<br><small class="q-rw">รางวัล: ${q.reward.map(([k, v]) => (k === 'money' ? v + ' บาท' : G.DATA.items[k].name + ' ×' + v)).join(' · ')}</small>` : ''}</div></div>`; };
+    const main = Q.filter((q) => q.kind === 'main' && G.questState(q) !== 'locked');
+    const side = Q.filter((q) => q.kind === 'side' && G.questState(q) !== 'locked');
+    const hidden = Q.filter((q) => q.kind === 'side' && G.questState(q) === 'locked').length;
+    return G.ui.panel(`<div class="choice-title">สมุดเควสต์</div><div class="nb-head">เนื้อเรื่องหลัก</div>${main.map(row).join('')}
+      <div class="nb-head">ช่วยชาวบ้าน</div>${side.map(row).join('') || '<small>ยังไม่ได้รับเควสต์ช่วยชาวบ้าน ลองคุยกับคนที่มีเครื่องหมาย ! เหนือหัว</small>'}
+      ${hidden ? `<div class="hint">ยังมีเควสต์ช่วยชาวบ้านที่ยังไม่เจออีก ${hidden} อัน</div>` : ''}`, 'notebook');
   };
 
   // ---------- เมนูหลัก ----------
@@ -293,15 +399,17 @@
     if (S.party.length) items.push('ทีม');
     items.push('กระเป๋า');
     if (S.flags.starter_chosen) items.push('สมุดบันทึก');
+    if (S.flags.intro_done) items.push('สมุดเควสต์');
     items.push('ตรา', 'วิธีเล่น', 'บันทึกเกม', 'ตั้งค่า', 'ปิด');
     const i = await G.ui.choose(items, { cls: 'mainmenu', title: `${S.name} · ${S.money} บาท` });
     const pick = items[i];
     if (pick === 'ทีม') await G.ui.partyMenu();
     else if (pick === 'กระเป๋า') await G.ui.bagMenu();
     else if (pick === 'สมุดบันทึก') await G.ui.notebook();
+    else if (pick === 'สมุดเควสต์') await G.ui.questLog();
     else if (pick === 'ตรา') await G.ui.panel(`<div class="choice-title">ตรายิม</div><div class="badges">${
       [['gym1', 'ผ้าโพก'], ['gym2', 'เฟือง'], ['gym3', 'หูฟัง'], ['gym4', 'ไม้เรียว']].map(([f, n]) =>
-        `<div class="badge ${S.flags[f + '_done'] ? 'on' : ''}"><i></i>ตรา${n}</div>`).join('')}</div>`);
+        `<div class="badge ${S.flags[f + '_done'] ? 'on' : ''}"><canvas width="16" height="16" data-sprite="badge:${f}"></canvas>ตรา${n}</div>`).join('')}</div>`);
     else if (pick === 'วิธีเล่น') await G.ui.panel(G.HOWTO, 'tip-sheet');
     else if (pick === 'บันทึกเกม') { if (await G.ui.saveMenu()) { G.sfx('buy'); await G.ui.say(`บันทึกเกมลงช่อง ${G.slot} แล้ว`); } }
     else if (pick === 'ตั้งค่า') {

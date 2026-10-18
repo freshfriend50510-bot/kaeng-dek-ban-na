@@ -158,9 +158,12 @@
     if (G.autosave && !G.busy) setTimeout(() => G.autosave({ silent: true }), 0);   // เปลี่ยนแผนที่แล้วบันทึกเงียบๆ
   };
 
+  // ช่วงเวลาเปิด [จาก, ถึง) ชั่วโมงในเกม รองรับช่วงข้ามเที่ยงคืน
+  G.hourIn = (range) => { if (!range) return true; const h = Math.floor(G.state.time / 60) % 24, [a, b] = range; return a <= b ? h >= a && h < b : h >= a || h < b; };
   G.refreshNpcs = function () {
     const F = G.state.flags;
-    W.npcs = G.DATA.world.npcs.filter((n) => n.map === W.map && (!n.showIf || F[n.showIf]) && (!n.hideIf || !F[n.hideIf]))
+    W.hour = Math.floor(G.state.time / 60) % 24;
+    W.npcs = G.DATA.world.npcs.filter((n) => n.map === W.map && (!n.showIf || F[n.showIf]) && (!n.hideIf || !F[n.hideIf]) && G.hourIn(n.hours))
       .map((n) => ({ ...n, x: (G.state.npcPos[n.id] || n).x, y: (G.state.npcPos[n.id] || n).y, dir: n.dir }));
   };
 
@@ -201,12 +204,15 @@
     const F = G.state.flags;
     if (door.need && !door.need.every((f) => F[f])) { G.runScript(door.script || 'door_locked', door); return; }
     if (!door.to) { G.runScript(door.script, door); return; }
+    if (door.open && !G.hourIn(door.open)) { G.runScript('door_closed', door); return; }
     G.sfx('door');
     G.fadeTo(() => G.loadMap(door.to, door.tx, door.ty, 'up')).then(() => G.runScript('enter', door.to));
   };
 
   G.world.update = function () {
     W.anim++;
+    // ชั่วโมงเปลี่ยน: NPC ไปทำงาน/กลับบ้านตามตารางเวลา
+    if (W.hour !== Math.floor(G.state.time / 60) % 24 && !G.busy && !W.moving) G.refreshNpcs();
     if (W.bumpCD) W.bumpCD--;
     for (const n of W.npcs) if (n.alert > 0) n.alert--;
     const m = W.moving;
@@ -414,6 +420,14 @@
     const spr = custom && (look === 'toad' || look === 'item' || look === 'buffalo') ? G.sprite(look) : G.actorSprite(look, dir, frame);
     ctx.drawImage(spr, x, y - bob);
     if (npc && npc.trainer && !G.state.flags[npc.trainer.flag]) { ctx.fillStyle = '#c5482b'; ctx.fillRect(x + 7, y - 4, 2, 2); }
+    const qm = npc && G.questMark ? G.questMark(npc.id) : null;
+    if (qm && !(npc.alert > 0)) {   // ! = มีเควสต์ให้รับ  ? = ไปส่งเควสต์ได้
+      const by = y - 13 + Math.round(Math.sin(W.anim / 10));
+      ctx.fillStyle = '#18203f'; ctx.fillRect(x + 4, by - 1, 8, 10); ctx.fillStyle = qm === '!' ? '#f2d24b' : '#7cd0f0'; ctx.fillRect(x + 5, by, 6, 8);
+      ctx.fillStyle = '#18203f';
+      if (qm === '!') { ctx.fillRect(x + 7, by + 1, 2, 4); ctx.fillRect(x + 7, by + 6, 2, 1); }
+      else { ctx.fillRect(x + 6, by + 1, 4, 1); ctx.fillRect(x + 9, by + 2, 1, 2); ctx.fillRect(x + 7, by + 3, 2, 1); ctx.fillRect(x + 7, by + 4, 1, 1); ctx.fillRect(x + 7, by + 6, 1, 1); }
+    }
     if (npc && npc.alert > 0) {   // ตกใจ "!"
       ctx.fillStyle = '#f4f4ec'; ctx.fillRect(x + 4, y - 12, 8, 9); ctx.fillStyle = '#c5482b'; ctx.fillRect(x + 7, y - 11, 2, 5); ctx.fillRect(x + 7, y - 5, 2, 1);
     }

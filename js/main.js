@@ -102,9 +102,50 @@
     for (const m of [...s.party, ...s.storage]) if (m.held === undefined) m.held = null;
     if (s.flags.gym1_done && !s.bag.tm_wind_blade) s.bag.tm_wind_blade = 1;
     if (s.flags.boss1_done) s.flags.rival2_done = true;
-    if (!G.DATA.maps[s.map]) { s.map = G.DATA.world.start.map; s.x = G.DATA.world.start.x; s.y = G.DATA.world.start.y; }
-    return s;
+    if (s.flags.boss1_done) s.flags.member2_joined = true;
+    return G.sanitizeSave(s).s;
   }
+  // ตรวจและซ่อมเซฟก่อนใช้: ตัดของที่ไม่มีอยู่จริง จำกัดค่าที่เกินขอบเขต คืน {s, fixes} (fixes = จำนวนจุดที่แก้)
+  G.sanitizeSave = function (s) {
+    const D = G.DATA; let fixes = 0;
+    const fix = () => { fixes++; };
+    const num = (v, lo, hi, d) => { const n = Math.floor(Number(v)); if (!Number.isFinite(n)) { fix(); return d; } if (n < lo || n > hi) fix(); return Math.min(hi, Math.max(lo, n)); };
+    s.flags = s.flags && typeof s.flags === 'object' ? s.flags : (fix(), {});
+    s.dex = s.dex && typeof s.dex === 'object' ? s.dex : {}; s.fought = s.fought && typeof s.fought === 'object' ? s.fought : {};
+    s.money = num(s.money, 0, 9999999, 0); s.time = num(s.time, 0, 1439, 420); s.playMs = Math.max(0, Number(s.playMs) || 0);
+    s.repel = num(s.repel, 0, 999, 0); s.steps = Math.max(0, Number(s.steps) || 0);
+    const bag = {};
+    for (const [k, v] of Object.entries(s.bag || {})) { if (!D.items[k]) { fix(); continue; } const n = num(v, 0, 999, 0); if (n) bag[k] = n; }
+    s.bag = bag;
+    const cleanMon = (m) => {
+      if (!m || !D.species[m.sp]) { fix(); return null; }
+      m.lv = num(m.lv, 1, 100, 5);
+      m.ivs = m.ivs && typeof m.ivs === 'object' ? m.ivs : {};
+      for (const k of ['hp', 'atk', 'def', 'spa', 'spd', 'spe']) m.ivs[k] = num(m.ivs[k], 0, 31, 15);
+      m.stats = G.calcStats(m.sp, m.lv, m.ivs);
+      m.exp = Math.max(G.expFor(m.lv), Math.min(G.expFor(m.lv + 1) - 1, Number(m.exp) || 0));
+      m.hp = num(m.hp, 0, m.stats.hp, m.stats.hp);
+      if (!['par', 'slp', 'psn', null].includes(m.status || null)) { fix(); m.status = null; } else m.status = m.status || null;
+      m.moves = (Array.isArray(m.moves) ? m.moves : []).filter((x) => x && D.moves[x.id] || (fix(), false)).slice(0, 4)
+        .map((x) => ({ id: x.id, pp: num(x.pp, 0, D.moves[x.id].pp, D.moves[x.id].pp) }));
+      if (!m.moves.length) { fix(); m.moves = G.movesAt(m.sp, m.lv).map((id) => ({ id, pp: D.moves[id].pp })); }
+      if (m.held && !D.items[m.held]) { fix(); m.held = null; }
+      if (m.look && !/^eng:[a-z_]+:\d+$/.test(m.look)) { fix(); delete m.look; }
+      m.name = String(m.name || D.species[m.sp].name).slice(0, 16);
+      return m;
+    };
+    s.party = (Array.isArray(s.party) ? s.party : []).map(cleanMon).filter(Boolean);
+    s.storage = (Array.isArray(s.storage) ? s.storage : []).map(cleanMon).filter(Boolean);
+    while (s.party.length > 6) { s.storage.push(s.party.pop()); fix(); }
+    if (!s.party.length && s.storage.length) { s.party.push(s.storage.shift()); fix(); }
+    // ตำแหน่งต้องอยู่บนแผนที่ที่มีจริงและยืนได้
+    const rows = D.maps[s.map], st = D.world.start;
+    const ok = rows && rows[s.y] && rows[s.y][s.x] && '.:fTL_-x~><O2aeg+0'.includes(rows[s.y][s.x]);
+    if (!ok) { fix(); s.map = st.map; s.x = st.x; s.y = st.y; s.dir = st.dir; }
+    if (!['up', 'down', 'left', 'right'].includes(s.dir)) s.dir = 'down';
+    s.name = String(s.name || 'หัวหน้า').slice(0, 12);
+    return { s, fixes };
+  };
   const playTime = (ms) => { const m = Math.floor(ms / 60000); return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')} ชม.`; };
   G.slotSummary = (n) => {
     const s = G.loadSave(n);
@@ -126,7 +167,7 @@
   const importSave = () => new Promise((resolve) => {
     const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
     inp.onchange = () => { const f = inp.files[0]; if (!f) return resolve(null);
-      f.text().then((t) => { try { const s = JSON.parse(t); resolve(s && s.v === SAVE_VER && s.party ? s : null); } catch (e) { resolve(null); } }); };
+      f.text().then((t) => { try { const s = JSON.parse(t); resolve(s && typeof s === 'object' && s.v === SAVE_VER && Array.isArray(s.party) && s.party.length ? s : null); } catch (e) { resolve(null); } }); };
     inp.click();
   });
 
@@ -228,7 +269,9 @@
       if (!s) { await G.ui.say('อ่านไฟล์เซฟไม่ได้'); return title(); }
       const k = await G.ui.choose([1, 2, 3].map((n) => G.slotSummary(n)), { title: 'เก็บเซฟนี้ไว้ช่องไหน?', cls: 'party' });
       if (k < 0) return title();
+      const { fixes } = G.sanitizeSave(s);
       G.state = s; G.save(k + 1);
+      if (fixes) await G.ui.say(`ไฟล์เซฟมีข้อมูลผิดรูปแบบ ${fixes} จุด ซ่อมให้แล้ว`);
       return start(G.loadSave(k + 1), k + 1);
     }
     if ((any || found.length) && !(await G.ui.confirm('เริ่มเกมใหม่ตั้งแต่ต้นจริงไหม? (ถ้าจะเล่นเซฟเดิม ให้เลือก "เล่นต่อ" หรือ "กู้เซฟเก่า")'))) return title();

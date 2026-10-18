@@ -44,6 +44,13 @@ def load():
 
     items = {r["id"]: {**r, "price": int(r["price"]), "value": float(r["value"])} for r in read_csv("items.csv")}
 
+    quests = []
+    for r in read_csv("quests.csv"):
+        rw = []
+        for part in filter(None, r["reward"].split(";")):
+            k, v = part.split(":"); rw.append([k, int(v)])
+        quests.append({**r, "reward": rw})
+
     eng_names = {}
     for r in read_csv("eng_names.csv"):
         eng_names.setdefault(r["branch"], []).append({**r, "glasses": r["glasses"] == "1"})
@@ -59,7 +66,7 @@ def load():
         rows = (SRC / f"{mid}.txt").read_text(encoding="utf-8").rstrip("\n").split("\n")
         maps[mid] = rows
     return dict(types=types, chart=chart, moves=moves, species=species, items=items,
-                encounters=enc, world=world, maps=maps, engNames=eng_names)
+                encounters=enc, world=world, maps=maps, engNames=eng_names, quests=quests)
 
 
 def validate(d):
@@ -137,6 +144,24 @@ def validate(d):
         if at(gt["map"], gt["x"], gt["y"]) != "X": errs.append(f"world.json gates ({gt['map']} {gt['x']},{gt['y']}): ช่องไม่ใช่ X")
     for o in W.get("objects", []):
         if (at(o["map"], o["x"], o["y"]) or ".") in WALK: errs.append(f"world.json objects {o['script']} ({o['map']} {o['x']},{o['y']}): ต้องอยู่บนช่องที่เดินไม่ได้")
+    qids = set()
+    for q in d["quests"]:
+        if q["id"] in qids: errs.append(f"quests.csv: id '{q['id']}' ซ้ำ")
+        qids.add(q["id"])
+        if q["kind"] not in ("main", "side"): errs.append(f"quests.csv {q['id']}: kind ต้องเป็น main/side")
+        if not q["done"]: errs.append(f"quests.csv {q['id']}: ต้องมี flag done")
+        if q["kind"] == "side" and not q["start"]: errs.append(f"quests.csv {q['id']}: เควสต์รองต้องมี flag start")
+        for t in (q["target"], q["target2"]):
+            if not t: continue
+            kind, _, rest = t.partition(":")
+            if kind == "npc" and rest not in ids: errs.append(f"quests.csv {q['id']}: ไม่มี npc '{rest}'")
+            elif kind == "map":
+                m, x, y = rest.split(":")
+                if (at(m, int(x), int(y)) or "#") not in WALK: errs.append(f"quests.csv {q['id']}: เป้าหมาย {rest} เดินไม่ถึง")
+            elif kind not in ("npc", "map"): errs.append(f"quests.csv {q['id']}: เป้าหมาย '{t}' ต้องขึ้นต้น npc: หรือ map:")
+        for k, v in q["reward"]:
+            if k != "money" and k not in d["items"]: errs.append(f"quests.csv {q['id']}: ไม่มีไอเท็มรางวัล '{k}'")
+        if q["giver"] and q["giver"] not in ids: errs.append(f"quests.csv {q['id']}: ไม่มี npc ผู้ให้เควสต์ '{q['giver']}'")
     for c in W.get("curtains", []):
         if at(c["map"], c["ok"][0], c["y"]) != "~": errs.append(f"world.json curtains {c['map']} แถว {c['y']}: ไม่ใช่ม่าน ~")
     return errs

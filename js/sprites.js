@@ -218,9 +218,53 @@
     return c;
   }
 
+  // ไอคอนไอเท็มและตรายิม 16×16 วาดด้วยโค้ด ("item:<id>" / "badge:<gym1..4>")
+  function drawIcon(id) {
+    const c = document.createElement('canvas'); c.width = c.height = 16;
+    const g = c.getContext('2d');
+    const R = (col, x, y, w, h) => { g.fillStyle = col; g.fillRect(x, y, w, h); };
+    const O = (col, x, y, rx, ry) => { g.fillStyle = col; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, 7); g.fill(); };
+    const K = '#2a1d18';
+    const cup = (liq, top) => { R(K, 4, 4, 8, 11); R('#e8f4f8', 5, 5, 6, 9); R(liq, 5, 7, 6, 7); R(top || liq, 5, 6, 6, 1); R('#c5482b', 9, 1, 1, 6); R('#f4f4ec', 6, 8, 1, 4); };
+    const [kind, key] = id.split(':');
+    if (kind === 'badge') {
+      O('#18203f', 8, 8, 7.5, 7.5); O(key === 'gym1' ? '#c5482b' : key === 'gym2' ? '#d9b25a' : key === 'gym3' ? '#5fb8e0' : '#6cc04a', 8, 8, 6.5, 6.5);
+      if (key === 'gym1') { R('#f4f4ec', 3, 6, 10, 3); R('#c5482b', 5, 7, 2, 1); R('#c5482b', 9, 7, 2, 1); R('#f4f4ec', 11, 9, 2, 4); }
+      else if (key === 'gym2') { for (let k = 0; k < 8; k++) { const a = (k * Math.PI) / 4; R('#8a6a24', 7 + Math.round(Math.cos(a) * 5), 7 + Math.round(Math.sin(a) * 5), 2, 2); } O('#8a6a24', 8, 8, 4, 4); O('#d9b25a', 8, 8, 2, 2); }
+      else if (key === 'gym3') { g.strokeStyle = '#18203f'; g.lineWidth = 1.5; g.beginPath(); g.arc(8, 6, 3.5, 0, Math.PI); g.stroke(); R('#18203f', 7, 9, 2, 3); O('#f4f4ec', 8, 12, 2, 2); }
+      else { R('#8a6440', 4, 11, 2, 2); R('#8a6440', 6, 9, 2, 2); R('#8a6440', 8, 7, 2, 2); R('#8a6440', 10, 5, 2, 2); R('#5a3a22', 11, 4, 2, 2); }
+      return c;
+    }
+    switch (key) {
+      case 'rice_ball': O(K, 8, 9, 6.5, 5.5); O('#f4f4ec', 8, 9, 5.5, 4.5); R('#e0dccf', 5, 11, 6, 1); R('#ffffff', 5, 6, 2, 1); break;
+      case 'rice_pork': R('#8a6440', 2, 13, 13, 1); O('#f4f4ec', 5, 9, 3.5, 3); O('#a8592f', 11, 8, 3.5, 3); R('#7a3a1e', 9, 7, 4, 1); R('#d9783e', 10, 9, 2, 1); break;
+      case 'coupon': R(K, 1, 4, 14, 9); R('#f2a0c0', 2, 5, 12, 7); R('#c5482b', 2, 7, 12, 2); R('#f4f4ec', 4, 7, 4, 1); R('#18203f', 10, 5, 1, 7); break;
+      case 'herb': R(K, 4, 4, 8, 10); R('#6cc04a', 5, 6, 6, 7); R('#c5482b', 4, 3, 8, 2); R('#f4f4ec', 6, 8, 4, 2); break;
+      case 'herb_big': O(K, 8, 10, 6.5, 5); O('#a8592f', 8, 10, 5.5, 4); R('#7a3a1e', 4, 5, 8, 2); R('#cfd6dc', 6, 1, 1, 3); R('#cfd6dc', 9, 2, 1, 3); break;
+      case 'soda': R(K, 6, 1, 4, 3); R(K, 5, 4, 6, 11); R('#d9455a', 6, 5, 4, 9); R('#f4f4ec', 6, 8, 4, 2); R('#ffffff', 7, 5, 1, 3); break;
+      case 'mango_shake': cup('#f2a03a', '#ffd84a'); break;
+      case 'melon_shake': cup('#e8506a', '#ff8aa0'); break;
+      case 'thaitea_shake': cup('#e8913a', '#f4f4ec'); break;
+      case 'ovaltine_shake': cup('#6b4a2f', '#a8744a'); O('#8a5a34', 8, 4, 4, 2.5); break;
+      case 'holy_water': O(K, 8, 10, 7, 4.5); O('#b8bcc4', 8, 10, 6, 3.5); O('#7cc6de', 8, 9, 4.5, 2); R('#f4f4ec', 6, 8, 2, 1); R('#d9b25a', 7, 2, 2, 4); break;
+      case 'magic_rice': O(K, 8, 10, 6, 5); O('#e8dcc0', 8, 10, 5, 4); R('#c5482b', 5, 4, 6, 2); R('#f4f4ec', 6, 8, 1, 1); R('#f4f4ec', 9, 10, 1, 1); R('#f4f4ec', 7, 12, 1, 1); break;
+      case 'yantra': R(K, 2, 2, 12, 12); R('#f4f4ec', 3, 3, 10, 10); g.strokeStyle = '#c5482b'; g.lineWidth = 1; g.strokeRect(4.5, 4.5, 7, 7); R('#c5482b', 7, 6, 2, 4); R('#c5482b', 6, 7, 4, 1); break;
+      case 'gloves': R(K, 4, 3, 9, 11); R('#d9a04a', 5, 4, 7, 9); R('#a8742a', 5, 11, 7, 2); R(K, 7, 4, 1, 4); R(K, 9, 4, 1, 4); R('#d9a04a', 2, 7, 3, 3); break;
+      case 'goggles': R(K, 1, 5, 14, 7); R('#f2d24b', 2, 6, 12, 5); O('#5fb8e0', 5, 8.5, 2.5, 2); O('#5fb8e0', 11, 8.5, 2.5, 2); R('#18203f', 7, 8, 2, 1); break;
+      default: {   // ท่าลับ: ม้วนคัมภีร์สีตามธาตุ
+        const it = G.DATA && G.DATA.items[key];
+        const col = { wind: '#4f9a5a', electric: '#f2d24b', earth: '#b06a3e', water: '#3a7fb0', normal: '#8a8270' }[it && it.for] || '#8a8270';
+        R(K, 2, 3, 12, 10); R('#efe6d0', 3, 4, 10, 8); R(col, 3, 6, 10, 4); R('#8a6440', 1, 3, 2, 10); R('#8a6440', 13, 3, 2, 10); R('#f4f4ec', 5, 7, 6, 1);
+      }
+    }
+    return c;
+  }
   const cache = {};
   G.sprite = function (id) {
-    if (!cache[id]) { const d = defFor(id); cache[id] = paint(d, d.rows); }
+    if (!cache[id]) {
+      if (/^(item|badge):/.test(id)) cache[id] = drawIcon(id);
+      else { const d = defFor(id); cache[id] = paint(d, d.rows); }
+    }
     return cache[id];
   };
 
