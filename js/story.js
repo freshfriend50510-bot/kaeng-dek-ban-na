@@ -197,7 +197,7 @@
       G.music('boss');
       await say('สาม... สอง... หนึ่ง... จุด!');
       await G.playRocket();
-      G.rainFor(500);
+      G.rainFor(180);
       await say('บั้งไฟพุ่งทะลุเมฆ แล้วฝนก็โปรยลงมาเย็นฉ่ำทั้งหมู่บ้าน! ไกลๆ ได้ยินเสียงคางคกร้องอ๊บๆ อย่างพอใจ');
       G.music(G.world.def.music);
       await pickKid('member3_joined');   // ปกติเลือกไปแล้วตอนชนะพี่ออสซี่ (กันเซฟเก่า)
@@ -362,7 +362,7 @@
       await G.ui.sayAll(['อ๊บ! เด็กพวกนี้เก่งจริง...', 'ถ้าพวกเจ้าสัญญาว่าจะจุดบั้งไฟให้ข้า ข้าจะลุกให้น้ำไหลลงนา'], 'คางคกเจ้าหนอง');
       await say('สัญญา! ปีนี้หมู่บ้านเราจะจัดบุญบั้งไฟแน่นอน!', S().name);
       F().boss1_done = true; G.refreshNpcs();
-      G.rainFor(400); G.sfx('level');
+      G.rainFor(120); G.sfx('level');
       await say('ฟ้าคำราม แล้วฝนก็เทลงมาเป็นครั้งแรกในรอบสามเดือน!');
       const k = await pickKid('member2_joined');
       await say('ทางคันนาข้ามหนองไปตลาดนัดตำบลเปิดแล้ว ได้ยินว่าแก๊งพี่ออสซี่คุมร้านราเมงที่นั่น...', k ? G.DATA.species[k].name : S().name);
@@ -557,7 +557,7 @@
     G.busy = true;
     try { await SCRIPTS[name](...args); }
     catch (e) { console.error(e); await G.ui.say('เกิดข้อผิดพลาด: ' + e.message); }
-    finally { G.busy = false; }
+    finally { G.busy = false; G.ui.skipping = false; }
     if (!name.startsWith('_') && G.autosave) G.autosave();   // จบเหตุการณ์/การต่อสู้แล้วบันทึกอัตโนมัติ
   };
 })(window.G = window.G || {});

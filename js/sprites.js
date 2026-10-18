@@ -283,6 +283,15 @@
     const K = '#2a1d18';
     const cup = (liq, top) => { R(K, 4, 4, 8, 11); R('#e8f4f8', 5, 5, 6, 9); R(liq, 5, 7, 6, 7); R(top || liq, 5, 6, 6, 1); R('#c5482b', 9, 1, 1, 6); R('#f4f4ec', 6, 8, 1, 4); };
     const [kind, key] = id.split(':');
+    if (kind === 'type') {   // สัญลักษณ์ธาตุ (ดูได้โดยไม่ต้องพึ่งสี)
+      const W = '#fff8e0', P = (pts, col) => { g.fillStyle = col; g.beginPath(); pts.forEach(([a, b], i) => (i ? g.lineTo(a, b) : g.moveTo(a, b))); g.closePath(); g.fill(); };
+      if (key === 'water') { P([[8, 1], [13, 9], [3, 9]], K); O(K, 8, 10, 5.5, 5); P([[8, 2.5], [12, 9], [4, 9]], W); O(W, 8, 10, 4.5, 4); O('#7cc6de', 6.5, 10, 1.2, 2); }
+      else if (key === 'earth') { P([[0, 15], [6, 3], [9, 8], [11, 6], [16, 15]], K); P([[1.5, 14], [6, 5], [9, 10], [11, 8], [14.5, 14]], W); P([[4.5, 8], [6, 5], [7.5, 8]], '#b06a3e'); }
+      else if (key === 'electric') { P([[10, 0], [2, 9], [7, 9], [5, 16], [14, 6], [9, 6], [12, 0]], K); P([[10, 1.5], [3.8, 8.2], [8.2, 8.2], [6.5, 13.5], [12.5, 6.8], [8, 6.8], [10.8, 1.5]], W); }
+      else if (key === 'wind') { g.strokeStyle = K; g.lineWidth = 3.2; const sw = () => { g.beginPath(); g.moveTo(1, 6); g.lineTo(10, 6); g.arc(10, 3.8, 2.2, Math.PI / 2, -Math.PI * 0.9, true); g.moveTo(1, 10); g.lineTo(12, 10); g.arc(12, 12.2, 2.2, -Math.PI / 2, Math.PI * 0.9); g.stroke(); }; sw(); g.strokeStyle = W; g.lineWidth = 1.4; sw(); }
+      else { const st = (r, col) => { const pts = []; for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, rr = k % 2 ? r * 0.45 : r; pts.push([8 + Math.cos(a) * rr, 8.5 + Math.sin(a) * rr]); } P(pts, col); }; st(7.5, K); st(6, W); }
+      return c;
+    }
     if (kind === 'badge') {
       O('#18203f', 8, 8, 7.5, 7.5); O(key === 'gym1' ? '#c5482b' : key === 'gym2' ? '#d9b25a' : key === 'gym3' ? '#5fb8e0' : '#6cc04a', 8, 8, 6.5, 6.5);
       if (key === 'gym1') { R('#f4f4ec', 3, 6, 10, 3); R('#c5482b', 5, 7, 2, 1); R('#c5482b', 9, 7, 2, 1); R('#f4f4ec', 11, 9, 2, 4); }
@@ -318,7 +327,7 @@
   const cache = {};
   G.sprite = function (id) {
     if (!cache[id]) {
-      if (/^(item|badge):/.test(id)) cache[id] = drawIcon(id);
+      if (/^(item|badge|type):/.test(id)) cache[id] = drawIcon(id);
       else { const d = defFor(id); cache[id] = paint(d, d.rows); }
     }
     return cache[id];
@@ -400,6 +409,64 @@
     }
     actorCache[key] = c;
     return c;
+  };
+
+  // ---------- อารมณ์บนหน้า (ใช้กับรูปหน้าในกล่องข้อความ และท่านั่งหอบ) ----------
+  // happy = ตายิ้ม ^ ^ ปากกว้าง, angry = คิ้วขมวด ปากเม้ม, shock = ปากอ้า, tired = ตาปรือ
+  function moodRows(rows, mood) {
+    if (!mood || mood === 'normal') return rows;
+    const r = rows.map((x) => x.split(''));
+    const at = (y, x) => (r[y] && r[y][x]) || '.';
+    const set = (y, x, ch, only) => { if (r[y] && x >= 0 && x < 16 && (!only || only.includes(r[y][x]))) r[y][x] = ch; };
+    const mouth = []; let my = 99;
+    for (let y = 6; y <= 9; y++) for (let x = 0; x < 16; x++) if ('Mm'.includes(r[y][x])) { mouth.push([y, x]); my = Math.min(my, y); }
+    const eyes = [[], []];
+    for (let y = 5; y < Math.min(9, my); y++) for (let x = 2; x < 14; x++) if ('Kj'.includes(r[y][x]) && /[SQ]/.test(at(y, x - 1) + at(y, x + 1) + at(y - 1, x) + at(y + 1, x))) eyes[x < 8 ? 0 : 1].push([y, x]);
+    for (const e of eyes) {
+      if (!e.length) continue;
+      const xs = e.map((p) => p[1]), ys = e.map((p) => p[0]);
+      const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys), left = x0 < 8;
+      if (mood === 'happy' || mood === 'tired') {
+        for (const [y, x] of e) r[y][x] = 'S';
+        if (mood === 'happy') { for (let x = x0; x <= x1; x++) set(y0, x, 'K'); set(y0 + 1, x0 - 1, 'K', 'S'); set(y0 + 1, x1 + 1, 'K', 'S'); }
+        else for (let x = x0; x <= Math.max(x1, x0 + 1); x++) set(y1, x, 'K', 'SKj');
+      } else if (mood === 'angry') {
+        const inner = left ? x1 + 1 : x0 - 1;
+        for (let x = x0; x <= x1; x++) set(y0 - 1, x, 'K', 'SH');
+        set(y0 - 1, inner, 'K', 'S'); set(y0, inner, 'K', 'S');
+      }
+    }
+    if (mouth.length) {
+      const xs = mouth.map((p) => p[1]), x0 = Math.min(...xs), x1 = Math.max(...xs);
+      if (mood === 'happy') { set(my, x0 - 1, 'M', 'S'); set(my, x1 + 1, 'M', 'S'); for (let x = x0; x <= x1; x++) set(my, x, 'W'); }
+      else if (mood === 'angry') for (const [y, x] of mouth) r[y][x] = 'K';
+      else if (mood === 'shock') for (const [y, x] of mouth) { set(y + 1, x, 'M', 'S'); r[y][x] = 'K'; }
+    }
+    return r.map((x) => x.join(''));
+  }
+  const portraitCache = {};
+  // รูปหน้าครึ่งตัว (ตัดเอาหัวถึงอก) ของตัวละครแบบคน, ผี/สัตว์ใช้ทั้งตัว
+  G.portrait = function (id, mood) {
+    const key = id + '|' + (mood || 'normal');
+    if (portraitCache[key]) return portraitCache[key];
+    const def = defFor(id);
+    const c = document.createElement('canvas'); c.width = def.human ? 12 : 16; c.height = def.human ? 12 : 16;
+    if (def.human) c.getContext('2d').drawImage(paint({ ...def, pal: { W: '#ffffff', ...def.pal } }, moodRows(def.rows, mood)), -2, 0);   // ซูมเฉพาะหัวถึงไหล่
+    else c.getContext('2d').drawImage(G.sprite(id), 0, 0);
+    return (portraitCache[key] = c);
+  };
+  // ท่านั่งหอบตอนหมดแรง: ตัวทรุดลง ขาเหยียดไปข้างหน้า ตาปรือ (ผี/สัตว์คืน null = จางหายไปแทน)
+  const sitCache = {};
+  G.sitSprite = function (id) {
+    if (id in sitCache) return sitCache[id];
+    const def = defFor(id);
+    if (!def.human) return (sitCache[id] = null);
+    const f = moodRows(def.rows, 'tired');
+    const pants = (f[13].match(/[^.]/) || ['P'])[0], foot = (f[15].match(/[^.]/) || ['F'])[0];
+    const rows = ['................', '................', ...f.slice(0, 13)];   // ทรุดลง 2 ช่อง
+    rows[14] = rows[14].replace(/^(\.\.)\./, '$1' + pants).replace(/\.(\.\.)$/, pants + '$1');   // หัวเข่า
+    rows.push('.' + foot + pants.repeat(12) + foot + '.');                                    // ขาเหยียดไปข้างหน้า
+    return (sitCache[id] = paint(def, rows));
   };
 
   // หน้าตาที่ใช้วาดสมาชิกแก๊ง: น้องวิศวะแต่ละคนหน้าไม่ซ้ำ เด็กเปลี่ยนชุดตามขั้นเติบโต

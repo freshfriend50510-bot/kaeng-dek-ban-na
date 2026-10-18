@@ -90,4 +90,50 @@
   // เบราว์เซอร์ยอมให้เล่นเสียงหลังผู้เล่นกดปุ่มครั้งแรก เรียกครั้งเดียวพอ (เดิมเรียกทุกครั้งที่กด เพลงเลยเริ่มใหม่ตลอด)
   G.unlockAudio = () => { if (unlocked) return; unlocked = true; ensure(); const c = current; current = null; G.music(c); };
   G.restartMusic = () => { const c = current; current = null; G.music(c); };
+
+  // ---------- เสียงบรรยากาศ: จิ้งหรีด กบ นก ลมทุ่ง ฝน (สุ่มตามแผนที่ ช่วงเวลา และฝน) ----------
+  let noiseBuf = null, rainSrc = null, rainGain = null;
+  const noise = () => {
+    if (!noiseBuf) { noiseBuf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    const src = ac.createBufferSource(); src.buffer = noiseBuf; return src;
+  };
+  const sweep = (f0, f1, t, dur, type, vol) => {
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.2); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.02);
+  };
+  const AMB = {
+    cricket: (t) => { for (let i = 0; i < 3; i++) sweep(4300, 4100, t + i * 0.07, 0.045, 'sine', 0.05); },
+    frog: (t) => { const f = 95 + Math.random() * 40; for (let i = 0; i < 2; i++) sweep(f * 1.4, f, t + i * 0.16, 0.12, 'square', 0.06); },
+    bird: (t) => { const f = 1800 + Math.random() * 900; sweep(f, f * 1.5, t, 0.09, 'sine', 0.05); sweep(f * 1.2, f * 0.9, t + 0.13, 0.08, 'sine', 0.04); },
+    wind: (t) => {
+      const src = noise(), fl = ac.createBiquadFilter(), g = ac.createGain();
+      fl.type = 'bandpass'; fl.frequency.setValueAtTime(380, t); fl.frequency.linearRampToValueAtTime(700, t + 1.2); fl.Q.value = 0.8;
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.09, t + 0.9); g.gain.linearRampToValueAtTime(0.0001, t + 2.4);
+      src.connect(fl); fl.connect(g); g.connect(master); src.start(t); src.stop(t + 2.5);
+    },
+  };
+  const setRain = (on) => {
+    if (on && !rainSrc) {
+      rainSrc = noise(); rainSrc.loop = true;
+      const fl = ac.createBiquadFilter(); fl.type = 'highpass'; fl.frequency.value = 1400;
+      rainGain = ac.createGain(); rainGain.gain.setValueAtTime(0.0001, ac.currentTime); rainGain.gain.linearRampToValueAtTime(0.07, ac.currentTime + 1.5);
+      rainSrc.connect(fl); fl.connect(rainGain); rainGain.connect(master); rainSrc.start();
+    } else if (!on && rainSrc) {
+      const s = rainSrc; rainGain.gain.linearRampToValueAtTime(0.0001, ac.currentTime + 1); setTimeout(() => s.stop(), 1100); rainSrc = null;
+    }
+  };
+  setInterval(() => {
+    if (!unlocked || !ac) return;
+    const S = G.state, W = G.world;
+    const on = G.settings.sound && G.settings.ambient !== false && S && W && W.def && !W.def.indoor && (G.scene === 'world' || G.scene === 'battle');
+    setRain(!!(on && G.raining()));
+    if (!on || G.scene !== 'world') return;
+    const p = G.period(), t = ac.currentTime, wet = G.raining(), rural = W.map !== 'kku', r = Math.random();
+    if (p === 'night' && !wet && r < 0.22) AMB.cricket(t);
+    else if ((p === 'night' || wet) && rural && r < 0.3) AMB.frog(t);
+    else if (p === 'morning' && !wet && r < 0.06) AMB.bird(t);
+    else if (W.map === 'field' && (p === 'day' || p === 'evening') && r < 0.012) AMB.wind(t);
+  }, 300);
 })(window.G = window.G || {});

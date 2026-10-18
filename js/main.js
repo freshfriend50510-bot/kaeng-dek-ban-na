@@ -3,7 +3,7 @@
   'use strict';
   const SAVE_KEY = 'kaengdekbanna_save', SAVE_VER = 1;
   G.DATA = window.GAME_DATA;
-  G.settings = { textSpeed: 2, sound: true, music: true, guide: true, hud: true, easy: true, autosave: true };
+  G.settings = { textSpeed: 2, sound: true, music: true, guide: true, hud: true, easy: true, autosave: true, ambient: true, calm: false, skipRead: true };
   try { Object.assign(G.settings, JSON.parse(localStorage.getItem(SAVE_KEY + '_settings') || '{}')); } catch (e) { /* ไม่มีที่เก็บ */ }
   G.saveSettings = () => { try { localStorage.setItem(SAVE_KEY + '_settings', JSON.stringify(G.settings)); } catch (e) { /* */ } };
   G.wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -12,7 +12,7 @@
   function newState() {
     const st = G.DATA.world.start;
     return { v: SAVE_VER, id: Date.now().toString(36), name: 'หัวหน้า', map: st.map, x: st.x, y: st.y, dir: st.dir, flags: {}, party: [], storage: [],
-      bag: {}, money: 300, time: 7 * 60, steps: 0, repel: 0, dex: {}, npcPos: {}, follower: false, starter: null, playMs: 0 };
+      bag: {}, money: 300, time: 7 * 60, steps: 0, repel: 0, dex: {}, npcPos: {}, follower: false, starter: null, playMs: 0, rainLeft: 0 };
   }
   // เซฟ 3 ช่อง: เซฟแบบเก่า (คีย์อื่นในเครื่อง) จะถูกคัดลอกเข้าช่องว่างให้อัตโนมัติ โดยไม่ลบของเดิมทิ้ง
   const slotKey = (n) => `${SAVE_KEY}_${n}`;
@@ -112,7 +112,7 @@
     const num = (v, lo, hi, d) => { const n = Math.floor(Number(v)); if (!Number.isFinite(n)) { fix(); return d; } if (n < lo || n > hi) fix(); return Math.min(hi, Math.max(lo, n)); };
     s.flags = s.flags && typeof s.flags === 'object' ? s.flags : (fix(), {});
     s.dex = s.dex && typeof s.dex === 'object' ? s.dex : {}; s.fought = s.fought && typeof s.fought === 'object' ? s.fought : {};
-    s.money = num(s.money, 0, 9999999, 0); s.time = num(s.time, 0, 1439, 420); s.playMs = Math.max(0, Number(s.playMs) || 0);
+    s.money = num(s.money, 0, 9999999, 0); s.time = num(s.time, 0, 1439, 420); s.playMs = Math.max(0, Number(s.playMs) || 0); s.rainLeft = Math.min(600, Math.max(0, Number(s.rainLeft) || 0));
     s.repel = num(s.repel, 0, 999, 0); s.steps = Math.max(0, Number(s.steps) || 0);
     const bag = {};
     for (const [k, v] of Object.entries(s.bag || {})) { if (!D.items[k]) { fix(); continue; } const n = num(v, 0, 999, 0); if (n) bag[k] = n; }
@@ -151,7 +151,11 @@
     const s = G.loadSave(n);
     if (!s) return { label: `ช่อง ${n} — ว่าง`, sub: '', empty: true };
     const badges = ['gym1', 'gym2', 'gym3', 'gym4'].filter((f) => s.flags[f + '_done']).length;
-    return { label: `ช่อง ${n} — ${s.name}`, sub: `${(G.DATA.world.maps[s.map] || {}).name || ''} · ตรา ${badges} · ${playTime(s.playMs || 0)}` };
+    const lead = s.party[0], top = Math.max(0, ...s.party.map((m) => m.lv || 0));
+    const h = Math.floor((s.time || 0) / 60), when = h >= 5 && h < 9 ? 'เช้า' : h < 16 && h >= 9 ? 'กลางวัน' : h >= 16 && h < 19 ? 'เย็น' : 'กลางคืน';
+    let look = null; try { look = lead && G.monLook(lead); } catch (e) { /* */ }
+    return { icon: look, label: `ช่อง ${n} — ${s.name}`,
+      sub: `${(G.DATA.world.maps[s.map] || {}).name || ''} (${when}) · ตรา ${badges} · ทีม ${s.party.length} คน Lv สูงสุด ${top} · เงิน ${s.money} · เล่น ${playTime(s.playMs || 0)}` };
   };
   G.ui.saveMenu = async function () {
     const i = await G.ui.choose([1, 2, 3].map((n) => { const o = G.slotSummary(n); return { ...o, label: o.label + (n === G.slot ? ' (ช่องนี้)' : '') }; }),
@@ -214,11 +218,12 @@
     fn(); await G.wait(60); fadeEl.classList.remove('on'); await G.wait(200); fading = false;
   };
   G.flash = async function () {
+    if (G.settings.calm) { fadeEl.classList.add('flash', 'soft'); await G.wait(240); fadeEl.classList.remove('flash', 'soft'); return; }
     for (let i = 0; i < 3; i++) { fadeEl.classList.add('flash'); await G.wait(80); fadeEl.classList.remove('flash'); await G.wait(80); }
   };
   let toastT = null;
   G.showToast = (text) => { const t = document.querySelector('#toast'); t.textContent = text; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1800); };
-  let rain = 0; G.rainFor = (frames) => { rain = frames; };
+  G.rainFor = (min) => { G.state.rainLeft = Math.max(G.state.rainLeft || 0, min); };   // นาทีในเกม
   G.askName = () => new Promise((resolve) => {
     const box = document.createElement('div'); box.className = 'panel sheet namebox';
     box.innerHTML = '<div class="choice-title">หัวหน้าแก๊งชื่ออะไร?</div><input maxlength="10" value="หัวหน้า" aria-label="ชื่อหัวหน้าแก๊ง"><div class="hint">พิมพ์ชื่อแล้วกด Enter</div>';
@@ -311,7 +316,7 @@
           if (dir) G.world.tryMove(dir, held.back);
         }
         G.world.update();
-        if (rain > 0) rain--;
+        if (G.state.rainLeft > 0) G.state.rainLeft = Math.max(0, G.state.rainLeft - 1 / 60);
       }
     }
     ctx.fillStyle = '#1c2340'; ctx.fillRect(0, 0, 240, 160);
@@ -320,13 +325,27 @@
       G.world.draw(ctx);
       G.drawGuide(ctx);
       if (G.fx) G.fx.draw(ctx, now);
-      if (rain > 0) { ctx.strokeStyle = 'rgba(200,220,255,0.6)'; ctx.beginPath(); for (let i = 0; i < 60; i++) { const x = (i * 53 + now / 3) % 260 - 10, y = (i * 37 + now / 1.5) % 170 - 10; ctx.moveTo(x, y); ctx.lineTo(x - 3, y + 8); } ctx.stroke(); }
+      if (G.raining()) drawRain(ctx, now);
       const h = Math.floor(G.state.time / 60), m = Math.floor(G.state.time % 60);
-      document.querySelector('#clock').textContent = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+      document.querySelector('#clock').textContent = `${G.raining() ? '☂ ' : ''}${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} ${G.PERIOD_TH[G.period()]}`;
     }
     G.updateHud();
     requestAnimationFrame(frame);
   }
+
+  // ฝน: เส้นฝนเฉียง 2 ชั้น (ใกล้/ไกล) กับน้ำกระเซ็นบนพื้น
+  function drawRain(ctx, now) {   // ใช้ในฉากต่อสู้ด้วย (G.drawRain)
+    ctx.strokeStyle = 'rgba(200,220,255,0.35)'; ctx.beginPath();
+    for (let i = 0; i < 50; i++) { const x = (i * 71 + now / 5) % 260 - 10, y = (i * 43 + now / 2.2) % 170 - 10; ctx.moveTo(x, y); ctx.lineTo(x - 2, y + 5); }
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(220,235,255,0.65)'; ctx.beginPath();
+    for (let i = 0; i < 40; i++) { const x = (i * 53 + now / 3) % 260 - 10, y = (i * 37 + now / 1.5) % 170 - 10; ctx.moveTo(x, y); ctx.lineTo(x - 3, y + 8); }
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(220,235,255,0.55)';
+    for (let i = 0; i < 14; i++) { const k = Math.floor(now / 140) + i * 7, x = (k * 97) % 240, y = (k * 61 + i * 23) % 160, p = (now / 140) % 1; ctx.fillRect(x - p * 2, y, 1, 1); ctx.fillRect(x + 1 + p * 2, y, 1, 1); }
+  }
+
+  G.drawRain = drawRain;
 
   // ขยายจอให้พอดีหน้าต่างและคมแบบพิกเซล
   function fit() {

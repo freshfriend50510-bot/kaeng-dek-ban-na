@@ -70,7 +70,7 @@
         const m = b.me;
         if (m.moves.every((s) => s.pp <= 0)) return { type: 'move', idx: 0 };
         const i = await G.ui.choose(m.moves.map((s) => { const mv = G.DATA.moves[s.id];
-          return { label: mv.name, sub: `${G.TYPE_TH[mv.type]} ${s.pp}/${mv.pp}`, disabled: s.pp <= 0 }; }),
+          return { icon: `type:${mv.type}`, label: mv.name, sub: `${G.TYPE_TH[mv.type]} ${s.pp}/${mv.pp}`, disabled: s.pp <= 0 }; }),
           { grid: true, cls: 'bmoves', info: (k) => { const s = m.moves[k]; if (!s) return ''; const mv = G.DATA.moves[s.id];
             const eff = mv.cat === 'status' ? '' : ` · ต่อ${b.foe.name}: ${{ 2: 'ได้ผลดีมาก', 1: 'ปกติ', 0.5: 'ไม่ค่อยได้ผล' }[G.typeEff(mv.type, G.DATA.species[b.foe.sp].type)]}`;
             return `${mv.desc}${mv.power ? ' · พลัง ' + mv.power : ''}${eff}`; } });
@@ -187,27 +187,48 @@
     if (!V.active) return;
     const night = G.isNight();
     drawBackdrop(ctx, V.bg, night);
+    const tn = !(G.world.def && G.world.def.indoor) && G.tint();   // แสงเช้า/เย็นบนฉากหลัง
+    if (tn) { ctx.fillStyle = tn; ctx.fillRect(0, 0, 240, 160); }
     const plat = (x, y, w) => { ctx.fillStyle = 'rgba(70,45,25,0.35)'; ctx.beginPath(); ctx.ellipse(x, y, w, w / 4, 0, 0, 7); ctx.fill(); };
     plat(178, 64, 34); plat(62, 112, 38);
     const now = performance.now();
-    const shakeX = (side) => (V.shake && V.shake.side === side ? Math.sin((V.shake.t += 1) * 1.6) * (V.shake.t < 14 ? 3 : 0) : 0);
+    const calm = G.settings.calm;   // ลดการสั่นจอ/แฟลช
+    const shakeX = (side) => (V.shake && V.shake.side === side ? Math.sin((V.shake.t += 1) * 1.6) * (V.shake.t < 14 ? (calm ? 1 : 3) : 0) : 0);
     const lungeX = (side) => (V.lunge && V.lunge.side === side ? Math.sin(Math.min(Math.PI, (V.lunge.t += 0.25))) * 8 * (side === 'p' ? 1 : -1) : 0);
+    // หมดแรง: คนนั่งทรุดหอบแฮ่กๆ (ไม่มีภาพบาดเจ็บ) ผี/สัตว์ค่อยๆ จางหายเป็นควัน
     const draw = (id, x, y, flip, faint, side) => {
       if (!id) return;
-      if (faint >= 1) return;
+      const sit = faint ? G.sitSprite(id) : null;
+      if (faint >= 1 && !sit) return;
       ctx.save();
       ctx.beginPath(); ctx.rect(x - 4, y - 10, 60, 58); ctx.clip();
-      const dy = faint ? faint * 48 : 0;
-      if (flip) { ctx.translate(x + 48 + lungeX(side) + shakeX(side), y + dy); ctx.scale(-3, 3); }
-      else { ctx.translate(x + lungeX(side) + shakeX(side), y + dy); ctx.scale(3, 3); }
+      const pant = sit && faint > 0.5 ? Math.floor(now / 260) % 2 : 0;
+      if (flip) { ctx.translate(x + 48 + lungeX(side) + shakeX(side), y + pant); ctx.scale(-3, 3); }
+      else { ctx.translate(x + lungeX(side) + shakeX(side), y + pant); ctx.scale(3, 3); }
       if (side === 'f' && V.wobble) { const a = Math.sin(now / 90) * 0.15; ctx.translate(8, 16); ctx.rotate(a); ctx.translate(-8, -16); }
-      ctx.drawImage(G.sprite(id), 0, 0);
+      if (sit) {
+        if (faint < 0.5) { ctx.globalAlpha = 1; ctx.drawImage(G.sprite(id), 0, faint * 6); }   // ทรุดลง
+        else {
+          ctx.drawImage(sit, 0, 0);
+          ctx.fillStyle = '#9fd8f0';   // เหงื่อตก
+          const d = (now / 40) % 12;
+          ctx.fillRect(12, 2 + d * 0.5, 1, 2); if (d > 6) ctx.fillRect(3, 4 + (d - 6) * 0.6, 1, 1);
+          ctx.fillStyle = 'rgba(255,255,255,0.7)';   // ไอหอบ
+          if (pant) { ctx.fillRect(13, 8, 1, 1); ctx.fillRect(14, 7, 1, 1); }
+        }
+      } else if (faint) {
+        ctx.globalAlpha = Math.max(0, 1 - faint);
+        ctx.drawImage(G.sprite(id), 0, -faint * 4);
+        ctx.globalAlpha = Math.max(0, 0.6 - faint * 0.6); ctx.fillStyle = '#f4f4ec';
+        for (let i = 0; i < 4; i++) ctx.fillRect(3 + i * 3, 12 - faint * (10 + i * 3), 2, 2);
+      } else ctx.drawImage(G.sprite(id), 0, 0);
       ctx.restore();
     };
+    if (G.raining() && !['indoor', 'kku_shop', 'ramen'].includes(V.bg) && G.drawRain) G.drawRain(ctx, now);
     for (const s of ['p', 'f']) if (V.faint && V.faint[s] > 0 && V.faint[s] < 1) V.faint[s] = Math.min(1, V.faint[s] + 0.06);
     draw(V.fSprite, 154, 20, false, V.faint ? V.faint.f : 0, 'f');
     draw(V.pSprite, 38, 66, true, V.faint ? V.faint.p : 0, 'p');
-    if (V.critFlash > 0) { ctx.fillStyle = `rgba(255,240,180,${V.critFlash / 14})`; ctx.fillRect(0, 0, 240, 160); V.critFlash--; }
+    if (V.critFlash > 0) { ctx.fillStyle = `rgba(255,240,180,${V.critFlash / (calm ? 40 : 14)})`; ctx.fillRect(0, 0, 240, 160); V.critFlash--; }
     if (V.wobble) { ctx.fillStyle = '#f4f4ec'; for (let i = 0; i < 3; i++) { const a = now / 300 + i * 2.1; ctx.fillRect(178 + Math.cos(a) * 26, 40 + Math.sin(a) * 10, 3, 3); } }
   };
 })(window.G = window.G || {});

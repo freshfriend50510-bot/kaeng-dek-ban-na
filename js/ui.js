@@ -13,26 +13,80 @@
   const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
   // ---------- กล่องข้อความแบบพิมพ์ทีละตัว ----------
+  // รูปหน้าผู้พูด: หาจากชื่อ (สมาชิกแก๊ง ตัวเรา NPC เทรนเนอร์ สายพันธุ์)
+  G.speakerLook = function (name) {
+    if (!name) return null;
+    const S = G.state;
+    if (S) {
+      const m = [...S.party, ...S.storage].find((x) => x.name === name);
+      if (m) return G.monLook(m);
+      if (name === S.name) return 'player';
+    }
+    if (!speakerMap) {
+      speakerMap = {};
+      for (const n of G.DATA.world.npcs) if (n.look && n.look !== 'item') { speakerMap[n.name] = speakerMap[n.name] || n.look; if (n.trainer) speakerMap[n.trainer.name] = speakerMap[n.trainer.name] || n.look; }
+      for (const [, sp] of Object.entries(G.DATA.species)) if (!speakerMap[sp.name]) speakerMap[sp.name] = sp.look;
+      Object.assign(speakerMap, { 'โจ้ แก๊งบ้านเหนือ': 'rival', 'คางคกเจ้าหนอง': 'toad' });
+    }
+    return speakerMap[name] || null;
+  };
+  let speakerMap = null;
+  // อารมณ์: ใส่ {happy} {angry} {shock} {sad} หน้าข้อความ หรือเดาจากคำในประโยค
+  const MOODS = [['angry', /เชอะ|ไม่ยอม|เกลียด|โมโห|หนอย|ไสหัว|อย่ามายุ่ง|เจ็บใจ|ไปไกลๆ|ใครกล้า/], ['sad', /ขอโทษ|เสียใจ|ผิดเอง|ร้องไห้|เหม่อ|ไม่มองหน้า/],
+    ['shock', /^\.\.\.|อ้าว|เดี๋ยวนะ|เดี๋ยวก่อน|ห๊ะ|!\?|\?!|^โห|ตกใจ|เอ๊ะ|ว้าย|มืดตึ๊ด|หลุดเชือก/],
+    ['happy', /ฮ่า|555|อิอิ|ดีใจ|เก่ง|ขอบใจ|ขอบคุณ|ยินดี|เย้|สุดยอด|เยี่ยม|~|แซ่บ|สัญญา!|ฉลอง/]];
+  G.guessMood = (text) => { for (const [m, re] of MOODS) if (re.test(text)) return m; return 'normal'; };
+  const EMOTE = { happy: '♪', angry: '💢', shock: '!!', sad: '💧' };
+  // บทที่เคยอ่านแล้ว (เก็บในเบราว์เซอร์นี้ ใช้ร่วมทุกช่องเซฟ): กด X บนบทที่เคยอ่าน = ข้ามรวดจนถึงบทใหม่หรือตัวเลือก
+  const SEEN_KEY = 'kaengdekbanna_seen';
+  let seen = null, seenT = null;
+  const seenSet = () => { if (!seen) { try { seen = new Set(JSON.parse(localStorage.getItem(SEEN_KEY) || '[]')); } catch (e) { seen = new Set(); } } return seen; };
+  const lineKey = (name, text) => { let h = 5381; const t = (name || '') + '|' + text; for (let i = 0; i < t.length; i++) h = ((h * 33) ^ t.charCodeAt(i)) >>> 0; return h.toString(36); };
+  const markSeen = (k) => {
+    const st = seenSet(); if (st.has(k)) return; st.add(k);
+    clearTimeout(seenT); seenT = setTimeout(() => { try { localStorage.setItem(SEEN_KEY, JSON.stringify([...st].slice(-6000))); } catch (e) { /* */ } }, 800);
+  };
+  G.ui.skipping = false;
   G.ui.say = function (text, name, opt = {}) {
+    let mood = opt.mood;
+    const tag = /^\{(happy|angry|shock|sad|normal)\}\s*/.exec(text);
+    if (tag) { mood = tag[1]; text = text.slice(tag[0].length); }
     return new Promise((resolve) => {
       const box = el('div', 'panel dialog' + (opt.battle ? ' in-battle' : ''));
       if (name) box.appendChild(el('div', 'speaker', esc(name)));
+      const look = !opt.battle && (opt.look || G.speakerLook(name));
+      if (look) {
+        mood = mood || G.guessMood(text);
+        const face = el('div', `face mood-${mood}`);
+        const cv = document.createElement('canvas'), pic = G.portrait(look, mood === 'sad' ? 'tired' : mood);
+        cv.width = pic.width; cv.height = pic.height; cv.getContext('2d').drawImage(pic, 0, 0);
+        face.appendChild(cv);
+        if (EMOTE[mood]) face.appendChild(el('i', 'emote', EMOTE[mood]));
+        box.appendChild(face); box.classList.add('has-face');
+      }
       const body = el('div', 'dialog-text'); box.appendChild(body);
       const arrow = el('div', 'more', '▼'); box.appendChild(arrow);
+      const key = lineKey(name, text), track = !opt.battle && !opt.auto;
+      const wasSeen = track && G.settings.skipRead !== false && seenSet().has(key);
+      if (wasSeen) box.appendChild(el('div', 'skiphint', 'X ข้ามบทที่อ่านแล้ว'));
+      if (!wasSeen) G.ui.skipping = false;
       const chars = Array.from(text);
       let n = 0, done = false;
       const speed = G.settings.textSpeed;
+      const complete = () => { clearInterval(tick); n = chars.length; body.textContent = text; done = true; box.classList.add('done'); if (track) markSeen(key); if (opt.auto) setTimeout(finish, opt.auto); };
       const tick = setInterval(() => {
         n += speed; body.textContent = chars.slice(0, n).join('');
-        if (n >= chars.length) { clearInterval(tick); done = true; box.classList.add('done'); if (opt.auto) setTimeout(() => finish(), opt.auto); }
+        if (n >= chars.length) complete();
       }, 22);
       const finish = () => { if (!stack.includes(m)) return; pop(m); resolve(); };
       const m = { el: box, onKey: (k) => {
         if (k !== 'ok' && k !== 'back') return;
-        if (!done) { clearInterval(tick); n = chars.length; body.textContent = text; done = true; box.classList.add('done'); if (opt.auto) setTimeout(finish, opt.auto); }
+        if (k === 'back' && wasSeen) { G.ui.skipping = true; complete(); finish(); return; }
+        if (!done) complete();
         else if (!opt.auto) { G.sfx('tick'); finish(); }
       } };
       push(m);
+      if (wasSeen && G.ui.skipping) { complete(); setTimeout(finish, 70); }
     });
   };
   G.ui.sayAll = async (lines, name) => { for (const l of lines) await G.ui.say(l, name); };
@@ -40,6 +94,7 @@
   // ---------- รายการตัวเลือก ----------
   // options: [{label, sub, disabled}] หรือ string; คืน index หรือ -1 เมื่อยกเลิก
   G.ui.choose = function (options, opt = {}) {
+    G.ui.skipping = false;   // ถึงตัวเลือกแล้ว หยุดข้ามบท
     return new Promise((resolve) => {
       const box = el('div', 'panel choice ' + (opt.cls || ''));
       if (opt.title) box.appendChild(el('div', 'choice-title', esc(opt.title)));
@@ -92,7 +147,7 @@
   const STATUS = { par: 'ชา', slp: 'หลับ', psn: 'ท้องเสีย' };
   G.ui.statusTag = (s) => (s ? `<span class="tag st-${s}">${STATUS[s]}</span>` : '');
   const TYPE_TH = { normal: 'ปกติ', water: 'น้ำ', earth: 'ดิน', electric: 'สายฟ้า', wind: 'ลม' };
-  G.ui.typeTag = (t) => `<span class="tag ty-${t}">${TYPE_TH[t]}</span>`;
+  G.ui.typeTag = (t) => `<span class="tag ty-${t}"><canvas class="ty-ico" width="16" height="16" data-sprite="type:${t}"></canvas>${TYPE_TH[t]}</span>`;
   G.TYPE_TH = TYPE_TH;
 
   // ---------- เมนูทีม ----------
@@ -374,9 +429,29 @@
     const count = (list) => [1, 2, 3].map((n) => list.filter((k) => stateOf(k) >= n).length);
     const [gs, gf, gc] = count(ghosts), [es, ef, ec] = count(engs);
     const people = [...S.party, ...S.storage].filter((m) => sp[m.sp].kind === 'eng').length;
-    return G.ui.panel(`<div class="choice-title">สมุดบันทึก (แอมเขียน)</div>
-      <div class="nb-head">ผีสาง — เจอ ${gs}/${ghosts.length} · สู้ ${gf} · ชวนได้ ${gc}</div><div class="nb">${ghosts.map(card).join('')}</div>
-      <div class="nb-head">น้องวิศวะ — เจอ ${es}/${engs.length} สาขา · สู้ ${ef} · ชวนได้ ${ec} สาขา · อยู่ในแก๊ง ${people} คน</div><div class="nb">${engs.map(card).join('')}</div>`, 'notebook');
+    // ตัวกรอง ←/→: ธาตุ (เฉพาะตัวที่เคยสู้ ถึงจะรู้ธาตุ) หรือพื้นที่ที่เจอ
+    const where = (k, map) => (G.DATA.encounters[map] || []).some((e) => e.sp === k);
+    const FILTERS = [['ทั้งหมด', () => true], ...Object.keys(TYPE_TH).map((t) => [`ธาตุ${TYPE_TH[t]}`, (k) => stateOf(k) >= 2 && sp[k].type === t, t]),
+      ['ทุ่งนา', (k) => stateOf(k) >= 1 && where(k, 'field')], ['มข.', (k) => stateOf(k) >= 1 && where(k, 'kku')]];
+    let f = 0;
+    return new Promise((resolve) => {
+      const box = el('div', 'panel sheet notebook');
+      const render = () => {
+        const [fname, test, t] = FILTERS[f];
+        const g = ghosts.filter(test), e = engs.filter(test);
+        box.innerHTML = `<div class="choice-title">สมุดบันทึก (แอมเขียน)</div>
+          <div class="nb-filter"><span class="nb-arrow">◀</span>${t ? `<canvas width="16" height="16" class="ty-ico" data-sprite="type:${t}"></canvas>` : ''}<b>${fname}</b><span class="nb-arrow">▶</span><small>กด ←/→ เปลี่ยนตัวกรอง</small></div>
+          ${g.length || !e.length ? `<div class="nb-head">ผีสาง — เจอ ${gs}/${ghosts.length} · สู้ ${gf} · ชวนได้ ${gc}</div><div class="nb">${g.map(card).join('') || '<small>ยังไม่มีในหมวดนี้</small>'}</div>` : ''}
+          ${e.length ? `<div class="nb-head">น้องวิศวะ — เจอ ${es}/${engs.length} สาขา · สู้ ${ef} · ชวนได้ ${ec} สาขา · อยู่ในแก๊ง ${people} คน</div><div class="nb">${e.map(card).join('')}</div>` : ''}`;
+        box.querySelectorAll('.nb-arrow').forEach((a, i) => a.addEventListener('click', () => m.onKey(i ? 'right' : 'left')));
+      };
+      const m = { el: box, onKey: (k) => {
+        if (k === 'left' || k === 'right') { f = (f + (k === 'right' ? 1 : FILTERS.length - 1)) % FILTERS.length; G.sfx('tick'); render(); box.scrollTop = 0; }
+        else if (k === 'up' || k === 'down') box.scrollTop += k === 'down' ? 40 : -40;
+        else if (k === 'ok' || k === 'back') { pop(m); resolve(); }
+      } };
+      render(); push(m);
+    });
   };
 
   // ---------- สมุดเควสต์ ----------
@@ -415,8 +490,11 @@
     else if (pick === 'ตั้งค่า') {
       const on = (b) => (b ? 'เปิด' : 'ปิด');
       const s = await G.ui.choose([`ความเร็วข้อความ: ${['ช้า', 'กลาง', 'เร็ว'][G.settings.textSpeed - 1]}`, `เพลง: ${on(G.settings.music)}`,
-        `เสียงเอฟเฟกต์: ${on(G.settings.sound)}`, `ไกด์และลูกศรชี้ทาง: ${on(G.settings.guide)}`, `แถบทีมและมินิแมพ: ${on(G.settings.hud !== false)}`, `เก็บเวลเร็ว + ติดคริง่าย: ${on(G.settings.easy !== false)}`, 'สำรองเซฟเป็นไฟล์', 'ใส่รหัสลับ', `บันทึกอัตโนมัติ: ${on(G.settings.autosave !== false)}`], { cls: 'small',
-        info: (k) => (k === 5 ? 'เปิด: EXP ×3 แบ่งให้ทั้งแก๊ง และฝั่งเราติดคริ 25%' : k === 8 ? `บันทึกลงช่อง ${G.slot} เองหลังเหตุการณ์ การต่อสู้ เปลี่ยนแผนที่ และทุก 1 นาที` : '') });
+        `เสียงเอฟเฟกต์: ${on(G.settings.sound)}`, `ไกด์และลูกศรชี้ทาง: ${on(G.settings.guide)}`, `แถบทีมและมินิแมพ: ${on(G.settings.hud !== false)}`, `เก็บเวลเร็ว + ติดคริง่าย: ${on(G.settings.easy !== false)}`, 'สำรองเซฟเป็นไฟล์', 'ใส่รหัสลับ', `บันทึกอัตโนมัติ: ${on(G.settings.autosave !== false)}`,
+        `เสียงบรรยากาศ: ${on(G.settings.ambient !== false)}`, `ลดการสั่นจอและแฟลช: ${on(G.settings.calm)}`, `ข้ามบทที่เคยอ่าน (ปุ่ม X): ${on(G.settings.skipRead !== false)}`], { cls: 'small',
+        info: (k) => ({ 5: 'เปิด: EXP ×3 แบ่งให้ทั้งแก๊ง และฝั่งเราติดคริ 25%', 8: `บันทึกลงช่อง ${G.slot} เองหลังเหตุการณ์ การต่อสู้ เปลี่ยนแผนที่ และทุก 1 นาที`,
+          9: 'จิ้งหรีดกับกบตอนกลางคืน นกตอนเช้า ลมในทุ่งนา และเสียงฝน', 10: 'สำหรับคนที่ตาล้าง่าย: ตอนตีโดนสั่นน้อยลง และไม่กะพริบจอตอนเข้าต่อสู้',
+          11: 'บทที่เคยอ่านแล้วจะมีป้าย "X ข้าม" กด X แล้วข้ามรวดจนถึงบทใหม่หรือตัวเลือก' }[k] || '') });
       if (s === 0) G.settings.textSpeed = (G.settings.textSpeed % 3) + 1;
       if (s === 1) { G.settings.music = !G.settings.music; G.restartMusic(); }
       if (s === 2) { G.settings.sound = !G.settings.sound; G.restartMusic(); }
@@ -426,6 +504,9 @@
       if (s === 6) G.exportSave();
       if (s === 7) await G.ui.secretCode();
       if (s === 8) G.settings.autosave = G.settings.autosave === false;
+      if (s === 9) G.settings.ambient = G.settings.ambient === false;
+      if (s === 10) G.settings.calm = !G.settings.calm;
+      if (s === 11) G.settings.skipRead = G.settings.skipRead === false;
       G.saveSettings();
     }
   };

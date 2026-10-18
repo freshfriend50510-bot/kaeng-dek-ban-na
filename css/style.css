@@ -235,3 +235,24 @@ table.moves td, table.moves th { padding: calc(var(--u) * 0.5) calc(var(--u) * 2
 .bag-sheet .hint { margin-top: calc(var(--u) * 1.5); font-size: 0.68em; color: #8f97b8; text-align: center; }
 .badge canvas { display: block; width: calc(var(--u) * 22) !important; height: calc(var(--u) * 22) !important; margin: 0 auto calc(var(--u) * 2); }
 .badge:not(.on) canvas { filter: grayscale(1) brightness(0.5); }
+/* รูปหน้าผู้พูดในกล่องข้อความ */
+.dialog.has-face .dialog-text { margin-left: calc(var(--u) * 38); }
+.dialog .face { position: absolute; left: calc(var(--u) * 4); top: calc(var(--u) * 4); width: calc(var(--u) * 32); height: calc(var(--u) * 32);
+  background: radial-gradient(circle at 50% 40%, #3a4a8a, #1c2340); border: calc(var(--u) * 0.75) solid var(--gold); border-radius: calc(var(--u) * 2); overflow: hidden; }
+.dialog .face canvas { position: absolute; left: 0; bottom: 0; width: 100%; image-rendering: pixelated; }
+.dialog .face.mood-angry { background: radial-gradient(circle at 50% 40%, #8a3a3a, #2a1420); }
+.dialog .face.mood-happy { background: radial-gradient(circle at 50% 40%, #e8a04a, #5a3a20); }
+.dialog .face.mood-sad { background: radial-gradient(circle at 50% 40%, #4a6a9a, #18203f); }
+.dialog .face.mood-shock { background: radial-gradient(circle at 50% 40%, #e8e2b0, #4a4a6a); }
+.dialog .face .emote { position: absolute; right: calc(var(--u) * 0.5); top: calc(var(--u) * -0.5); font-style: normal; font-size: calc(var(--u) * 7); line-height: 1;
+  color: #fff2a8; text-shadow: 0 0 calc(var(--u)) #000; animation: emote 0.9s ease-in-out infinite; }
+.dialog .face.mood-shock .emote { color: #ff6a4a; font-weight: bold; }
+@keyframes emote { 50% { transform: translateY(calc(var(--u) * -1.5)); } }
+.dialog .skiphint { position: absolute; right: calc(var(--u) * 12); bottom: calc(var(--u) * 1.5); font-size: 0.6em; color: #9fb0e0; opacity: 0.8; }
+#fade.flash.soft { opacity: 0.35; }
+.tag .ty-ico { width: 1.1em; height: 1.1em; vertical-align: -0.18em; margin-right: calc(var(--u) * 0.75); image-rendering: auto; }
+.choice.party .choice-item .sub { white-space: normal; font-size: 0.72em; text-align: right; max-width: calc(var(--u) * 120); }
+.nb-filter { display: flex; align-items: center; gap: calc(var(--u) * 2); margin-bottom: calc(var(--u) * 1); }
+.nb-filter b { color: var(--cream); } .nb-filter small { margin-left: auto; opacity: 0.6; font-size: 0.65em; }
+.nb-filter .nb-arrow { color: var(--gold); cursor: pointer; pointer-events: auto; padding: 0 calc(var(--u) * 1); }
+.nb-filter .ty-ico { width: 1.1em; height: 1.1em; }

@@ -30,7 +30,7 @@
   // var = ตัวเลือกเพิ่ม เช่น ผนังด้านหน้า/บน พื้นของแผนที่ เฟรมน้ำ
   function tileCanvas(ch, x, y, frame, vr) {
     const v = Math.floor(hash(x, y) * 4);
-    const anim = 'w~><i'.includes(ch);
+    const anim = 'w~><i'.includes(ch);   // vr ของน้ำ/ข้าว: dry = ก่อนฝนตก, mud = ขอบหนองแห้ง, lotus = บัวหลังฝน
     const key = ch + v + (anim ? frame : '') + (vr || '');
     if (tileCache[key]) return tileCache[key];
     const c = document.createElement('canvas'); c.width = c.height = TS;
@@ -55,8 +55,21 @@
         R('#5a3a22', 7, 13, 2, 3);
         if (dark && v === 1) R('#c5482b', 6, 11, 4, 1);
         break; }
-      case 'w': water(); break;
-      case 'T': R('#6e9b3a', 0, 0, 16, 16); for (let i = 0; i < 5; i++) { R('#4f7a2a', i * 3 + 1, 4 + (i % 2) * 3, 1, 8); R('#a8c45a', i * 3 + 1, 3 + (i % 2) * 3, 1, 2); } break;
+      case 'w':
+        if (vr === 'mud') {   // โคลนแห้งแตกระแหง ลายรอยแตกสุ่มต่อช่อง
+          R('#a8845a', 0, 0, 16, 16); R('#b8946a', 0, 0, 16, 1);
+          g.strokeStyle = '#7f6040'; g.lineWidth = 1; g.beginPath();
+          let cx = 1 + hash(x, y + 9) * 4, cy = 2 + hash(x + 3, y) * 4; g.moveTo(cx, cy);
+          for (let k = 0; k < 4; k++) { cx += 2 + hash(x + k, y * 7) * 3; cy += (hash(x * 5, y + k) - 0.4) * 5; g.lineTo(Math.min(15, cx), Math.max(1, Math.min(15, cy))); }
+          const bx = 3 + hash(y, x) * 8; g.moveTo(bx, 9); g.lineTo(bx + 1.5, 12.5); g.lineTo(bx - 1, 15); g.stroke();
+          R('#c9a87a', (v * 5) % 12 + 2, 13, 2, 1); break;
+        }
+        water();
+        if (vr === 'lotus') { O('#4f8a45', 7, 9, 5, 3); O('#5f9a50', 11, 6, 3, 2); O('#f2a0c0', 7, 7, 2, 2.5); R('#fff2f6', 7, 5, 1, 1); }
+        break;
+      case 'T':
+        if (vr === 'dry') { R('#a89a50', 0, 0, 16, 16); for (let i = 0; i < 5; i++) { R('#8a7a3a', i * 3 + 1, 6 + (i % 2) * 3, 1, 6); R('#c9b86a', i * 3 + 1, 5 + (i % 2) * 3, 1, 2); } R('#8a7a3a', 0, 15, 16, 1); break; }
+        R('#6e9b3a', 0, 0, 16, 16); for (let i = 0; i < 5; i++) { R('#4f7a2a', i * 3 + 1, 4 + (i % 2) * 3, 1, 8); R('#a8c45a', i * 3 + 1, 3 + (i % 2) * 3, 1, 2); } break;
       case 'R': R('#b08a4a', 0, 0, 16, 16); for (let i = 0; i < 16; i += 3) R('#8a6a34', 0, i, 16, 1); R('#c9a45a', v * 3, 1, 3, 1); break;
       case 'r': R('#9a3a2a', 0, 0, 16, 16); for (let i = 1; i < 16; i += 4) R('#7a2a1e', i, 0, 1, 16); R('#b85a44', 0, 0, 16, 1); break;
       case 'A': R('#a63a2a', 0, 0, 16, 16); for (let i = 0; i < 16; i += 4) R('#86281c', 0, i + 3, 16, 1); R('#d9b25a', 0, 15, 16, 1); break;
@@ -212,7 +225,12 @@
   G.world.update = function () {
     W.anim++;
     // ชั่วโมงเปลี่ยน: NPC ไปทำงาน/กลับบ้านตามตารางเวลา
-    if (W.hour !== Math.floor(G.state.time / 60) % 24 && !G.busy && !W.moving) G.refreshNpcs();
+    if (W.hour !== Math.floor(G.state.time / 60) % 24 && !G.busy && !W.moving) {
+      // ฝนสุ่มตกได้หลังคางคกยอมให้ฝนกลับมา (โอกาสชั่วโมงละ 15% ตกนาน 1-3 ชั่วโมง)
+      const S = G.state;
+      if (S.flags.boss1_done && !(S.rainLeft > 0) && G.rng() < 0.15) { S.rainLeft = 60 + Math.floor(G.rng() * 120); if (!W.def.indoor) G.showToast('ฝนเริ่มตก...'); }
+      G.refreshNpcs();
+    }
     if (W.bumpCD) W.bumpCD--;
     for (const n of W.npcs) if (n.alert > 0) n.alert--;
     const m = W.moving;
@@ -258,11 +276,12 @@
     // สุ่มเจอผีสางในนาข้าว / น้องวิศวะในหญ้ารก
     if (W.def.encounter && (here === 'T' || here === 'g') && G.rng() < 0.14) {
       const table = G.DATA.encounters[W.map];
-      const night = G.isNight();
-      const roll = G.rng() * 100;
+      const night = G.isNight(), wet = G.raining();
+      const weight = (e) => (night ? e.night : e.day) * (wet && G.DATA.species[e.sp].type === 'water' ? 2.5 : 1);   // ฝนตก ผีน้ำออกมาเยอะ
+      const roll = G.rng() * table.reduce((a, e) => a + weight(e), 0);
       let acc = 0;
       for (const e of table) {
-        acc += night ? e.night : e.day;
+        acc += weight(e);
         if (roll < acc) {
           const lv = G.rng.int(e.min, e.max);
           const lead = S.party.find((m) => m.hp > 0);
@@ -317,6 +336,18 @@
 
   // ---------- เวลา ----------
   G.isNight = () => { const h = Math.floor(G.state.time / 60) % 24; return h >= 19 || h < 6; };
+  // 4 ช่วง: เช้า 5-9 กลางวัน 9-16 เย็น 16-19 กลางคืน 19-5
+  G.period = () => { const h = Math.floor(G.state.time / 60) % 24; return h >= 5 && h < 9 ? 'morning' : h >= 9 && h < 16 ? 'day' : h >= 16 && h < 19 ? 'evening' : 'night'; };
+  G.PERIOD_TH = { morning: 'เช้า', day: 'กลางวัน', evening: 'เย็น', night: 'กลางคืน' };
+  G.raining = () => G.state.rainLeft > 0 && !W.def.indoor;
+  // สีแสงตามเวลา: เช้าแสงทองอ่อน เย็นแสงส้ม (ซ้อนก่อนความมืด)
+  G.tint = () => {
+    const h = (G.state.time / 60) % 24;
+    const bell = (a, b) => (h <= a || h >= b ? 0 : Math.sin(((h - a) / (b - a)) * Math.PI));
+    if (h >= 5 && h < 9) return `rgba(255,196,110,${(0.16 * bell(5, 9)).toFixed(3)})`;
+    if (h >= 15.5 && h < 19.5) return `rgba(255,110,40,${(0.24 * bell(15.5, 19.5)).toFixed(3)})`;
+    return null;
+  };
   G.darkness = () => {
     const h = (G.state.time / 60) % 24;
     if (h >= 6 && h < 17) return 0;
@@ -333,6 +364,13 @@
     if (ch === 'D') return 'D' + (tileAt(x - 1, y) === 'C' || tileAt(x + 1, y) === 'C' ? 'C' : tileAt(x - 1, y) === 'Q' || tileAt(x + 1, y) === 'Q' ? 'Q' : '');
     if (ch === 'Z') { const o = objAt(x, y); return o && G.state.flags['sw_' + o.arg] ? 'on' : ''; }
     if (ch === 'Y') { const l = onMap('lamps', x, y); return l && G.state.flags['lamp_' + l.i] ? 'on' : ''; }
+    // ก่อนชนะคางคก ทุ่งแล้ง: ข้าวเหลือง หนองน้ำงวดเหลือแต่โคลนแตกระแหงที่ขอบ / หลังฝนตก มีบัวขึ้น
+    if ((ch === 'T' || ch === 'w') && !W.def.indoor && W.map !== 'kku') {
+      const rained = G.state.flags.boss1_done;
+      if (ch === 'T') return rained ? '' : 'dry';
+      if (!rained) return [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => !'w0'.includes(tileAt(x + dx, y + dy))) ? 'mud' : '';
+      return hash(x * 3, y * 5) < 0.18 ? 'lotus' : '';
+    }
     return '';
   }
   G.world.draw = function (ctx) {
@@ -381,7 +419,9 @@
     if ((here === 'T' || here === 'g') && !W.moving) { ctx.fillStyle = here === 'T' ? '#6e9b3a' : '#5f8a3a'; ctx.fillRect(S.x * TS - cx + 2, S.y * TS - cy + 11, 12, 5); }
     // ความมืด: ตึกที่ไฟดับ / กลางคืนข้างนอก
     const blackout = W.def.darkUntil && !S.flags[W.def.darkUntil];
-    const dk = blackout ? 0.78 : W.def.indoor ? 0 : G.darkness();
+    const dk = blackout ? 0.78 : W.def.indoor ? 0 : Math.min(0.6, G.darkness() + (G.raining() ? 0.12 : 0));
+    const tn = !W.def.indoor && !blackout && G.tint();
+    if (tn) { ctx.fillStyle = tn; ctx.fillRect(0, 0, 240, 160); }
     if (dk > 0) {
       ctx.fillStyle = `rgba(10,12,34,${dk})`; ctx.fillRect(0, 0, 240, 160);
       ctx.globalCompositeOperation = 'lighter';
@@ -389,7 +429,7 @@
       const pgx = Math.round(px * TS - cx + 8), pgy = Math.round(py * TS - cy + 8);
       if (blackout) glow(pgx, pgy, 30, 'rgba(255,230,170,0.42)');   // ไฟฉายของแอม
       else if (G.isNight()) glow(pgx, pgy, 40, 'rgba(255,220,140,0.18)');
-      if (G.isNight() || blackout) for (const [lx, ly, r] of lamps) glow(lx, ly, r, 'rgba(255,236,160,0.38)');
+      if (G.isNight() || blackout || dk >= 0.3) for (const [lx, ly, r] of lamps) glow(lx, ly, r, 'rgba(255,236,160,0.38)');
       ctx.globalCompositeOperation = 'source-over';
     }
   };
