@@ -120,7 +120,61 @@
     ingying: { hair: 'tied', H: C.hairBrown, S: C.skinMid, C: '#f2a0c0', P: '#4a3b5a', extra: ['grin'], patch: ['apron'], A: '#e86a9a' },
     // คนวิศวะ: เสื้อช็อปตามสาขา (ดู SHOP) + ตราที่อก
     friend: { hair: 'neat', H: C.hairBlack, S: C.skinMid, shop: 'eng_mech', P: '#2a2a33', extra: ['shop'], patch: ['brows', 'gearneck', 'wrench'], Y: '#d9b25a', y: '#b8bcc4' },
-    ungying: { hair: 'bob', H: '#1a1414', S: C.skinPale, shop: 'eng_chem', P: '#2a2a33', extra: ['shop'], patch: ['narrow'], Q: '#f2a0a8', M: '#d9455a' },
+    // อุ๋งอิ๋ง: สาวหมวยผิวขาว ผมยาวตรงดำเงา หน้าม้า กิ๊บโบว์ชมพู ชุดนักศึกษา (เสื้อขาว เข็มตรา เข็มขัด กระโปรงดำ)
+    ungying: {
+      pal: { H: '#16121a', h: '#3a3046', S: '#fde9dd', K: '#1e1218', j: '#6a4048', Q: '#f7a3b4', m: '#ec7f95', W: '#ffffff', w: '#d9e0ee',
+        Y: '#e8c04a', B: '#26262e', b: '#e8c04a', P: '#1e1e2c', F: '#121216', R: '#f06a96', r: '#c94a78' },
+      rows: [
+        '.....HHHHHH.....',
+        '....HHHHHHHHRr..',
+        '...HHHHHHHHHRR..',
+        '..HHHhHHHHHHHH..',
+        '..HHHhHHHHHHHH..',
+        '..HSSSHSSSHSSH..',
+        '..HSKKSSSSKKSH..',
+        '..HSKjSSSSjKSH..',
+        '..HQSSSmmSSSQH..',
+        '..HHH.SSSS.HHH..',
+        '..HHwWWWWWWwHH..',
+        '..HSWWWYwWWWSH..',
+        '...SWWWWWWWWS...',
+        '....BBBbBBBB....',
+        '....PPPPPPPP....',
+        '.....FF..FF.....'],
+      up: [
+        '.....HHHHHH.....',
+        '....HHHHHHHHRr..',
+        '...HHHHHHHHHRR..',
+        '..HHHHHhHHHHHH..',
+        '..HHHHHhHHHHHH..',
+        '..HHHHHHhHHHHH..',
+        '..HHHHHHhHHHHH..',
+        '..HHHHHHHHHHHH..',
+        '..HHHHHHHHHHHH..',
+        '..HHHHHHHHHHHH..',
+        '..HHHHHHHHHHHH..',
+        '..SHHHHHHHHHHS..',
+        '...SWWWWWWWWS...',
+        '....BBBBBBBB....',
+        '....PPPPPPPP....',
+        '.....FF..FF.....'],
+      side: [
+        '.....HHHHHH.....',
+        '...rRHHHHHHHH...',
+        '...RRHHHHHHHHH..',
+        '...HHHHHhHHHHH..',
+        '...HHHHHHhHHHH..',
+        '...HHHHHSSHSSS..',
+        '...HHHHSSSKKSS..',
+        '...HHHHSSSKjSS..',
+        '...HHHHSSQSSmS..',
+        '...HHHHH.SSS....',
+        '...HHHHWWWWW....',
+        '....HHWWWWWW....',
+        '.....WWWWWWW....',
+        '.....BBBBBb.....',
+        '.....PPPPPP.....',
+        '......FF.FF.....'] },
     wak1: { hair: 'buzz', H: C.hairBlack, S: C.skinTan, shop: 'eng_civil', P: '#2a2a33', extra: ['shop'], patch: ['brows', 'mustache'] },
     wak2: { hair: 'spiky', H: C.hairBlack, S: C.skinMid, shop: 'eng_elec', P: '#2a2a33', extra: ['shop', 'shout'], patch: ['brows', 'megaphone'], z: '#f4f4ec', r: '#c5482b' },
   };
@@ -202,7 +256,9 @@
     }
     if (id.startsWith('eng:')) { const [, br, i] = id.split(':'); return buildHuman(engLook(br, +i)); }
     if (SHOP[id]) return buildHuman(engLook(id, 0));
-    return buildHuman(LOOKS[id] || LOOKS.player);
+    const lk = LOOKS[id] || LOOKS.player;
+    if (lk.rows) return { rows: lk.rows, pal: lk.pal, human: true, hairKey: 'H', views: { up: lk.up, side: lk.side } };
+    return buildHuman(lk);
   }
   function paint(def, rows) {
     const c = document.createElement('canvas');
@@ -318,7 +374,15 @@
       const at = id.indexOf('@');
       const front = at > 0 ? defFor(id.slice(0, at)).rows : def.rows;   // ภาพก่อนแปะของประจำตัว
       let rows;
-      if (dir === 'left' || dir === 'right') rows = sideRows(front, frame);
+      if (def.views && (def.views.side || def.views.up) && dir !== 'down') {   // วาดเองทุกทิศ
+        if (dir === 'up') { rows = def.views.up.slice(); if (frame) liftFoot(rows, frame - 1); }
+        else {
+          rows = def.views.side.slice();
+          const arm = frame === 1 ? 10 : frame === 2 ? 7 : 9;
+          for (const y of [11, 12]) { const r = rows[y].split(''); r[arm] = 'S'; rows[y] = r.join(''); }
+          if (frame === 1) rows[15] = '.....FF...FF....'; else if (frame === 2) rows[15] = '.......FFF......';
+        }
+      } else if (dir === 'left' || dir === 'right') rows = sideRows(front, frame);
       else {
         rows = front.slice();
         if (dir === 'up') {   // หันหลัง: หน้ากลายเป็นผม ตราที่อกหายไป

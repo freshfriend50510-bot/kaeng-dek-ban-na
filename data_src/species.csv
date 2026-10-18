@@ -17,5 +17,5 @@ eng_elec,น้องวิศวะไฟฟ้า,electric,45,35,45,80,55,60,1
 eng_chem,น้องวิศวะเคมี,water,50,35,50,75,60,50,120,70,eng,,eng_chem,1:acid_splash;1:titrate;10:fumes;17:foam_burst,เสื้อช็อปม่วง ตราขวดแก้ว หอบโพยสูตรเคมีไปทุกที่
 eng_env,น้องวิศวะสิ่งแวดล้อม,wind,55,40,50,65,60,50,120,70,eng,,eng_env,1:tackle;1:pm_dust;10:plant_tree;17:clean_wind,เสื้อช็อปเขียว ตราใบไม้ พกขวดน้ำรียูสและถุงผ้าเสมอ
 eng_ie,น้องวิศวะอุตสาหการ,normal,50,55,45,45,50,75,120,70,eng,,eng_ie,1:conveyor_rush;1:stopwatch;10:kpi_pressure;17:lean_strike,เสื้อช็อปเทา ตรากราฟแท่ง คิดเรื่องประสิทธิภาพตลอดเวลา
-ungying,อุ๋งอิ๋ง,water,55,40,50,85,65,65,0,90,eng,,ungying,1:acid_splash;1:titrate;1:fumes;14:foam_burst,สาวหมวยวิศวะเคมี เรียนเก่ง ยิ้มหวาน แต่มีอดีตกับพี่เฟรนด์ที่ใครก็ไม่กล้าพูดถึง
+ungying,อุ๋งอิ๋ง,water,55,40,50,85,65,65,0,90,eng,,ungying,1:acid_splash;1:titrate;1:fumes;14:foam_burst,สาวหมวยผิวขาว ผมยาวตรงหน้าม้า ใส่ชุดนักศึกษาเรียบร้อย เรียนวิศวะเคมีเก่งที่สุดในรุ่น ยิ้มหวานจนใครก็เหลียวมอง แต่มีอดีตกับพี่เฟรนด์
 friend,พี่เฟรนด์,electric,60,70,60,75,55,55,0,160,master,,friend,1:short_circuit;1:wrench_throw;1:cheer_faculty;1:blackout,หัวโจกวิศวะเครื่องกล มข. เสื้อช็อปดำ เกียร์ห้อยคอ ถือประแจพาดบ่า
