@@ -170,7 +170,7 @@
         if (slot) slot.pp--;
       }
       ev.push({ t: 'msg', text: `${name} ใช้ท่า ${mv.name}!` });
-      ev.push({ t: 'anim', side, type: mv.type, cat: mv.cat });
+      ev.push({ t: 'anim', side, type: mv.type, cat: mv.cat, id: mv.id });
       // ความแม่น
       if (mv.acc > 0) {
         const hit = mv.acc * G.accFactor(uv.st.acc);
