@@ -7,7 +7,7 @@
     { until: 'catch_tutorial', text: 'ไปหาตาสีที่เถียงนา เรียนวิธีชวนผีเข้าแก๊ง', map: 'village', npc: 'tasi' },
     { until: 'field_open', text: 'ขอให้พ่อบีจูงควายออกจากทางลงทุ่ง', map: 'village', npc: 'beedad' },
     { until: 'boss1_done', text: 'ลงทุ่งนา เก็บเลเวลในนาข้าว แล้วไปสู้คางคกที่หนองใหญ่ (แนะนำ Lv 8)', map: 'field', npc: 'toad' },
-    { until: 'gym1_done', text: 'ข้ามคันนากลางหนองไปตลาดนัด เข้าร้านราเมง ผ่านม่านลมไปท้าพี่ออสซี่ (แนะนำ Lv 10)', map: 'ramen', npc: 'ossie' },
+    { until: 'gym1_done', text: 'ข้ามคันนากลางหนองไปตลาดนัด เข้าร้านราเมงไปท้าพี่ออสซี่ (แนะนำ Lv 10)', map: 'ramen', npc: 'ossie' },
     { until: 'festival_done', text: 'กลับหมู่บ้าน ไปงานบุญบั้งไฟกับผู้ใหญ่บ้านที่ศาลา', map: 'village', npc: 'elder' },
     { until: 'kku_arrived', text: 'นั่งรถสองแถวของลุงที่ตลาดนัด ไปมหาวิทยาลัยขอนแก่น', map: 'market', npc: 'driver' },
     { until: 'tr_wak1', text: 'ไปโรงช็อปวิศวะ ชนะพี่ว้ากหน้าประตู (แนะนำ Lv 14)', map: 'kku', npc: 'wak1' },
