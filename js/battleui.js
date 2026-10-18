@@ -36,7 +36,7 @@
           if (e.reward && skip) break;
           await G.ui.say(e.text, null, { battle: true, auto: 650, onDouble: e.reward ? () => { skip = true; } : null });
           break;
-        case 'anim': V.lunge = { side: e.side, t: 0 }; G.sfx(e.cat === 'status' ? 'status' : 'attack'); await wait(220); break;
+        case 'anim': V.lunge = { side: e.side, t: 0 }; V.fx = { side: e.side, type: e.type, cat: e.cat, t0: performance.now() }; G.sfx(e.cat === 'status' ? 'status' : 'attack'); await wait(e.cat === 'status' ? 300 : 260); break;
         case 'hit': V.shake = { side: e.side, t: 0 }; G.sfx(e.eff > 1 ? 'super' : 'hit'); await wait(200); break;
         case 'crit': V.critFlash = 10; V.shake = { side: e.side, t: 0 }; G.sfx('super'); await wait(160); break;
         case 'hp': await tweenHp(b, e.side, e.hp); break;
@@ -123,7 +123,7 @@
     G.scene = 'battle';
     S.party.forEach((m) => { m._fainted = false; });
     const b = new G.Battle(S.party, foes, opt);
-    Object.assign(V, { active: true, b, php: b.me.hp, fhp: b.foe.hp, faint: { p: 0, f: 0 }, shake: null, lunge: null, wobble: 0,
+    Object.assign(V, { active: true, b, php: b.me.hp, fhp: b.foe.hp, faint: { p: 0, f: 0 }, shake: null, lunge: null, fx: null, wobble: 0,
       pSprite: null, fSprite: opt.kind === 'wild' ? G.monLook(b.foe) : (opt.trainerLook || G.monLook(b.foe)),
       intro: 0, bg: opt.bg || G.world.def.bg || G.state.map, onSend: opt.onSend });
     V.layer = document.createElement('div'); V.layer.className = 'battle-layer';
@@ -206,6 +206,66 @@
     for (let i = 0; i < 240; i += 6) ctx.fillRect(i, 70 + ((i * 7) % 5), 2, 6);
     if (!['market', 'kku', 'amphoe'].includes(bg)) { ctx.fillStyle = night ? '#24402a' : '#3f6b34'; for (const [x, r] of [[20, 10], [50, 7], [200, 9], [225, 6]]) { ctx.beginPath(); ctx.arc(x, 68, r, Math.PI, 0); ctx.fill(); } }
   }
+  // เอฟเฟกต์ท่าตามธาตุ: น้ำ = ฟองน้ำลอยโค้งแล้วกระเซ็น, ดิน = ก้อนดินพุ่งแล้วฝุ่นตลบ, สายฟ้า = ฟ้าผ่าซิกแซก,
+  // ลม = ลมหมุนวนพร้อมใบไม้, ปกติ = ดาวกระแทก, ท่าสถานะ = ประกายลอยรอบตัวผู้ใช้
+  const FXC = { water: ['#7cc6de', '#e8f8ff'], earth: ['#8a5a34', '#d8b47a'], electric: ['#fff2a8', '#f2d24b'], wind: ['#c8f0b0', '#5fae4a'], normal: ['#ffffff', '#f2d24b'] };
+  function drawFx(ctx, now) {
+    const f = V.fx; if (!f) return;
+    const t = (now - f.t0) / (G.settings.fast ? 280 : 560);
+    if (t >= 1) { V.fx = null; return; }
+    const C = { p: [62, 92], f: [178, 44] }, [ax, ay] = C[f.side], [tx, ty] = C[f.side === 'p' ? 'f' : 'p'];
+    const [c1, c2] = FXC[f.type] || FXC.normal, cl = (v) => Math.max(0, Math.min(1, v));
+    const dot = (c, x, y, r) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); };
+    const line = (c, w, pts) => { ctx.strokeStyle = c; ctx.lineWidth = w; ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke(); };
+    ctx.save();
+    if (f.cat === 'status') {
+      for (let i = 0; i < 10; i++) {
+        const a = i * 0.63 + t * 5, r = 16 + (i % 3) * 5, y = ay + 14 - cl(t * 1.2 - (i % 4) * 0.08) * 34;
+        ctx.globalAlpha = 1 - t; dot(i % 2 ? c1 : c2, ax + Math.cos(a) * r, y, i % 3 ? 1.5 : 2.5);
+      }
+    } else if (f.type === 'water') {
+      for (let i = 0; i < 7; i++) {
+        const k = cl(t * 1.8 - i * 0.07); if (k <= 0 || k >= 1) continue;
+        dot(c1, ax + (tx - ax) * k, ay + (ty - ay) * k - Math.sin(k * Math.PI) * 22, 4 - (i % 2)); dot(c2, ax + (tx - ax) * k - 1, ay + (ty - ay) * k - Math.sin(k * Math.PI) * 22 - 1, 1);
+      }
+      if (t > 0.5) {
+        const s = (t - 0.5) * 2; ctx.globalAlpha = 1 - s;
+        ctx.strokeStyle = c2; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(tx, ty + 12, 8 + s * 22, 3 + s * 7, 0, 0, 7); ctx.stroke();
+        for (let i = 0; i < 6; i++) dot(c1, tx + Math.cos(i) * s * 20, ty + 4 - Math.sin(s * Math.PI) * 14 + i, 2);
+      }
+    } else if (f.type === 'earth') {
+      for (let i = 0; i < 5; i++) {
+        const k = cl(t * 1.7 - i * 0.09); if (k <= 0 || k >= 1) continue;
+        const x = ax + (tx - ax) * k + (i - 2) * 3, y = ay + 10 + (ty - ay) * k - Math.sin(k * Math.PI) * 26;
+        ctx.fillStyle = i % 2 ? c1 : '#6b4a2f'; ctx.fillRect(Math.round(x) - 2, Math.round(y) - 2, 4 + (i % 2), 4);
+      }
+      if (t > 0.5) { const s = (t - 0.5) * 2; ctx.globalAlpha = 0.85 * (1 - s); for (let i = 0; i < 7; i++) dot(i % 2 ? c2 : c1, tx + (i - 3) * (4 + s * 6), ty + 14 - s * 8 - (i % 3) * 3, 4 + s * 6); }
+    } else if (f.type === 'electric') {
+      if (t < 0.35) for (let i = 0; i < 5; i++) dot(c1, ax + Math.cos(i * 1.3 + t * 30) * 14, ay + Math.sin(i * 1.3 + t * 30) * 14, 1.5);
+      else {
+        const flick = Math.floor(now / 45) % 2;
+        const pts = [[tx + 6, ty - 48]]; for (let i = 1; i <= 6; i++) pts.push([tx + (i % 2 ? -7 : 6) + (flick ? 2 : -2), ty - 48 + i * 9]);
+        line(c2, 4, pts); line('#ffffff', 1.5, pts);
+        if (!G.settings.calm && t < 0.5) { ctx.globalAlpha = 0.35; ctx.fillStyle = '#fff8c0'; ctx.fillRect(0, 0, 240, 160); }
+        ctx.globalAlpha = 1; for (let i = 0; i < 6; i++) dot(c1, tx + Math.cos(i + now / 60) * 16, ty + Math.sin(i + now / 60) * 12, 1.5);
+      }
+    } else if (f.type === 'wind') {
+      for (let i = 0; i < 3; i++) { const k = cl(t * 2 - i * 0.12); if (k > 0 && k < 1) line(c1, 1.5, [[ax + (tx - ax) * k - 10, ay + (ty - ay) * k + i * 5 - 5], [ax + (tx - ax) * k + 6, ay + (ty - ay) * k + i * 5 - 7]]); }
+      if (t > 0.35) {
+        const s = (t - 0.35) / 0.65; ctx.globalAlpha = 1 - s * 0.6;
+        for (let r = 0; r < 3; r++) { ctx.strokeStyle = r % 2 ? c2 : c1; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(tx, ty + 8 - r * 8, 12 + r * 4, 4, 0, s * 9 + r, s * 9 + r + 4); ctx.stroke(); }
+        for (let i = 0; i < 4; i++) { const a = s * 10 + i * 1.6; ctx.fillStyle = c2; ctx.fillRect(Math.round(tx + Math.cos(a) * 18), Math.round(ty + 4 + Math.sin(a) * 6 - i * 4), 3, 2); }
+      }
+    } else {
+      if (t > 0.4) {
+        const s = (t - 0.4) / 0.6; ctx.globalAlpha = 1 - s * 0.7;
+        for (let i = 0; i < 8; i++) { const a = (i * Math.PI) / 4; line(i % 2 ? c2 : c1, 3, [[tx + Math.cos(a) * (4 + s * 8), ty + Math.sin(a) * (4 + s * 8)], [tx + Math.cos(a) * (10 + s * 16), ty + Math.sin(a) * (10 + s * 16)]]); }
+        dot(c1, tx, ty, 5 * (1 - s) + 1);
+      }
+    }
+    ctx.restore();
+  }
+  G.battleFx = (side, type, cat, ago = 0) => { V.fx = { side, type, cat, t0: performance.now() - ago }; };   // เล่นเอฟเฟกต์ท่า (ใช้ในฉากเนื้อเรื่องได้)
   G.drawBattle = function (ctx) {
     if (!V.active) return;
     const night = G.isNight();
@@ -251,6 +311,7 @@
     for (const s of ['p', 'f']) if (V.faint && V.faint[s] > 0 && V.faint[s] < 1) V.faint[s] = Math.min(1, V.faint[s] + 0.06);
     draw(V.fSprite, 154, 20, false, V.faint ? V.faint.f : 0, 'f');
     draw(V.pSprite, 38, 66, true, V.faint ? V.faint.p : 0, 'p');
+    drawFx(ctx, now);
     if (V.critFlash > 0) { ctx.fillStyle = `rgba(255,240,180,${V.critFlash / (calm ? 40 : 14)})`; ctx.fillRect(0, 0, 240, 160); V.critFlash--; }
     if (V.wobble) { ctx.fillStyle = '#f4f4ec'; for (let i = 0; i < 3; i++) { const a = now / 300 + i * 2.1; ctx.fillRect(178 + Math.cos(a) * 26, 40 + Math.sin(a) * 10, 3, 3); } }
   };
