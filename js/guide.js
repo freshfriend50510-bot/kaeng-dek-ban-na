@@ -87,6 +87,49 @@
     ctx.restore();
   };
 
+  // ---------- ป้ายลอยชื่อตึก/ร้าน (ตัวใหญ่ = ชื่อ ตัวเล็ก = ขายอะไร) วางบนหลังคาเหนือประตู ----------
+  const labelBox = document.querySelector('#labels');
+  let labelMap = null, labels = [];
+  const WALKS = '.:fTL_-x~><O2aeg+0dv1345=';
+  const solid = (x, y) => { const t = G.world.tileAt(x, y); return t !== '#' && !WALKS.includes(t); };
+  function buildLabels() {
+    labelMap = G.world.map; labels = []; labelBox.innerHTML = '';
+    const add = (o, name, sub, ax, ay) => {
+      const e = document.createElement('div'); e.className = 'blabel' + (o.npc ? ' small' : '');
+      e.innerHTML = `<b></b>${sub ? '<small></small>' : ''}`; e.firstChild.textContent = name; if (sub) e.lastChild.textContent = sub;
+      labelBox.appendChild(e); labels.push({ e, ax, ay, ...o, sub });
+    };
+    for (const d of G.DATA.world.doors) {
+      if (d.map !== labelMap || !d.name) continue;
+      let top = d.y; while (top > 0 && solid(d.x, top - 1)) top--;
+      let l = d.x, r = d.x; while (solid(l - 1, d.y)) l--; while (solid(r + 1, d.y)) r++;
+      add({ door: d }, d.name, d.sells, ((l + r + 1) / 2) * 16, top * 16 + 2);
+    }
+    for (const n of G.world.npcs) if (n.tag) add({ npc: n }, n.tag[0], n.tag[1], n.x * 16 + 8, n.y * 16 - 3);
+  }
+  function updateLabels(show) {
+    if (!show || !G.world.cam) { labelBox.hidden = true; return; }
+    if (labelMap !== G.world.map || labels.some((l) => l.npc && !G.world.npcs.includes(l.npc)) || G.world.npcs.some((n) => n.tag && !labels.some((l) => l.npc === n))) buildLabels();
+    labelBox.hidden = false;
+    const { cx, cy } = G.world.cam, near = G.world.near;
+    // ไม่ให้ป้ายซ้อนใต้แถบเป้าหมาย มินิแมพ ปุ่ม นาฬิกา ชื่อแมพ
+    const blocks = ['#quest', '#minimap', '#hud-btns', '#clock', '#toast'].map((q) => document.querySelector(q)).filter((e) => e && !e.hidden && e.offsetParent && e.offsetWidth && getComputedStyle(e).opacity > 0.05).map((e) => e.getBoundingClientRect());
+    for (const l of labels) {
+      const x = l.ax - cx;
+      let y = l.ay - cy;
+      if (l.door && y < 44) y = Math.max(y, l.door.y * 16 - cy - 2);   // หลังคาพ้นจอหรือโดนแถบบนบัง ย้ายป้ายลงมาติดเหนือประตู
+      const hide = x < -40 || x > 280 || y < 22 || y > 175 || (l.npc && near && near.ref === l.npc);
+      l.e.hidden = hide; if (hide) continue;
+      l.e.style.left = `calc(var(--px) * ${x})`; l.e.style.top = `calc(var(--px) * ${y})`;
+      const closed = l.door && l.door.open && !G.hourIn(l.door.open);
+      l.e.classList.toggle('closed', !!closed);
+      const sm = l.e.querySelector('small'), want = closed ? 'ปิดแล้ว' : l.sub;
+      if (sm && sm.textContent !== want) sm.textContent = want;
+      const r = l.e.getBoundingClientRect();
+      l.e.style.visibility = blocks.some((b) => r.left < b.right && r.right > b.left && r.top < b.bottom && r.bottom > b.top) ? 'hidden' : '';
+    }
+  }
+
   // ---------- แถบเป้าหมาย + ปุ่มคุย ----------
   const quest = document.querySelector('#quest'), talk = document.querySelector('#talk');
   let lastQuest = '';
@@ -101,6 +144,7 @@
       quest.hidden = false;
     } else quest.hidden = true;
     G.updateGangHud(show);
+    updateLabels(show);
 
     const near = show && !G.world.moving ? G.world.nearby() : null;
     if (!near) { talk.hidden = true; G.world.near = null; return; }
