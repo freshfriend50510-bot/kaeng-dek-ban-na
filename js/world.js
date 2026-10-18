@@ -155,6 +155,7 @@
     W.follow = WALK.includes(tileAt(bx, by)) && !npcAt(bx, by) ? { x: bx, y: by, dir: S.dir } : { x, y, dir: S.dir };
     G.showToast(W.def.name);
     G.music(W.def.music);
+    if (G.autosave && !G.busy) setTimeout(() => G.autosave({ silent: true }), 0);   // เปลี่ยนแผนที่แล้วบันทึกเงียบๆ
   };
 
   G.refreshNpcs = function () {

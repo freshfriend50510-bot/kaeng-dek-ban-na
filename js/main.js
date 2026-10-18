@@ -3,7 +3,7 @@
   'use strict';
   const SAVE_KEY = 'kaengdekbanna_save', SAVE_VER = 1;
   G.DATA = window.GAME_DATA;
-  G.settings = { textSpeed: 2, sound: true, music: true, guide: true, hud: true, easy: true };
+  G.settings = { textSpeed: 2, sound: true, music: true, guide: true, hud: true, easy: true, autosave: true };
   try { Object.assign(G.settings, JSON.parse(localStorage.getItem(SAVE_KEY + '_settings') || '{}')); } catch (e) { /* ไม่มีที่เก็บ */ }
   G.saveSettings = () => { try { localStorage.setItem(SAVE_KEY + '_settings', JSON.stringify(G.settings)); } catch (e) { /* */ } };
   G.wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -74,6 +74,28 @@
     try { const s = JSON.parse(localStorage.getItem(slotKey(slot))); if (s && s.v === SAVE_VER) return migrate(s); } catch (e) { /* */ }
     return null;
   };
+  // ---------- บันทึกอัตโนมัติ ----------
+  // บันทึกลงช่องที่กำลังเล่นหลังจบเหตุการณ์/การต่อสู้ ตอนเปลี่ยนแผนที่ ทุก 1 นาที และตอนปิดหรือสลับหน้า
+  // ขึ้นข้อความเฉพาะเมื่อความคืบหน้าเปลี่ยน (มี flag ใหม่) และบันทึกได้จริงเท่านั้น
+  let lastFlagCount = -1, lastAuto = 0;
+  G.autosave = function (opt = {}) {
+    const S = G.state;
+    if (!S || G.settings.autosave === false || !S.flags.intro_done || G.scene !== 'world') return false;
+    const n = Object.keys(S.flags).length;
+    const milestone = lastFlagCount >= 0 && n > lastFlagCount;
+    const ok = G.save();
+    lastAuto = Date.now();
+    if (ok) lastFlagCount = n;
+    if (!ok && !opt.silent) G.showToast('บันทึกอัตโนมัติไม่สำเร็จ (ที่เก็บข้อมูลของเบราว์เซอร์ใช้ไม่ได้)');
+    else if (ok && (milestone || opt.toast) && !opt.silent) G.showToast(`บันทึกอัตโนมัติแล้ว (ช่อง ${G.slot})`);
+    return ok;
+  };
+  G.resetAutosave = () => { lastFlagCount = G.state ? Object.keys(G.state.flags).length : -1; };
+  setInterval(() => { if (!G.busy && !G.ui.active() && Date.now() - lastAuto > 60000) G.autosave({ silent: true }); }, 15000);
+  const saveOnLeave = () => { if (!G.busy) G.autosave({ silent: true }); };
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') saveOnLeave(); });
+  window.addEventListener('pagehide', saveOnLeave);
+
   // เซฟจากเวอร์ชันก่อน: เติมของที่เพิ่มเข้ามาทีหลัง
   function migrate(s) {
     s.storage = s.storage || []; s.npcPos = {}; s.bag = s.bag || {};
@@ -220,12 +242,12 @@
     G.slot = slot;
     document.querySelector('#title').classList.add('gone');
     if (save) {
-      G.state = save;
+      G.state = save; G.resetAutosave();
       G.loadMap(save.map, save.x, save.y, save.dir); G.scene = 'world';
     } else {
       G.state = newState();
       const st = G.DATA.world.start;
-      G.loadMap(st.map, st.x, st.y, st.dir); G.scene = 'world';
+      G.loadMap(st.map, st.x, st.y, st.dir); G.scene = 'world'; G.resetAutosave();
       await G.runScript('intro');
     }
   }

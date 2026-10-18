@@ -503,5 +503,6 @@
     try { await SCRIPTS[name](...args); }
     catch (e) { console.error(e); await G.ui.say('เกิดข้อผิดพลาด: ' + e.message); }
     finally { G.busy = false; }
+    if (!name.startsWith('_') && G.autosave) G.autosave();   // จบเหตุการณ์/การต่อสู้แล้วบันทึกอัตโนมัติ
   };
 })(window.G = window.G || {});

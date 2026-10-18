@@ -11,7 +11,7 @@
 - ภาพตัวละครเป็นพิกเซล ASCII 16×16 ใน `js/sprites.js` (`G.actorSprite` สร้างภาพเดิน 4 ทิศ 3 เฟรมจากภาพหน้าตรง, `G.monLook(m)` = หน้าตาของสมาชิก), เพลง/เสียงสังเคราะห์ใน `js/audio.js`
 - น้องวิศวะ: species kind `eng` (eng_mech/civil/elec/chem/env/ie) รายชื่อคนใน `data_src/eng_names.csv` แต่ละคนเก็บ `mon.look = "eng:<สาขา>:<ลำดับ>"` สร้างด้วย `G.spawn`/`G.makeEng`; สีเสื้อช็อปและตรา 3×3 อยู่ที่ `SHOP` ใน sprites.js
 - world.json: `doors` มี `to/tx/ty` = เข้าตึก (แมพภายใน `indoor: true`, ทางออกคือพรม `x` ใน `warps`), `objects` ของที่คุยได้ (เตียง คัตเอาต์ ตู้กด), `gates` ช่อง `X` เปิดเมื่อมี flag, `curtains` ม่านหลอก (ระบบยังอยู่ แต่ตอนนี้ไม่มีแมพไหนใช้), `rides` รถสองแถว (ใช้หาเส้นทางลูกศร), `lamps` หลอดไฟปริศนา
-- `party[0]` = คนเดินตามและลงสู้ก่อน (`state.follower`), เซฟ 3 ช่อง `kaengdekbanna_save_1..3`
+- `party[0]` = คนเดินตามและลงสู้ก่อน (`state.follower`), เซฟ 3 ช่อง `kaengdekbanna_save_1..3` + สำรอง `kaengdekbanna_backup_*` + บันทึกอัตโนมัติ (`G.autosave`: จบสคริปต์ เปลี่ยนแมพ ทุก 1 นาที ปิดหน้า)
 
 ## ตรวจงาน
 - `python3 tools/build_data.py` (มี validation)
