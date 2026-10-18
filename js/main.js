@@ -14,13 +14,26 @@
     return { v: SAVE_VER, name: 'หัวหน้า', map: st.map, x: st.x, y: st.y, dir: st.dir, flags: {}, party: [], storage: [],
       bag: {}, money: 300, time: 7 * 60, steps: 0, repel: 0, dex: {}, npcPos: {}, follower: false, starter: null, playMs: 0 };
   }
-  // เซฟ 3 ช่อง (เซฟเก่าแบบช่องเดียวย้ายไปช่อง 1 ให้อัตโนมัติ)
+  // เซฟ 3 ช่อง: เซฟแบบเก่า (คีย์อื่นในเครื่อง) จะถูกคัดลอกเข้าช่องว่างให้อัตโนมัติ โดยไม่ลบของเดิมทิ้ง
   const slotKey = (n) => `${SAVE_KEY}_${n}`;
   G.slot = 1;
-  try {
-    const old = localStorage.getItem(SAVE_KEY);
-    if (old && !localStorage.getItem(slotKey(1))) { localStorage.setItem(slotKey(1), old); localStorage.removeItem(SAVE_KEY); }
-  } catch (e) { /* ไม่มีที่เก็บ */ }
+  function adoptOldSaves() {
+    try {
+      const slots = [1, 2, 3].map((n) => localStorage.getItem(slotKey(n)));
+      const known = new Set(slots.filter(Boolean).map((t) => { try { return JSON.parse(t).savedAt; } catch (e) { return null; } }));
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k || /_settings$/.test(k) || /^kaengdekbanna_save_[123]$/.test(k)) continue;
+        let s; try { s = JSON.parse(localStorage.getItem(k)); } catch (e) { continue; }
+        if (!s || !Array.isArray(s.party) || !s.flags || !s.map || known.has(s.savedAt)) continue;
+        const free = [1, 2, 3].find((n) => !localStorage.getItem(slotKey(n)));
+        if (!free) return;
+        localStorage.setItem(slotKey(free), JSON.stringify({ ...s, v: SAVE_VER }));
+        known.add(s.savedAt);
+      }
+    } catch (e) { /* ไม่มีที่เก็บ */ }
+  }
+  adoptOldSaves();
   G.save = function (slot) {
     if (slot) G.slot = slot;
     const s = { ...G.state, v: SAVE_VER, savedAt: Date.now() };

@@ -225,7 +225,7 @@
   };
 
   // ภาพเดิน 4 ทิศ × 3 เฟรม (0 ยืน, 1 ก้าวซ้าย, 2 ก้าวขวา) สร้างจากภาพหน้าตรง
-  const FACE = 'SKMGQEa';
+  const FACE = 'SKMGQEWa';
   function liftFoot(rows, which) {
     const r15 = rows[15].split(''), r14 = rows[14].split('');
     const runs = []; let s = -1;
@@ -233,6 +233,35 @@
     const run = runs[which]; if (!run) return;
     for (let i = run[0]; i < run[1]; i++) { r14[i] = r15[i]; r15[i] = '.'; }
     rows[14] = r14.join(''); rows[15] = r15.join('');
+  }
+  // ท่าหันข้าง (หันขวา): ใช้ผมด้านบนจากภาพหน้าตรง แล้ววาดหน้า ลำตัว ขา แบบด้านข้าง
+  function sideRows(f, frame) {
+    const at = (y, x) => f[y][x];
+    const leg = 'SC'.includes(at(14, 4)) ? at(14, 4) : 'P', foot = at(15, 4) === 'S' ? 'S' : 'F';
+    const pants = at(13, 5) === '.' ? 'P' : at(13, 5);
+    const wide = at(10, 2) !== '.';
+    const glasses = f[5].includes('G'), narrow = !f[5].includes('K') && f[6].includes('K');
+    const longHair = f[4][2] === 'H' || f[5][2] === 'H';
+    const blush = f[7].includes('Q');
+    const sh = (r) => '.' + r.slice(0, 15);
+    const rows = [sh(f[0]), sh(f[1]), sh(f[2]), sh(f[3])];
+    rows.push('....HHHSSSSSS...');
+    rows.push(glasses ? '....HHSSSGGGG...' : narrow ? '....HHSSSSSSS...' : '....HHSSSSKSS...');
+    rows.push(glasses ? '....HHSSSGKGSS..' : narrow ? '....HHSSSSKKSS..' : '....HHSSSSKSSS..');
+    rows.push(blush ? '.....HSSSQSMS...' : '.....HSSSSSMS...');
+    rows.push('......SSSSSS....');
+    if (longHair) for (const y of [7, 8, 9]) { const r = rows[y] ? rows[y].split('') : '................'.split(''); r[4] = 'H'; r[5] = 'H'; rows[y] = r.join(''); }
+    const arm = frame === 1 ? 9 : frame === 2 ? 6 : 7;   // แกว่งแขน
+    const body = (y, from, to) => { const r = '................'.split(''); for (let i = from; i <= to; i++) r[i] = 'C'; if (y >= 11) r[arm] = 'S'; return r.join(''); };
+    rows[9] = longHair ? (() => { const r = body(9, 5, 10).split(''); r[4] = 'H'; return r.join(''); })() : body(9, 5, 10);
+    rows[10] = body(10, wide ? 4 : 5, wide ? 11 : 11);
+    rows[11] = body(11, wide ? 4 : 5, 11);
+    rows[12] = body(12, wide ? 4 : 5, 11);
+    rows[13] = '......' + pants.repeat(5) + '.....';
+    if (frame === 0) { rows[14] = '.......' + leg.repeat(3) + '......'; rows[15] = '.......' + foot.repeat(4) + '.....'; }
+    else if (frame === 1) { rows[14] = '.....' + leg.repeat(2) + '...' + leg.repeat(2) + '....'; rows[15] = '....' + foot.repeat(2) + '.....' + foot.repeat(2) + '...'; }
+    else { rows[14] = '......' + leg.repeat(2) + '.' + leg.repeat(2) + '.....'; rows[15] = '......' + foot.repeat(2) + '.' + foot.repeat(2) + '.....'; }
+    return rows;
   }
   const actorCache = {};
   G.actorSprite = function (id, dir, frame) {
@@ -242,22 +271,19 @@
     let c;
     if (!def.human) c = G.sprite(id);
     else {
-      const rows = def.rows.slice();
-      const hk = def.hairKey;
-      if (dir === 'up') {   // หันหลัง: หน้ากลายเป็นผม ตราที่อกหายไป
-        for (let y = 4; y <= 7; y++) rows[y] = rows[y].split('').map((ch) => (FACE.includes(ch) && ch !== 'a' ? hk : ch)).join('');
-        for (let y = 9; y <= 11; y++) rows[y] = rows[y].replace(/[EYa]/g, 'C');
-      } else if (dir === 'left' || dir === 'right') {   // ด้านข้าง (วาดหันขวา แล้วกลับภาพถ้าหันซ้าย)
-        for (let y = 4; y <= 7; y++) {
-          const r = rows[y].split('');
-          for (let i = 0; i < 8; i++) if ('KMGQ'.includes(r[i])) r[i] = 'S';
-          if (r[3] !== '.') r[3] = hk; if (y < 7 && r[4] === 'S') r[4] = hk;
-          rows[y] = r.join('');
+      const at = id.indexOf('@');
+      const front = at > 0 ? defFor(id.slice(0, at)).rows : def.rows;   // ภาพก่อนแปะของประจำตัว
+      let rows;
+      if (dir === 'left' || dir === 'right') rows = sideRows(front, frame);
+      else {
+        rows = front.slice();
+        if (dir === 'up') {   // หันหลัง: หน้ากลายเป็นผม ตราที่อกหายไป
+          for (let y = 4; y <= 7; y++) rows[y] = rows[y].split('').map((ch) => (FACE.includes(ch) && ch !== 'a' ? def.hairKey : ch)).join('');
+          for (let y = 9; y <= 11; y++) rows[y] = rows[y].replace(/[EYa]/g, 'C');
         }
-        const r7 = rows[7].split(''); if (r7[8] === 'M') { r7[8] = 'S'; r7[10] = 'M'; } rows[7] = r7.join('');
-        for (let y = 9; y <= 11; y++) rows[y] = rows[y].replace(/[E]/g, 'C');
+        if (frame) liftFoot(rows, frame - 1);
       }
-      if (frame) liftFoot(rows, frame - 1);
+      if (at > 0) patch(rows, STAGE[id]);
       c = paint(def, rows);
     }
     if (dir === 'left') {
