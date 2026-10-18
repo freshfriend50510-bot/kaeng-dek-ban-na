@@ -11,7 +11,7 @@
 
   function newState() {
     const st = G.DATA.world.start;
-    return { v: SAVE_VER, name: 'หัวหน้า', map: st.map, x: st.x, y: st.y, dir: st.dir, flags: {}, party: [], storage: [],
+    return { v: SAVE_VER, id: Date.now().toString(36), name: 'หัวหน้า', map: st.map, x: st.x, y: st.y, dir: st.dir, flags: {}, party: [], storage: [],
       bag: {}, money: 300, time: 7 * 60, steps: 0, repel: 0, dex: {}, npcPos: {}, follower: false, starter: null, playMs: 0 };
   }
   // เซฟ 3 ช่อง: เซฟแบบเก่า (คีย์อื่นในเครื่อง) จะถูกคัดลอกเข้าช่องว่างให้อัตโนมัติ โดยไม่ลบของเดิมทิ้ง
@@ -23,7 +23,7 @@
       const known = new Set(slots.filter(Boolean).map((t) => { try { return JSON.parse(t).savedAt; } catch (e) { return null; } }));
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (!k || /_settings$/.test(k) || /^kaengdekbanna_save_[123]$/.test(k)) continue;
+        if (!k || /_settings$/.test(k) || /^kaengdekbanna_(save_[123]|backup_)/.test(k)) continue;
         let s; try { s = JSON.parse(localStorage.getItem(k)); } catch (e) { continue; }
         if (!s || !Array.isArray(s.party) || !s.flags || !s.map || known.has(s.savedAt)) continue;
         const free = [1, 2, 3].find((n) => !localStorage.getItem(slotKey(n)));
@@ -34,10 +34,41 @@
     } catch (e) { /* ไม่มีที่เก็บ */ }
   }
   adoptOldSaves();
+  // บันทึกทับเซฟของเกมอื่นเมื่อไร เก็บเซฟเดิมไว้เป็นสำรองก่อนเสมอ (กู้คืนได้ที่หน้าแรก)
+  const BACKUP = 'kaengdekbanna_backup_';
+  function backupSlot(n) {
+    try {
+      const old = localStorage.getItem(slotKey(n));
+      if (!old) return;
+      const o = JSON.parse(old);
+      if (o.id && G.state && o.id === G.state.id) return;   // เกมเดียวกัน ไม่ต้องสำรอง
+      localStorage.setItem(BACKUP + (o.savedAt || Date.now()), old);
+      const keys = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(BACKUP)) keys.push(k); }
+      keys.sort().slice(0, Math.max(0, keys.length - 12)).forEach((k) => localStorage.removeItem(k));   // เก็บสำรองล่าสุด 12 อัน
+    } catch (e) { /* ไม่มีที่เก็บ */ }
+  }
   G.save = function (slot) {
     if (slot) G.slot = slot;
+    if (!G.state.id) G.state.id = Date.now().toString(36);
+    backupSlot(G.slot);
     const s = { ...G.state, v: SAVE_VER, savedAt: Date.now() };
     try { localStorage.setItem(slotKey(G.slot), JSON.stringify(s)); return true; } catch (e) { return false; }
+  };
+  // เซฟทุกอันที่ยังอยู่ในเบราว์เซอร์นี้ (ช่อง 1-3 เซฟแบบเก่า และเซฟสำรอง)
+  G.allSaves = function () {
+    const out = [], seen = new Set();
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k || /_settings$/.test(k)) continue;
+        let s; try { s = JSON.parse(localStorage.getItem(k)); } catch (e) { continue; }
+        if (!s || !Array.isArray(s.party) || !s.flags || !s.map) continue;
+        const sig = `${s.name}|${s.savedAt}|${s.playMs}`;
+        if (seen.has(sig)) continue;
+        seen.add(sig); out.push({ key: k, s });
+      }
+    } catch (e) { /* ไม่มีที่เก็บ */ }
+    return out.sort((a, b) => (b.s.savedAt || 0) - (a.s.savedAt || 0));
   };
   G.loadSave = function (slot) {
     try { const s = JSON.parse(localStorage.getItem(slotKey(slot))); if (s && s.v === SAVE_VER) return migrate(s); } catch (e) { /* */ }
@@ -138,15 +169,37 @@
   async function title() {
     G.scene = 'title';
     const any = [1, 2, 3].some((n) => !G.slotSummary(n).empty);
+    const found = G.allSaves();
     const opts = [];
     if (any) opts.push({ label: 'เล่นต่อ', sub: 'เลือกช่องเซฟ' });
-    opts.push('เริ่มเกมใหม่', 'นำเข้าเซฟจากไฟล์');
+    opts.push('เริ่มเกมใหม่');
+    if (found.length) opts.push({ label: 'กู้เซฟเก่า', sub: `พบ ${found.length} เซฟในเบราว์เซอร์นี้` });
+    opts.push('นำเข้าเซฟจากไฟล์');
     const i = await G.ui.choose(opts, { cancel: false, cls: 'title-menu' });
     const pick = typeof opts[i] === 'string' ? opts[i] : opts[i].label;
     if (pick === 'เล่นต่อ') {
       const k = await G.ui.choose([1, 2, 3].map((n) => { const o = G.slotSummary(n); return { ...o, disabled: o.empty }; }), { title: 'เล่นต่อจากช่องไหน?', cls: 'party' });
       if (k < 0) return title();
-      return start(G.loadSave(k + 1), k + 1);
+      const sv = G.loadSave(k + 1);
+      if (!sv) { await G.ui.say('เปิดเซฟช่องนี้ไม่ได้ ลองเลือก "กู้เซฟเก่า" ที่หน้าแรก'); return title(); }   // ห้ามกลายเป็นเกมใหม่
+      return start(sv, k + 1);
+    }
+    if (pick === 'กู้เซฟเก่า') {
+      const when = (t) => (t ? new Date(t).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' }) : 'ไม่ทราบเวลา');
+      const j = await G.ui.choose(found.map(({ key, s }) => ({
+        label: `${s.name} · Lv${Math.max(0, ...s.party.map((m) => m.lv || 0))} · ตรา ${['gym1', 'gym2', 'gym3', 'gym4'].filter((f) => s.flags[f + '_done']).length}`,
+        sub: `${(G.DATA.world.maps[s.map] || {}).name || s.map} · ${when(s.savedAt)}${key.includes('backup') ? ' · สำรอง' : ''}` })),
+      { title: 'เลือกเซฟที่จะกู้ (ใหม่สุดอยู่บน)', cls: 'party' });
+      if (j < 0) return title();
+      const k = await G.ui.choose([1, 2, 3].map((n) => G.slotSummary(n)), { title: 'กู้เข้าช่องไหน? (เซฟเดิมในช่องจะถูกเก็บสำรองไว้)', cls: 'party' });
+      if (k < 0) return title();
+      G.state = { ...found[j].s, v: SAVE_VER, npcPos: {} };
+      if (!G.state.id) G.state.id = 'old' + (G.state.savedAt || Date.now()).toString(36);
+      G.save(k + 1);
+      const sv = G.loadSave(k + 1);
+      if (!sv) { await G.ui.say('กู้เซฟนี้ไม่สำเร็จ'); return title(); }
+      G.sfx('level'); await G.ui.say(`กู้เซฟของ ${sv.name} เข้าช่อง ${k + 1} แล้ว`);
+      return start(sv, k + 1);
     }
     if (pick === 'นำเข้าเซฟจากไฟล์') {
       const s = await importSave();
@@ -156,9 +209,11 @@
       G.state = s; G.save(k + 1);
       return start(G.loadSave(k + 1), k + 1);
     }
-    const k = await G.ui.choose([1, 2, 3].map((n) => G.slotSummary(n)), { title: 'เริ่มใหม่ในช่องไหน?', cls: 'party' });
+    if ((any || found.length) && !(await G.ui.confirm('เริ่มเกมใหม่ตั้งแต่ต้นจริงไหม? (ถ้าจะเล่นเซฟเดิม ให้เลือก "เล่นต่อ" หรือ "กู้เซฟเก่า")'))) return title();
+    const free = [1, 2, 3].findIndex((n) => G.slotSummary(n).empty);
+    const k = await G.ui.choose([1, 2, 3].map((n) => G.slotSummary(n)), { title: 'เริ่มใหม่ในช่องไหน? (แนะนำช่องว่าง)', cls: 'party', start: Math.max(0, free) });
     if (k < 0) return title();
-    if (!G.slotSummary(k + 1).empty && !(await G.ui.confirm(`ช่อง ${k + 1} มีเซฟอยู่ เริ่มใหม่แล้วจะทับเมื่อบันทึก ตกลงไหม?`))) return title();
+    if (!G.slotSummary(k + 1).empty && !(await G.ui.confirm(`ช่อง ${k + 1} มีเซฟอยู่ ถ้าบันทึกจะทับ (เซฟเดิมถูกเก็บสำรองไว้กู้ได้) ตกลงไหม?`))) return title();
     return start(null, k + 1);
   }
   async function start(save, slot) {
