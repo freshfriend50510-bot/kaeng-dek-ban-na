@@ -1,0 +1,511 @@
+{
+ "start": {
+  "map": "village",
+  "x": 4,
+  "y": 11,
+  "dir": "down"
+ },
+ "maps": {
+  "village": {
+   "name": "บ้านโนนสะอาด",
+   "music": "village"
+  },
+  "field": {
+   "name": "ทุ่งนาหลังหมู่บ้าน",
+   "music": "field",
+   "encounter": true
+  },
+  "market": {
+   "name": "ตลาดนัดตำบล",
+   "music": "village"
+  }
+ },
+ "warps": [
+  {
+   "map": "village",
+   "x": 16,
+   "y": 27,
+   "to": "field",
+   "tx": 15,
+   "ty": 1
+  },
+  {
+   "map": "field",
+   "x": 15,
+   "y": 0,
+   "to": "village",
+   "tx": 16,
+   "ty": 26
+  },
+  {
+   "map": "field",
+   "x": 29,
+   "y": 15,
+   "to": "market",
+   "tx": 1,
+   "ty": 8
+  },
+  {
+   "map": "market",
+   "x": 0,
+   "y": 8,
+   "to": "field",
+   "tx": 28,
+   "ty": 15
+  }
+ ],
+ "doors": [
+  {
+   "map": "village",
+   "x": 4,
+   "y": 10,
+   "script": "door_home"
+  },
+  {
+   "map": "village",
+   "x": 20,
+   "y": 10,
+   "script": "door_shop"
+  },
+  {
+   "map": "village",
+   "x": 26,
+   "y": 10,
+   "script": "door_osm"
+  },
+  {
+   "map": "village",
+   "x": 11,
+   "y": 3,
+   "script": "door_temple"
+  },
+  {
+   "map": "village",
+   "x": 25,
+   "y": 3,
+   "script": "door_school"
+  },
+  {
+   "map": "village",
+   "x": 4,
+   "y": 16,
+   "script": "door_bee"
+  },
+  {
+   "map": "village",
+   "x": 10,
+   "y": 16,
+   "script": "door_am"
+  },
+  {
+   "map": "village",
+   "x": 21,
+   "y": 16,
+   "script": "door_tle"
+  },
+  {
+   "map": "village",
+   "x": 27,
+   "y": 16,
+   "script": "door_ter"
+  },
+  {
+   "map": "village",
+   "x": 24,
+   "y": 21,
+   "script": "door_tiang"
+  },
+  {
+   "map": "market",
+   "x": 18,
+   "y": 4,
+   "script": "door_ramen"
+  }
+ ],
+ "signs": [
+  {
+   "map": "village",
+   "x": 5,
+   "y": 11,
+   "text": "บ้านเรา"
+  },
+  {
+   "map": "village",
+   "x": 17,
+   "y": 9,
+   "text": "ศาลากลางบ้าน — ผู้ใหญ่บ้านสมบัติ"
+  },
+  {
+   "map": "village",
+   "x": 17,
+   "y": 11,
+   "text": "ร้านชำป้าสมร — ข้าวเหนียว ยา ขนม"
+  },
+  {
+   "map": "village",
+   "x": 29,
+   "y": 11,
+   "text": "ศาลา อสม. ป้านวล — รักษาฟรี"
+  },
+  {
+   "map": "village",
+   "x": 12,
+   "y": 4,
+   "text": "วัดบ้านโนนสะอาด"
+  },
+  {
+   "map": "village",
+   "x": 24,
+   "y": 4,
+   "text": "โรงเรียนบ้านโนนสะอาด"
+  },
+  {
+   "map": "village",
+   "x": 17,
+   "y": 26,
+   "text": "ทางลงทุ่งนาหลังหมู่บ้าน"
+  },
+  {
+   "map": "village",
+   "x": 2,
+   "y": 6,
+   "text": "ดอนปู่ตา ห้ามเข้า"
+  },
+  {
+   "map": "field",
+   "x": 15,
+   "y": 13,
+   "text": "หนองใหญ่ ระวังคางคกเจ้าหนอง"
+  },
+  {
+   "map": "market",
+   "x": 17,
+   "y": 6,
+   "text": "ร้านราเมงลมทุ่ง — ฐานแก๊งพี่ออสซี่ (ยิม 1)"
+  }
+ ],
+ "npcs": [
+  {
+   "id": "mom",
+   "name": "แม่",
+   "map": "village",
+   "x": 6,
+   "y": 11,
+   "look": "mom",
+   "dir": "left",
+   "script": "mom"
+  },
+  {
+   "id": "elder",
+   "name": "ผู้ใหญ่บ้านสมบัติ",
+   "map": "village",
+   "x": 11,
+   "y": 9,
+   "look": "elder",
+   "dir": "down",
+   "script": "elder"
+  },
+  {
+   "id": "kid_bee",
+   "name": "บี",
+   "map": "village",
+   "x": 10,
+   "y": 11,
+   "look": "bee",
+   "dir": "up",
+   "script": "kid",
+   "hideIf": "starter_chosen"
+  },
+  {
+   "id": "kid_am",
+   "name": "แอม",
+   "map": "village",
+   "x": 11,
+   "y": 11,
+   "look": "am",
+   "dir": "up",
+   "script": "kid",
+   "hideIf": "starter_chosen"
+  },
+  {
+   "id": "kid_tle",
+   "name": "เติ้ล",
+   "map": "village",
+   "x": 12,
+   "y": 11,
+   "look": "tle",
+   "dir": "up",
+   "script": "kid",
+   "hideIf": "starter_chosen"
+  },
+  {
+   "id": "kid_ter",
+   "name": "เต๋อ",
+   "map": "village",
+   "x": 13,
+   "y": 11,
+   "look": "ter",
+   "dir": "up",
+   "script": "kid",
+   "hideIf": "starter_chosen"
+  },
+  {
+   "id": "samorn",
+   "name": "ป้าสมร",
+   "map": "village",
+   "x": 21,
+   "y": 11,
+   "look": "samorn",
+   "dir": "down",
+   "script": "samorn"
+  },
+  {
+   "id": "nual",
+   "name": "ป้านวล อสม.",
+   "map": "village",
+   "x": 27,
+   "y": 11,
+   "look": "nual",
+   "dir": "down",
+   "script": "nual"
+  },
+  {
+   "id": "teacher",
+   "name": "ครูบุญมี",
+   "map": "village",
+   "x": 27,
+   "y": 4,
+   "look": "teacher",
+   "dir": "down",
+   "script": "teacher"
+  },
+  {
+   "id": "monk",
+   "name": "หลวงตา",
+   "map": "village",
+   "x": 9,
+   "y": 4,
+   "look": "monk",
+   "dir": "down",
+   "script": "monk"
+  },
+  {
+   "id": "jam",
+   "name": "เฒ่าจ้ำ",
+   "map": "village",
+   "x": 3,
+   "y": 5,
+   "look": "jam",
+   "dir": "down",
+   "script": "jam"
+  },
+  {
+   "id": "tasi",
+   "name": "ตาสี",
+   "map": "village",
+   "x": 25,
+   "y": 22,
+   "look": "tasi",
+   "dir": "left",
+   "script": "tasi"
+  },
+  {
+   "id": "beedad",
+   "name": "พ่อบี",
+   "map": "village",
+   "x": 6,
+   "y": 17,
+   "look": "beedad",
+   "dir": "down",
+   "script": "beedad"
+  },
+  {
+   "id": "buffalo",
+   "name": "ควาย",
+   "map": "village",
+   "x": 16,
+   "y": 26,
+   "look": "buffalo",
+   "dir": "down",
+   "script": "buffalo",
+   "hideIf": "field_open"
+  },
+  {
+   "id": "rival",
+   "name": "โจ้",
+   "map": "village",
+   "x": 16,
+   "y": 13,
+   "look": "rival",
+   "dir": "up",
+   "script": "rival",
+   "showIf": "starter_chosen",
+   "hideIf": "rival1_done"
+  },
+  {
+   "id": "student1",
+   "name": "เด็กนักเรียนจ๊อบ",
+   "map": "field",
+   "x": 15,
+   "y": 5,
+   "look": "student1",
+   "dir": "down",
+   "script": "trainer",
+   "trainer": {
+    "name": "เด็กนักเรียนจ๊อบ",
+    "team": [
+     [
+      "pob",
+      5
+     ]
+    ],
+    "money": 60,
+    "sight": 3,
+    "flag": "tr_student1",
+    "intro": "เฮ้ย! เห็นหน้ากันแล้วต้องสู้!",
+    "lose": "โห เก่งแท้!"
+   }
+  },
+  {
+   "id": "student2",
+   "name": "เด็กนักเรียนแนน",
+   "map": "field",
+   "x": 8,
+   "y": 10,
+   "look": "student2",
+   "dir": "right",
+   "script": "trainer",
+   "trainer": {
+    "name": "เด็กนักเรียนแนน",
+    "team": [
+     [
+      "phrai",
+      5
+     ],
+     [
+      "kongkoi",
+      6
+     ]
+    ],
+    "money": 80,
+    "sight": 4,
+    "flag": "tr_student2",
+    "intro": "ผีของเราฝึกมาดีนะ!",
+    "lose": "กลับไปฝึกใหม่ก่อน..."
+   }
+  },
+  {
+   "id": "toad",
+   "name": "คางคกเจ้าหนอง",
+   "map": "field",
+   "x": 20,
+   "y": 15,
+   "look": "toad",
+   "dir": "left",
+   "script": "toad",
+   "hideIf": "boss1_done"
+  },
+  {
+   "id": "item1",
+   "name": "ของตกอยู่",
+   "map": "field",
+   "x": 3,
+   "y": 10,
+   "look": "item",
+   "dir": "down",
+   "script": "item",
+   "item": "herb",
+   "flag": "it1",
+   "hideIf": "it1"
+  },
+  {
+   "id": "item2",
+   "name": "ของตกอยู่",
+   "map": "field",
+   "x": 27,
+   "y": 9,
+   "look": "item",
+   "dir": "down",
+   "script": "item",
+   "item": "rice_ball",
+   "flag": "it2",
+   "hideIf": "it2"
+  },
+  {
+   "id": "hench1",
+   "name": "ลูกน้องแก๊งต้อม",
+   "map": "market",
+   "x": 8,
+   "y": 8,
+   "look": "henchman",
+   "dir": "left",
+   "script": "trainer",
+   "trainer": {
+    "name": "ลูกน้องแก๊งต้อม",
+    "team": [
+     [
+      "krahang",
+      7
+     ],
+     [
+      "pob",
+      7
+     ]
+    ],
+    "money": 120,
+    "sight": 4,
+    "flag": "tr_hench1",
+    "intro": "ตลาดนี้เขตพี่ออสซี่ ใครผ่านต้องสู้!",
+    "lose": "พี่ออสซี่ไม่ปล่อยไว้แน่..."
+   }
+  },
+  {
+   "id": "hench2",
+   "name": "ลูกน้องแก๊งเปา",
+   "map": "market",
+   "x": 18,
+   "y": 7,
+   "look": "henchman2",
+   "dir": "down",
+   "script": "trainer",
+   "trainer": {
+    "name": "ลูกน้องแก๊งเปา",
+    "team": [
+     [
+      "krahang",
+      8
+     ],
+     [
+      "phong",
+      8
+     ]
+    ],
+    "money": 140,
+    "sight": 2,
+    "flag": "tr_hench2",
+    "intro": "จะพบพี่ออสซี่ต้องผ่านเราก่อน!",
+    "lose": "เชิญ... พี่รออยู่ข้างใน"
+   }
+  },
+  {
+   "id": "vendor",
+   "name": "พ่อค้าลูกชิ้น",
+   "map": "market",
+   "x": 5,
+   "y": 6,
+   "look": "vendor",
+   "dir": "down",
+   "script": "vendor"
+  },
+  {
+   "id": "vendor2",
+   "name": "แม่ค้าหมูปิ้ง",
+   "map": "market",
+   "x": 11,
+   "y": 13,
+   "look": "samorn",
+   "dir": "up",
+   "script": "vendor2"
+  }
+ ]
+}

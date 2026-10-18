@@ -1,0 +1,6 @@
+attack,normal,water,earth,electric,wind
+normal,1,1,1,1,1
+water,1,0.5,2,1,0.5
+earth,1,0.5,0.5,2,1
+electric,1,1,0.5,0.5,2
+wind,1,2,1,0.5,0.5

@@ -1,0 +1,7 @@
+map,species,minlv,maxlv,day,night
+field,phrai,2,4,30,20
+field,kongkoi,2,4,25,15
+field,pob,3,5,25,15
+field,krahang,3,5,15,20
+field,phong,3,5,0,25
+field,pret,5,7,5,5
