@@ -33,10 +33,12 @@
         case 'status': render(b); break;
         case 'faint': V.faint[e.side] = 0.001; G.sfx('faint'); await wait(450); break;
         case 'send':
-          if (e.side === 'f') { V.fhp = b.foe.hp; V.faint.f = 0; V.fSprite = G.DATA.species[b.foe.sp].look; G.markSeen(b.foe.sp); }
-          else { V.php = b.me.hp; V.faint.p = 0; V.pSprite = G.DATA.species[b.me.sp].look; }
-          render(b); G.sfx('send'); await wait(250); break;
-        case 'level': if (b.P[e.idx] === b.me) { V.php = b.me.hp; render(b); } G.sfx('level'); break;
+          if (e.side === 'f') { V.fhp = b.foe.hp; V.faint.f = 0; V.fSprite = G.monLook(b.foe); G.markSeen(b.foe.sp); }
+          else { V.php = b.me.hp; V.faint.p = 0; V.pSprite = G.monLook(b.me); }
+          render(b); G.sfx('send'); await wait(250);
+          if (e.side === 'p' && V.onSend) await V.onSend(b);
+          break;
+        case 'level': if (b.P[e.idx] === b.me) { V.php = b.me.hp; V.pSprite = G.monLook(b.me); render(b); } G.sfx('level'); break;
         case 'learn': await learnMove(b.P[e.idx], e.move); break;
         case 'recruit_try': V.wobble = 0.001; G.sfx('wobble'); await wait(1300); V.wobble = 0; break;
       }
@@ -74,13 +76,14 @@
             return `${mv.desc}${mv.power ? ' · พลัง ' + mv.power : ''}${eff}`; } });
         if (i >= 0) return { type: 'move', idx: i };
       } else if (top === 1) {
-        const id = await G.ui.bagMenu({ inBattle: true, filter: (it) => it.kind !== 'repel' });
+        const id = await G.ui.bagMenu({ inBattle: true, filter: (it) => ['heal', 'cure', 'recruit', 'healall'].includes(it.kind) });
         if (!id) continue;
         const it = G.DATA.items[id];
         if (it.kind === 'recruit') {
-          if (!b.isWild()) { await G.ui.say('ผีของคนอื่นชวนไม่ได้!', null, { battle: true }); continue; }
+          if (!b.isWild()) { await G.ui.say('ลูกทีมของคนอื่นชวนไม่ได้!', null, { battle: true }); continue; }
           return { type: 'item', id };
         }
+        if (it.kind === 'healall') return { type: 'item', id };
         const t = await G.ui.partyMenu({ pick: true, title: `ใช้${it.name}กับใคร?` });
         if (t < 0) continue;
         const mon = G.state.party[t];
@@ -100,7 +103,7 @@
     }
   }
 
-  // opt: { kind, trainerName, trainerLook, ai, bg }
+  // opt: { kind, trainerName, trainerLook, ai, bg, rage, onSend }
   G.runBattle = async function (foes, opt) {
     const S = G.state;
     G.music(opt.kind === 'wild' ? 'battle' : 'boss');
@@ -109,19 +112,23 @@
     S.party.forEach((m) => { m._fainted = false; });
     const b = new G.Battle(S.party, foes, opt);
     Object.assign(V, { active: true, b, php: b.me.hp, fhp: b.foe.hp, faint: { p: 0, f: 0 }, shake: null, lunge: null, wobble: 0,
-      pSprite: null, fSprite: opt.kind === 'wild' ? G.DATA.species[b.foe.sp].look : (opt.trainerLook || G.DATA.species[b.foe.sp].look),
-      intro: 0, bg: opt.bg || G.state.map });
+      pSprite: null, fSprite: opt.kind === 'wild' ? G.monLook(b.foe) : (opt.trainerLook || G.monLook(b.foe)),
+      intro: 0, bg: opt.bg || G.world.def.bg || G.state.map, onSend: opt.onSend });
     V.layer = document.createElement('div'); V.layer.className = 'battle-layer';
     document.querySelector('#ui').appendChild(V.layer);
     G.markSeen(b.foe.sp);
-    if (opt.kind === 'wild') await G.ui.say(`${b.foe.name}ป่า โผล่ออกมา!`, null, { battle: true, auto: 700 });
+    const fsp = G.DATA.species[b.foe.sp];
+    if (opt.kind === 'wild' && fsp.kind === 'eng') await G.ui.say(`${b.foe.name} (${fsp.name.replace('น้อง', '')}) เดินออกมาจากพงหญ้า ขอท้าสู้!`, null, { battle: true, auto: 800 });
+    else if (opt.kind === 'wild') await G.ui.say(`${b.foe.name}ป่า โผล่ออกมา!`, null, { battle: true, auto: 700 });
     else {
       await G.ui.say(`${opt.trainerName} ท้าสู้!`, null, { battle: true, auto: 700 });
-      V.fSprite = G.DATA.species[b.foe.sp].look;
+      V.fSprite = G.monLook(b.foe);
       await G.ui.say(`${opt.trainerName} ส่ง ${b.foe.name} ออกมา!`, null, { battle: true, auto: 600 });
     }
-    V.pSprite = G.DATA.species[b.me.sp].look; render(b); G.sfx('send');
+    V.pSprite = G.monLook(b.me); render(b); G.sfx('send');
     await G.ui.say(`ไปเลย ${b.me.name}!`, null, { battle: true, auto: 500 });
+    if (V.onSend) await V.onSend(b);
+    if (b.rageDone && opt.rage && opt.rage.text) await G.ui.say(opt.rage.text, null, { battle: true, auto: 900 });
     while (!b.over) {
       const act = await chooseAction(b);
       await play(b, b.turnAction(act));
@@ -139,7 +146,7 @@
       const m = b.foe; m.status = null;
       G.state.dex[m.sp] = 2;
       if (S.party.length < 6) { S.party.push(m); await G.ui.say(`${m.name} เข้าแก๊งแล้ว!`, null, { battle: true }); }
-      else { S.storage.push(m); await G.ui.say(`ทีมเต็มแล้ว ${m.name} ไปรออยู่ที่เถียงนาตาสี`, null, { battle: true }); }
+      else { S.storage.push(m); await G.ui.say(`ทีมเต็มแล้ว ${m.name} ไปรออยู่ในคลังแก๊ง (เถียงนาตาสี/คอมหอพัก)`, null, { battle: true }); }
     }
     S.party.forEach((m) => { delete m._fainted; });
     V.layer.remove(); V.active = false;
@@ -149,17 +156,35 @@
   };
 
   // ---------- วาดฉาก ----------
-  G.drawBattle = function (ctx) {
-    if (!V.active) return;
-    const night = G.isNight();
+  function drawBackdrop(ctx, bg, night) {
+    const R = (c, x, y, w, h) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
+    const indoor = { ramen: ['#4a3028', '#6b4a34', '#b8875a', '#a07448'], kku_shop: ['#2a2e35', '#3a3f48', '#7d8794', '#6b7480'] }[bg]
+      || (G.world.def && G.world.def.indoor ? ['#d8c9a8', '#e8dcc0', '#b8875a', '#a07448'] : null);
+    if (indoor) {   // ฉากในตึก: ผนัง + พื้น
+      R(indoor[0], 0, 0, 240, 74); R(indoor[1], 0, 60, 240, 14); R(indoor[2], 0, 74, 240, 86);
+      for (let y = 80; y < 160; y += 10) R(indoor[3], 0, y, 240, 1);
+      if (bg === 'kku_shop') { R('#f2d24b', 0, 70, 240, 3); for (let x = 0; x < 240; x += 12) R('#2a2a2a', x, 70, 6, 3); R('#5f6873', 20, 20, 40, 40); R('#5f6873', 180, 24, 36, 36); R('#9aa3ae', 30, 30, 20, 4); }
+      if (bg === 'ramen') { R('#2b3f8a', 0, 0, 240, 22); for (let x = 10; x < 240; x += 40) R('#f4f4ec', x, 6, 8, 8); R('#c5482b', 100, 30, 40, 26); }
+      return;
+    }
     const sky = ctx.createLinearGradient(0, 0, 0, 90);
-    if (V.bg === 'market') { sky.addColorStop(0, night ? '#2a2f5a' : '#e8b07a'); sky.addColorStop(1, night ? '#4a3a5a' : '#f2d2a0'); }
+    if (bg === 'market') { sky.addColorStop(0, night ? '#2a2f5a' : '#e8b07a'); sky.addColorStop(1, night ? '#4a3a5a' : '#f2d2a0'); }
     else { sky.addColorStop(0, night ? '#1d2650' : '#8fc3d6'); sky.addColorStop(1, night ? '#3d3a6a' : '#e8e2c0'); }
     ctx.fillStyle = sky; ctx.fillRect(0, 0, 240, 160);
+    if (bg === 'kku') {   // ตึกคณะกับโรงช็อปเป็นฉากหลัง
+      R(night ? '#3a3f58' : '#c9c0b0', 6, 30, 70, 40); R(night ? '#2a2f48' : '#8f949e', 6, 26, 70, 5);
+      for (let x = 12; x < 72; x += 12) for (let y = 36; y < 66; y += 12) R(night && (x + y) % 3 ? '#f2d27a' : '#5a7a9a', x, y, 7, 7);
+      R(night ? '#2f3448' : '#7d8794', 160, 38, 76, 32); for (let x = 160; x < 236; x += 12) { ctx.fillStyle = night ? '#252a3c' : '#9aa3ae'; ctx.beginPath(); ctx.moveTo(x, 38); ctx.lineTo(x + 12, 30); ctx.lineTo(x + 12, 38); ctx.fill(); }
+    }
     ctx.fillStyle = night ? '#2f4a32' : '#6e9b3a'; ctx.fillRect(0, 70, 240, 90);
     ctx.fillStyle = night ? '#3a5a3a' : '#87b04a';
     for (let i = 0; i < 240; i += 6) ctx.fillRect(i, 70 + ((i * 7) % 5), 2, 6);
-    if (V.bg !== 'market') { ctx.fillStyle = night ? '#24402a' : '#3f6b34'; for (const [x, r] of [[20, 10], [50, 7], [200, 9], [225, 6]]) { ctx.beginPath(); ctx.arc(x, 68, r, Math.PI, 0); ctx.fill(); } }
+    if (bg !== 'market' && bg !== 'kku') { ctx.fillStyle = night ? '#24402a' : '#3f6b34'; for (const [x, r] of [[20, 10], [50, 7], [200, 9], [225, 6]]) { ctx.beginPath(); ctx.arc(x, 68, r, Math.PI, 0); ctx.fill(); } }
+  }
+  G.drawBattle = function (ctx) {
+    if (!V.active) return;
+    const night = G.isNight();
+    drawBackdrop(ctx, V.bg, night);
     const plat = (x, y, w) => { ctx.fillStyle = 'rgba(70,45,25,0.35)'; ctx.beginPath(); ctx.ellipse(x, y, w, w / 4, 0, 0, 7); ctx.fill(); };
     plat(178, 64, 34); plat(62, 112, 38);
     const now = performance.now();

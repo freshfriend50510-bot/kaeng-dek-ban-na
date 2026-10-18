@@ -1,8 +1,8 @@
 id,name,type,hp,atk,def,spa,spd,spe,catch,baseexp,kind,ability,look,learnset,desc
-bee,บี,earth,55,60,55,30,50,50,0,64,kid,rage,bee,1:tackle;1:silly_face;5:mud_throw;9:pound_ground;13:field_slam,เด็กผิวแทนอ๊องๆ ใจดี แรงเยอะ
-am,แอม,electric,40,30,40,75,60,55,0,64,kid,analyze,am,1:tackle;1:push_glasses;5:battery_shot;9:lecture;13:plasma,เด็กเนิร์ดใส่แว่น ช่างสังเกต พูดเยอะ
-tle,เติ้ล,water,70,45,60,45,55,25,0,64,kid,eater,tle,1:belly_bump;1:sweet_smile;5:bamboo_squirt;9:sticky_rice;13:pond_dive,เด็กตุ้ยน่ารัก ใจเย็น ชอบกิน
-ter,เต๋อ,wind,50,60,40,45,30,75,0,64,kid,quick,ter,1:dash;1:tongue;5:dust_kick;9:spin;13:whirlwind,เด็กดีด อยู่ไม่นิ่ง ใจร้อน
+bee,บี,earth,55,60,55,30,50,50,0,64,kid,rage,bee,1:tackle;1:silly_face;5:mud_throw;9:pound_ground;13:field_slam;18:buffalo_charge,เด็กผิวแทนอ๊องๆ ใจดี แรงเยอะ
+am,แอม,electric,40,30,40,75,60,55,0,64,kid,analyze,am,1:tackle;1:push_glasses;5:battery_shot;9:lecture;13:plasma;18:radio_wave,เด็กเนิร์ดใส่แว่น ช่างสังเกต พูดเยอะ
+tle,เติ้ล,water,70,45,60,45,55,25,0,64,kid,eater,tle,1:belly_bump;1:sweet_smile;5:bamboo_squirt;9:sticky_rice;13:pond_dive;18:monsoon_splash,เด็กตุ้ยน่ารัก ใจเย็น ชอบกิน
+ter,เต๋อ,wind,50,60,40,45,30,75,0,64,kid,quick,ter,1:dash;1:tongue;5:dust_kick;9:spin;13:whirlwind;18:kite_storm,เด็กดีด อยู่ไม่นิ่ง ใจร้อน
 phrai,พรายน้ำน้อย,water,40,30,35,45,40,40,255,50,ghost,,phrai,1:splash_spook;3:wail;8:bamboo_squirt,วิญญาณตัวใสประจำหนอง ชอบสาดน้ำใส่คน
 kongkoi,ผีกองกอย,earth,40,45,55,25,35,35,255,50,ghost,,kongkoi,1:koi_hop;3:wail;8:mud_throw,ผีขาเดียวกระโดดร้องกอยกอย แค่อยากจั๊กจี้นิ้วเท้า
 pob,ปอบน้อย,normal,50,50,40,30,35,40,190,55,ghost,,pob,1:raw_bite;3:spook;8:tackle,ปอบตัวเล็กชอบแอบขโมยปลาร้าจากครัว
@@ -11,3 +11,11 @@ phong,ผีโพง,electric,35,30,30,60,45,55,190,60,ghost,,phong,1:flicker;3
 pret,เปรตต้นตาล,normal,90,45,40,35,45,15,45,90,ghost,,pret,1:wail;1:beg_merit;5:raw_bite,สูงเท่าต้นตาล ปากเท่ารูเข็ม จริงๆ ใจดี แค่หิว
 toad,คางคกเจ้าหนอง,normal,75,55,70,55,50,25,0,120,boss,,toad,1:mud_spout;1:belly_flop;1:rain_call;1:gape,คางคกยักษ์นั่งขวางทางน้ำ งอนเพราะไม่มีใครจุดบั้งไฟให้
 ossie,พี่ออสซี่,wind,55,70,50,50,50,75,0,140,master,,ossie,1:wind_blade;1:bamboo_sword;1:samurai_stare;1:wind_step,หัวโจกแก๊งสตรีทญี่ปุ่น หล่อ เท่ ถือดาบไม้ไผ่
+eng_mech,น้องวิศวะเครื่องกล,normal,60,70,60,35,45,50,120,70,eng,,eng_mech,1:tackle;1:tighten_bolt;8:wrench_throw;12:grease;16:piston_ram,เสื้อช็อปดำ ตราเฟือง มือเปื้อนจารบี ซ่อมได้ทุกอย่างที่มีน็อต
+eng_civil,น้องวิศวะโยธา,earth,65,65,70,30,50,40,120,70,eng,,eng_civil,1:tackle;1:level_check;8:pour_concrete;16:brick_smash,เสื้อช็อปสีอิฐ ตราสะพาน ตากแดดวัดที่ทั้งวันจนตัวดำ
+eng_elec,น้องวิศวะไฟฟ้า,electric,45,35,45,80,55,60,120,70,eng,,eng_elec,1:tackle;1:multimeter;8:live_wire;13:blackout;17:short_circuit,เสื้อช็อปกรมท่า ตราสายฟ้า ผมชี้ตลอดเพราะโดนไฟดูด
+eng_chem,น้องวิศวะเคมี,water,50,35,50,75,60,50,120,70,eng,,eng_chem,1:acid_splash;1:titrate;10:fumes;17:foam_burst,เสื้อช็อปม่วง ตราขวดแก้ว หอบโพยสูตรเคมีไปทุกที่
+eng_env,น้องวิศวะสิ่งแวดล้อม,wind,55,40,50,65,60,50,120,70,eng,,eng_env,1:tackle;1:pm_dust;10:plant_tree;17:clean_wind,เสื้อช็อปเขียว ตราใบไม้ พกขวดน้ำรียูสและถุงผ้าเสมอ
+eng_ie,น้องวิศวะอุตสาหการ,normal,50,55,45,45,50,75,120,70,eng,,eng_ie,1:conveyor_rush;1:stopwatch;10:kpi_pressure;17:lean_strike,เสื้อช็อปเทา ตรากราฟแท่ง คิดเรื่องประสิทธิภาพตลอดเวลา
+ungying,อุ๋งอิ๋ง,water,55,40,50,85,65,65,0,90,eng,,ungying,1:acid_splash;1:titrate;1:fumes;14:foam_burst,สาวหมวยวิศวะเคมี เรียนเก่ง ยิ้มหวาน แต่มีอดีตกับพี่เฟรนด์ที่ใครก็ไม่กล้าพูดถึง
+friend,พี่เฟรนด์,electric,60,70,60,75,55,55,0,160,master,,friend,1:short_circuit;1:wrench_throw;1:cheer_faculty;1:blackout,หัวโจกวิศวะเครื่องกล มข. เสื้อช็อปดำ เกียร์ห้อยคอ ถือประแจพาดบ่า

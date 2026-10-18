@@ -9,7 +9,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "data_src"
 OUT = ROOT / "js" / "data.js"
-TILES = ".:#PwTRrHhDSFobf^MmAILKn"   # อักษรที่แผนที่ใช้ได้ (ดูความหมายใน js/world.js)
+TILES = ".:#PwTRrHhDSFobf^MmAILKn" + "aeg+JNCqQljiz!&$?@0X" + "_-%xtcksBp~E><OZYVu6789W2G"   # อักษรที่แผนที่ใช้ได้ (ดูความหมายใน js/world.js)
+WALK = ".:fTL_-x~><O2aeg+0"   # ช่องที่เดินได้ (ต้องตรงกับ WALK ใน js/world.js)
 
 
 def read_csv(name):
@@ -43,6 +44,10 @@ def load():
 
     items = {r["id"]: {**r, "price": int(r["price"]), "value": float(r["value"])} for r in read_csv("items.csv")}
 
+    eng_names = {}
+    for r in read_csv("eng_names.csv"):
+        eng_names.setdefault(r["branch"], []).append({**r, "glasses": r["glasses"] == "1"})
+
     enc = {}
     for r in read_csv("encounters.csv"):
         enc.setdefault(r["map"], []).append({"sp": r["species"], "min": int(r["minlv"]), "max": int(r["maxlv"]),
@@ -54,7 +59,7 @@ def load():
         rows = (SRC / f"{mid}.txt").read_text(encoding="utf-8").rstrip("\n").split("\n")
         maps[mid] = rows
     return dict(types=types, chart=chart, moves=moves, species=species, items=items,
-                encounters=enc, world=world, maps=maps)
+                encounters=enc, world=world, maps=maps, engNames=eng_names)
 
 
 def validate(d):
@@ -87,6 +92,18 @@ def validate(d):
             if len(r) != w: errs.append(f"{mid}.txt แถว {y}: กว้าง {len(r)} ไม่เท่าแถวแรก ({w})")
             for x, c in enumerate(r):
                 if c not in TILES: errs.append(f"{mid}.txt ({x},{y}): อักษร '{c}' ไม่รู้จัก")
+    for iid, it in d["items"].items():
+        if it["kind"] == "tm":
+            if it["move"] not in d["moves"]: errs.append(f"items.csv {iid}: ท่า '{it['move']}' ไม่มีใน moves.csv")
+            if it["for"] not in T: errs.append(f"items.csv {iid}: ธาตุ '{it['for']}' ไม่มีอยู่")
+    names = set()
+    for br, lst in d["engNames"].items():
+        if br not in d["species"]: errs.append(f"eng_names.csv: ไม่มีสาขา '{br}' ใน species.csv")
+        for e in lst:
+            if e["name"] in names: errs.append(f"eng_names.csv: ชื่อ '{e['name']}' ซ้ำ")
+            names.add(e["name"])
+    for sid, s in d["species"].items():
+        if sid.startswith("eng_") and sid not in d["engNames"]: errs.append(f"eng_names.csv: ยังไม่มีรายชื่อน้องสาขา {sid}")
     W = d["world"]
     def at(m, x, y):
         rows = d["maps"].get(m)
@@ -94,16 +111,34 @@ def validate(d):
     for n in W["npcs"]:
         c = at(n["map"], n["x"], n["y"])
         if c is None: errs.append(f"world.json npc {n['id']}: อยู่นอกแผนที่")
-        elif c not in ".:fTL": errs.append(f"world.json npc {n['id']}: ยืนบนช่อง '{c}' ที่เดินไม่ได้")
+        elif c not in WALK: errs.append(f"world.json npc {n['id']}: ยืนบนช่อง '{c}' ที่เดินไม่ได้")
         for sp, lv in n.get("trainer", {}).get("team", []):
             if sp not in d["species"]: errs.append(f"world.json {n['id']}: ไม่มีผี '{sp}'")
         if "item" in n and n["item"] not in d["items"]: errs.append(f"world.json {n['id']}: ไม่มีไอเท็ม '{n['item']}'")
+        if n["look"].startswith("eng:"):
+            _, br, i = n["look"].split(":")
+            if br not in d["engNames"] or int(i) >= len(d["engNames"][br]): errs.append(f"world.json {n['id']}: หน้าตา '{n['look']}' ไม่มีในรายชื่อน้องวิศวะ")
+    ids = [n["id"] for n in W["npcs"]]
+    for i in set(ids):
+        if ids.count(i) > 1: errs.append(f"world.json: npc id '{i}' ซ้ำ")
+    for m in W["maps"]:
+        if m not in d["maps"]: errs.append(f"world.json: แผนที่ '{m}' ไม่มีไฟล์ {m}.txt")
     for s in W["signs"]:
-        if at(s["map"], s["x"], s["y"]) != "S": errs.append(f"world.json ป้าย '{s['text']}': ช่อง ({s['x']},{s['y']}) ไม่ใช่ S")
+        if at(s["map"], s["x"], s["y"]) not in "S?": errs.append(f"world.json ป้าย '{s['text']}': ช่อง ({s['x']},{s['y']}) ไม่ใช่ S หรือ ?")
     for dr in W["doors"]:
-        if at(dr["map"], dr["x"], dr["y"]) != "D": errs.append(f"world.json ประตู {dr['script']}: ช่องไม่ใช่ D")
+        if at(dr["map"], dr["x"], dr["y"]) != "D": errs.append(f"world.json ประตู ({dr['map']} {dr['x']},{dr['y']}): ช่องไม่ใช่ D")
+        if "to" in dr and (at(dr["to"], dr["tx"], dr["ty"]) or "#") not in WALK: errs.append(f"world.json ประตูไป {dr['to']} ({dr['tx']},{dr['ty']}): ช่องปลายทางเดินไม่ได้")
     for wp in W["warps"]:
-        if at(wp["to"], wp["tx"], wp["ty"]) not in ".:": errs.append(f"world.json วาร์ปไป {wp['to']} ({wp['tx']},{wp['ty']}): ช่องปลายทางเดินไม่ได้")
+        if (at(wp["to"], wp["tx"], wp["ty"]) or "#") not in WALK: errs.append(f"world.json วาร์ปไป {wp['to']} ({wp['tx']},{wp['ty']}): ช่องปลายทางเดินไม่ได้")
+    for r in W.get("rides", []):
+        if r["npc"] not in ids: errs.append(f"world.json rides: ไม่มี npc '{r['npc']}'")
+        if (at(r["to"], r["tx"], r["ty"]) or "#") not in WALK: errs.append(f"world.json rides ไป {r['to']}: ช่องปลายทางเดินไม่ได้")
+    for gt in W.get("gates", []):
+        if at(gt["map"], gt["x"], gt["y"]) != "X": errs.append(f"world.json gates ({gt['map']} {gt['x']},{gt['y']}): ช่องไม่ใช่ X")
+    for o in W.get("objects", []):
+        if (at(o["map"], o["x"], o["y"]) or ".") in WALK: errs.append(f"world.json objects {o['script']} ({o['map']} {o['x']},{o['y']}): ต้องอยู่บนช่องที่เดินไม่ได้")
+    for c in W.get("curtains", []):
+        if at(c["map"], c["ok"][0], c["y"]) != "~": errs.append(f"world.json curtains {c['map']} แถว {c['y']}: ไม่ใช่ม่าน ~")
     return errs
 
 

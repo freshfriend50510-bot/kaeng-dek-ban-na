@@ -40,5 +40,14 @@ let ev2 = [];
 for (let n = 0; n < 60 && !b2.over; n++) ev2 = ev2.concat(b2.turnAction({ type: 'move', idx: 0 }));
 ok(b2.over === 'win' && k.lv >= 9, 'ชนะแล้วต้องเลเวลอัป ได้ lv ' + k.lv + ' ' + b2.over);
 ok(ev2.some((e) => e.t === 'learn' && e.move === 'pound_ground'), 'ต้องได้เรียนท่าตะโกนลั่นทุ่งที่ Lv9');
+// 5) น้องวิศวะ: ชื่อไม่ซ้ำกับคนที่มีอยู่แล้ว และได้หน้าตาเฉพาะคน
+G.rng = G.makeRng(3);
+const taken = new Set();
+for (let i = 0; i < 8; i++) { const e = G.makeEng('eng_chem', 12, { taken }); ok(!taken.has(e.name), 'ชื่อน้องวิศวะซ้ำ ' + e.name); ok(/^eng:eng_chem:\d$/.test(e.look), 'หน้าตาน้องวิศวะ ' + e.look); taken.add(e.name); }
+// 6) ของถือ: ผ้ายันต์ลดดาเมจจากผีสาง ถุงมือช่างเพิ่มท่ากายภาพ
+const tank = G.makeMon('bee', 10, { ivs: 15 }); tank.held = 'yantra';
+ok(G.heldMult(G.makeMon('pob', 10), tank, G.DATA.moves.raw_bite) === 0.9, 'ผ้ายันต์ต้อง ×0.9');
+const hitter = G.makeMon('bee', 10, { ivs: 15 }); hitter.held = 'gloves';
+ok(Math.abs(G.heldMult(hitter, G.makeMon('pob', 10), G.DATA.moves.tackle) - 1.1) < 1e-9, 'ถุงมือช่างต้อง ×1.1');
 console.log(fails ? `ไม่ผ่าน ${fails} ข้อ` : 'ผ่านทุกข้อ');
 process.exit(fails ? 1 : 0);

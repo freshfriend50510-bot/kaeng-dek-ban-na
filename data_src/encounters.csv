@@ -5,3 +5,12 @@ field,pob,3,5,25,15
 field,krahang,3,5,15,20
 field,phong,3,5,0,25
 field,pret,5,7,5,5
+kku,eng_mech,11,14,18,10
+kku,eng_civil,11,14,18,10
+kku,eng_elec,11,14,16,12
+kku,eng_chem,11,14,16,10
+kku,eng_env,11,14,16,8
+kku,eng_ie,11,14,16,10
+kku,phong,12,14,0,25
+kku,krahang,12,14,0,10
+kku,pret,13,15,0,5

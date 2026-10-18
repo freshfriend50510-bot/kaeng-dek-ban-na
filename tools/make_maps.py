@@ -1,4 +1,5 @@
 # สร้างแผนที่ตั้งต้น: python tools/make_maps.py data_src
+# ใช้สร้างแผนที่ชุดแรกเท่านั้น (ตอนนี้ data_src ถูกแก้ด้วยมือและเพิ่มแมพ มข./ในตึกแล้ว ห้ามรันทับ)
 # คำเตือน: จะเขียนทับ data_src/*.txt และ world.json ทั้งไฟล์ ไฟล์ใน data_src อาจถูกแก้ด้วยมือหลังจากนี้ ให้ตรวจ git diff ก่อน commit
 import json, sys
 out = sys.argv[1]

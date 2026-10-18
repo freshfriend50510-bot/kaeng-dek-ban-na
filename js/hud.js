@@ -8,7 +8,11 @@
   // สีของแต่ละช่องบนแผนที่ย่อ
   const MAPCOL = { '.': '#9caf55', f: '#9caf55', ':': '#c47a4a', '#': '#3f6b34', P: '#24402a', w: '#4f8fb0', T: '#6e9b3a',
     R: '#b08a4a', r: '#9a3a2a', A: '#a63a2a', M: '#b5402a', K: '#3a2a24', H: '#6b5040', h: '#d8d0c0', m: '#f2efe4', n: '#2b3f8a',
-    D: '#2a1d18', S: '#8a6a4a', o: '#d9b25a', b: '#8a8a8a', '^': '#c5482b', I: '#5a3a22', L: '#a0784e', F: '#8a6a4a' };
+    D: '#2a1d18', S: '#8a6a4a', o: '#d9b25a', b: '#8a8a8a', '^': '#c5482b', I: '#5a3a22', L: '#a0784e', F: '#8a6a4a',
+    a: '#55555e', '+': '#9a9aa2', e: '#cbbfa8', g: '#5f8a3a', J: '#3a6a3a', N: '#8f949e', C: '#e6dcc8', q: '#7d8794', Q: '#6b7480',
+    l: '#cbbfa8', j: '#8a6440', z: '#c5482b', i: '#4f8a45', '!': '#d9b25a', '&': '#3f7a34', $: '#c5482b', '?': '#2f6b5a', '@': '#2f6fb0',
+    0: '#8a6440', X: '#c5482b', _: '#b8875a', '%': '#4a3a30', x: '#c5482b', '~': '#2b3f8a', E: '#5f6873', '>': '#3a3f48', '<': '#3a3f48',
+    O: '#1f1d24', Z: '#5f6873', Y: '#e8dcc0', '2': '#8a3f6b' };
   const mapCache = {};
   function mapImage(id, scale) {
     const key = id + scale;
@@ -25,13 +29,13 @@
   let lastSig = '';
   function renderParty() {
     const P = G.state.party;
-    const sig = P.map((m) => `${m.sp}${m.name}${m.lv}${m.hp}/${m.stats.hp}${m.status}`).join('|');
+    const sig = P.map((m) => `${G.monLook(m)}${m.name}${m.lv}${m.hp}/${m.stats.hp}${m.status}`).join('|') + G.state.follower;
     if (sig === lastSig) return;
     lastSig = sig;
     partyEl.innerHTML = P.map((m, i) => {
       const p = Math.max(0, m.hp / m.stats.hp);
       return `<button class="pm ${m.hp <= 0 ? 'down' : ''}" data-i="${i}" title="ดูข้อมูล ${m.name}">
-        <canvas width="16" height="16" data-sprite="${G.DATA.species[m.sp].look}"></canvas>
+        <canvas width="16" height="16" data-sprite="${G.monLook(m)}"></canvas>
         <span class="pm-body"><span class="pm-name">${m.name}<em>Lv${m.lv}</em></span>
         <span class="pm-hp"><i style="width:${(p * 100).toFixed(0)}%" class="${p < 0.2 ? 'red' : p < 0.5 ? 'yellow' : ''}"></i></span>
         <span class="pm-num">${m.hp}/${m.stats.hp}${m.status ? ' · ' + STATUS[m.status] : ''}</span></span></button>`;
@@ -69,8 +73,6 @@
   };
 
   // ---------- แผนที่ใหญ่ ----------
-  const PLACE = { door_home: 'บ้านเรา', door_shop: 'ร้านชำ', door_osm: 'ศาลา อสม.', door_temple: 'วัด', door_school: 'โรงเรียน',
-    door_tiang: 'เถียงนาตาสี', door_ramen: 'ร้านราเมง (ยิม 1)', door_bee: 'บ้านบี', door_am: 'บ้านแอม', door_tle: 'บ้านเติ้ล', door_ter: 'บ้านเต๋อ' };
   G.SCRIPTS._map = async function () {
     const id = G.state.map, rows = G.DATA.maps[id], sc = 14;
     const html = `<div class="choice-title">แผนที่: ${G.DATA.world.maps[id].name}</div>
@@ -81,10 +83,11 @@
     x.drawImage(mapImage(id, sc), 0, 0);
     x.font = '17px Itim, Tahoma, sans-serif'; x.textAlign = 'center';
     const label = (t, px, py) => { x.lineWidth = 3; x.strokeStyle = 'rgba(24,32,63,.9)'; x.strokeText(t, px, py); x.fillStyle = '#f6eed8'; x.fillText(t, px, py); };
-    for (const d of G.DATA.world.doors.filter((d) => d.map === id)) label(PLACE[d.script] || '', d.x * sc + sc / 2, d.y * sc - sc * 1.2);
-    const EXTRA = { village: [['ศาลากลางบ้าน', 11.5, 7], ['ดอนปู่ตา', 3.5, 2], ['หนองน้ำ', 5, 22]], field: [['หนองใหญ่ (คางคก)', 24, 13]], market: [] };
+    for (const d of G.DATA.world.doors.filter((d) => d.map === id && d.to)) label(G.DATA.world.maps[d.to].name.replace(/^(.*?) · .*/, '$1'), d.x * sc + sc / 2, d.y * sc - sc * 1.2);
+    const EXTRA = { village: [['ศาลากลางบ้าน', 11.5, 7], ['ดอนปู่ตา', 3.5, 2], ['หนองน้ำ', 5, 22]], field: [['หนองใหญ่ (คางคก)', 24, 13]], market: [['รถสองแถวไป มข.', 20, 11]],
+      kku: [['บึงสีฐาน', 38, 26], ['ลานจอดรถ', 22.5, 2], ['หญ้ารก', 16, 30], ['สะพานลำน้ำพอง', 44, 13.5], ['รถสองแถวกลับตลาด', 6, 11.5], ['ลานเฟือง', 12.5, 12.5]] };
     for (const [t, ex, ey] of EXTRA[id] || []) label(t, ex * sc, ey * sc);
-    for (const w of G.DATA.world.warps.filter((w) => w.map === id)) {
+    for (const w of G.DATA.world.warps.filter((w) => w.map === id && !G.DATA.world.maps[id].indoor)) {
       x.fillStyle = '#5fb8e0'; x.fillRect(w.x * sc, w.y * sc, sc, sc);
       label('ไป' + G.DATA.world.maps[w.to].name, Math.min(c.width - 80, Math.max(80, w.x * sc + sc / 2)), Math.min(c.height - 6, Math.max(18, w.y * sc + (w.y === 0 ? sc + 18 : -8))));
     }

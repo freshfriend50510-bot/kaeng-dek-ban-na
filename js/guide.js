@@ -7,28 +7,39 @@
     { until: 'catch_tutorial', text: 'ไปหาตาสีที่เถียงนา เรียนวิธีชวนผีเข้าแก๊ง', map: 'village', npc: 'tasi' },
     { until: 'field_open', text: 'ขอให้พ่อบีจูงควายออกจากทางลงทุ่ง', map: 'village', npc: 'beedad' },
     { until: 'boss1_done', text: 'ลงทุ่งนา เก็บเลเวลในนาข้าว แล้วไปสู้คางคกที่หนองใหญ่ (แนะนำ Lv 8)', map: 'field', npc: 'toad' },
-    { until: 'gym1_done', text: 'ข้ามคันนากลางหนองไปตลาดนัด ท้าพี่ออสซี่ที่ร้านราเมง (แนะนำ Lv 10)', map: 'market', x: 18, y: 4 },
+    { until: 'gym1_done', text: 'ข้ามคันนากลางหนองไปตลาดนัด เข้าร้านราเมง ผ่านม่านลมไปท้าพี่ออสซี่ (แนะนำ Lv 10)', map: 'ramen', npc: 'ossie' },
+    { until: 'festival_done', text: 'กลับหมู่บ้าน ไปงานบุญบั้งไฟกับผู้ใหญ่บ้านที่ศาลา', map: 'village', npc: 'elder' },
+    { until: 'kku_arrived', text: 'นั่งรถสองแถวของลุงที่ตลาดนัด ไปมหาวิทยาลัยขอนแก่น', map: 'market', npc: 'driver' },
+    { until: 'tr_wak1', text: 'ไปโรงช็อปวิศวะ ชนะพี่ว้ากหน้าประตู (แนะนำ Lv 14)', map: 'kku', npc: 'wak1' },
+    { until: 'tr_wak2', text: 'ชนะพี่ว้ากอีกคนหน้าโรงช็อป', map: 'kku', npc: 'wak2' },
+    { until: 'shop_gate', text: 'ในโรงช็อปไฟดับ! ไปห้องคัตเอาต์ สับไฟให้ติดครบ 4 ดวง', map: 'kku_shop', x: 5, y: 3 },
+    { until: 'gym2_done', text: 'ผ่านประตูเหล็กไปท้าพี่เฟรนด์ (แนะนำ Lv 16)', map: 'kku_shop', npc: 'friend' },
   ];
 
   G.objective = function () {
     const S = G.state, F = S.flags;
     const st = STEPS.find((s) => !F[s.until]);
     if (!st) {
-      const ghosts = Object.keys(G.DATA.species).filter((k) => G.DATA.species[k].kind === 'ghost');
-      const got = ghosts.filter((k) => S.dex[k] === 2).length;
-      return { text: `ชวนผีสางให้ครบสมุด (${got}/${ghosts.length}) · ยิม 2 มาในเวอร์ชันหน้า` };
+      const engs = [...S.party, ...S.storage].filter((m) => G.DATA.species[m.sp].kind === 'eng').length;
+      const all = Object.values(G.DATA.engNames).reduce((a, l) => a + l.length, 0) + 1;
+      return { text: `ชวนน้องวิศวะเข้าแก๊ง (${engs}/${all} คน) · ยิม 3 พี่บูมมาในเวอร์ชันหน้า` };
     }
-    let x = st.x, y = st.y;
-    if (st.npc) { const n = G.DATA.world.npcs.find((n) => n.id === st.npc); x = n.x; y = n.y; }
-    return { text: st.text, map: st.map, x, y };
+    let x = st.x, y = st.y, map = st.map;
+    if (st.npc) { const n = G.DATA.world.npcs.find((n) => n.id === st.npc); x = n.x; y = n.y; map = n.map; }
+    return { text: st.text, map, x, y };
   };
 
-  // หาเส้นทางระหว่างแผนที่ แล้วชี้ไปที่ทางออกแรกที่ต้องเดินไป
+  // หาเส้นทางระหว่างแผนที่ (วาร์ป ประตูตึก รถสองแถว) แล้วชี้ไปที่ทางออกแรกที่ต้องเดินไป
+  function links() {
+    const W = G.DATA.world, out = [...W.warps, ...W.doors.filter((d) => d.to)];
+    for (const r of W.rides || []) { const n = W.npcs.find((k) => k.id === r.npc); out.push({ map: r.map, x: n.x, y: n.y, to: r.to }); }
+    return out;
+  }
   function routeTarget(obj) {
     const cur = G.state.map;
     if (!obj.map) return null;
     if (obj.map === cur) return { x: obj.x, y: obj.y };
-    const warps = G.DATA.world.warps;
+    const warps = links();
     const q = [[cur, null]], seen = new Set([cur]);
     while (q.length) {
       const [m, first] = q.shift();
@@ -108,6 +119,8 @@
       <li><b>เจอผีสาง</b> เดินในนาข้าว · ตีให้อ่อนแรงแล้วเปิดกระเป๋าถวายข้าวเหนียวเพื่อชวนเข้าแก๊ง</li>
       <li><b>ธาตุ</b> น้ำ › ดิน › สายฟ้า › ลม › น้ำ · ตีถูกธาตุแรง 2 เท่า</li>
       <li><b>ปุ่มลัด</b> B กระเป๋า · T ทีม · M แผนที่ · Tab ซ่อน/แสดงแถบทีมและมินิแมพ · แตะการ์ดสมาชิกเพื่อดูข้อมูล</li>
-      <li><b>เหนื่อย</b> พักฟรีที่บ้านหรือศาลา อสม. · บันทึกเกมได้ที่บ้านหรือในเมนู (Enter)</li>
+      <li><b>เข้าตึก</b> เดินชนประตู · ออกทางพรมแดงข้างล่าง</li>
+      <li><b>ทีม</b> คนแรกในทีมเดินตามและลงสู้ก่อน · เปลี่ยนที่เมนูทีม › ให้เดินตาม · จัดทีม/ฝากสมาชิกที่คลังแก๊ง (เถียงนาตาสี หรือคอมหอพัก)</li>
+      <li><b>เหนื่อย</b> พักฟรีที่บ้านหรือศาลา อสม. · บันทึกเกมได้ 3 ช่องที่บ้านหรือในเมนู (Enter)</li>
     </ul>`;
 })(window.G = window.G || {});

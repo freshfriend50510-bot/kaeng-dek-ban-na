@@ -177,3 +177,8 @@ table.moves td, table.moves th { padding: calc(var(--u) * 0.5) calc(var(--u) * 2
 .legend { display: flex; gap: calc(var(--u) * 6); justify-content: center; font-size: 0.75em; margin-top: calc(var(--u) * 2); flex-wrap: wrap; }
 .legend i { display: inline-block; width: calc(var(--u) * 4); height: calc(var(--u) * 4); margin-right: calc(var(--u) * 1.5); vertical-align: middle; border-radius: 50%; }
 .legend .me { background: #fff; } .legend .goal { background: #ffd84a; } .legend .foe { background: #d9455a; border-radius: 0; } .legend .exit { background: #5fb8e0; border-radius: 0; }
+
+/* ---------- ไอคอนในรายการ (ทีม คลังแก๊ง) ---------- */
+.choice-item canvas.ico { width: calc(var(--u) * 10); height: calc(var(--u) * 10); image-rendering: pixelated; flex: none; margin-right: calc(var(--u) * 1); align-self: center; }
+.choice-item .lbl { flex: 1; }
+.choice.party .choice-item, .choice.starter .choice-item { align-items: center; }

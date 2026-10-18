@@ -48,12 +48,28 @@
     for (const k of STATS) ivs[k] = opt.ivs != null ? opt.ivs : rng.int(0, 31);
     const sp = G.DATA.species[spId];
     const stats = G.calcStats(spId, lv, ivs);
-    return {
+    const mon = {
       sp: spId, name: opt.name || sp.name, lv, exp: G.expFor(lv), ivs, stats,
-      hp: stats.hp, status: null, slp: 0,
+      hp: stats.hp, status: null, slp: 0, held: null,
       moves: G.movesAt(spId, lv).map((id) => ({ id, pp: G.DATA.moves[id].pp })),
     };
+    if (opt.look) mon.look = opt.look;
+    return mon;
   };
+
+  // น้องวิศวะ: สุ่มคนจากรายชื่อสาขานั้น ไม่ซ้ำกับคนที่อยู่ในแก๊งแล้ว (taken = ชื่อที่ใช้ไปแล้ว)
+  G.makeEng = function (spId, lv, opt = {}) {
+    const rng = opt.rng || G.rng;
+    const list = (G.DATA.engNames || {})[spId];
+    if (!list) return G.makeMon(spId, lv, opt);
+    const taken = opt.taken || new Set();
+    let pool = list.map((e, i) => i).filter((i) => !taken.has(list[i].name));
+    if (!pool.length) pool = list.map((e, i) => i);
+    const i = pool[Math.floor(rng() * pool.length)];
+    return G.makeMon(spId, lv, { ...opt, name: list[i].name, look: `eng:${spId}:${i}` });
+  };
+  // สร้างตัวละครตามชนิด (น้องวิศวะได้ชื่อ/หน้าตาเฉพาะคน)
+  G.spawn = (spId, lv, opt = {}) => ((G.DATA.engNames || {})[spId] ? G.makeEng(spId, lv, opt) : G.makeMon(spId, lv, opt));
 
   G.refreshStats = function (mon) {
     const old = mon.stats.hp;
@@ -85,6 +101,17 @@
     dmg = Math.floor(dmg * (ctx.other || 1));
     if (eff > 0 && dmg < 1) dmg = 1;
     return { dmg, eff };
+  };
+
+  // ของถือ: ผ้ายันต์ลดดาเมจจากผีสาง ถุงมือช่าง/แว่นเซฟตี้เพิ่มดาเมจท่ากายภาพ/พิเศษ
+  G.heldMult = function (att, def, move) {
+    const I = G.DATA.items, sp = G.DATA.species;
+    let k = 1;
+    const a = att.held && I[att.held], d = def.held && I[def.held];
+    if (a && a.for === 'phys' && move.cat === 'phys') k *= a.value;
+    if (a && a.for === 'spec' && move.cat === 'spec') k *= a.value;
+    if (d && d.for === 'ghost' && sp[att.sp].kind === 'ghost') k *= d.value;
+    return k;
   };
 
   G.expGain = (foe, trainer) => Math.floor((G.DATA.species[foe.sp].baseexp * foe.lv) / 7 * (trainer ? 1.5 : 1));

@@ -18,12 +18,26 @@
       this.runTries = 0; this.over = null; this.turn = 0;
       this.ai = opt.ai != null ? opt.ai : (opt.kind === 'wild' ? 0 : opt.kind === 'trainer' ? 1 : 2);
       this.bossHealed = false;
+      this.rageDone = false;
+      this.applyRage([]);
+    }
+    // opt.rage = { sp, st, text }: ศัตรูชนิดนี้ลงสนามมาพร้อมบัฟ (เช่น พี่เฟรนด์โมโหเพราะเห็นอุ๋งอิ๋งในแก๊ง)
+    applyRage(ev) {
+      const rg = this.opt.rage;
+      if (!rg || this.rageDone || this.foe.sp !== rg.sp) return;
+      this.rageDone = true;
+      Object.assign(this.fv.st, rg.st);
+      if (rg.text) ev.push({ t: 'msg', text: rg.text });
     }
     get me() { return this.P[this.pi]; }
     get foe() { return this.F[this.fi]; }
     isWild() { return this.opt.kind === 'wild'; }
     sp(m) { return G.DATA.species[m.sp]; }
-    label(side) { return side === 'p' ? this.me.name : (this.isWild() ? this.foe.name + 'ป่า' : this.foe.name + 'ของศัตรู'); }
+    label(side) {
+      if (side === 'p') return this.me.name;
+      if (this.sp(this.foe).kind === 'eng') return this.foe.name + (this.isWild() ? '' : 'ของศัตรู');
+      return this.isWild() ? this.foe.name + 'ป่า' : this.foe.name + 'ของศัตรู';
+    }
 
     speedOf(side) {
       const m = side === 'p' ? this.me : this.foe, v = side === 'p' ? this.pv : this.fv;
@@ -41,7 +55,7 @@
       if (this.ai === 2) {
         const heal = usable.find((m) => M[m.id].effect === 'heal50');
         if (heal && !this.bossHealed && f.hp < f.stats.hp * 0.25) { this.bossHealed = true; return heal.id; }
-        if (this.fv.turns === 0) {
+        if (this.fv.turns === 0 && !this.rageDone) {
           const buff = usable.find((m) => M[m.id].effect.startsWith('self_'));
           if (buff) return buff.id;
         }
@@ -156,6 +170,7 @@
         const ab = this.sp(user).ability;
         if (ab === 'rage' && mv.type === 'earth' && user.hp <= user.stats.hp / 3) other *= 1.5;
         if (ab === 'analyze' && movedSecond) other *= 1.3;
+        other *= G.heldMult(user, tgt, mv);
         const easy = !G.settings || G.settings.easy !== false;
         const crit = r() < (side === 'p' && easy ? 0.25 : 1 / 16);   // ฝั่งเราติดคริ 25% ในโหมดเก็บเวลเร็ว
         const phys = mv.cat === 'phys';
@@ -247,6 +262,7 @@
         this.participants = new Set(this.me.hp > 0 ? [this.pi] : []);
         ev.push({ t: 'msg', text: `${this.opt.trainerName} ส่ง ${this.foe.name} ออกมา!` });
         ev.push({ t: 'send', side: 'f' });
+        this.applyRage(ev);
       }
       if (this.me.hp <= 0 && !this.me._fainted) {
         this.me._fainted = true;
@@ -308,16 +324,24 @@
       G.state.bag[id]--;
       if (it.kind === 'recruit') {
         if (!this.isWild()) { ev.push({ t: 'msg', text: 'ผีของคนอื่นชวนไม่ได้!' }); G.state.bag[id]++; return 'skipFoe'; }
-        ev.push({ t: 'msg', text: `ถวาย${it.name}ให้ ${this.foe.name}...` });
-        const a = G.recruitValue(this.foe, it.value);
+        const eng = this.sp(this.foe).kind === 'eng';
+        const fits = it.for === (eng ? 'eng' : 'ghost');
+        ev.push({ t: 'msg', text: eng ? `ยื่น${it.name}ให้ ${this.foe.name}...` : `ถวาย${it.name}ให้ ${this.foe.name}...` });
+        if (!fits) ev.push({ t: 'msg', text: eng ? 'น้องวิศวะไม่ค่อยอยากกินข้าวเหนียวเปล่าๆ...' : 'ผีสางงงๆ กับคูปองหมูกระทะ...' });
+        const a = G.recruitValue(this.foe, it.value * (fits ? 1 : 0.5));
         ev.push({ t: 'recruit_try' });
         if (this.rng() * 256 < a) {
-          ev.push({ t: 'msg', text: `${this.foe.name} กินอย่างอร่อย แล้วขอตามมาเข้าแก๊ง!` });
+          ev.push({ t: 'msg', text: eng ? `${this.foe.name} กินจนอิ่ม แล้วขอเข้าแก๊งด้วยคน!` : `${this.foe.name} กินอย่างอร่อย แล้วขอตามมาเข้าแก๊ง!` });
           this.over = 'recruit';
           ev.push({ t: 'end', result: 'recruit' });
           return 'done';
         }
-        ev.push({ t: 'msg', text: `${this.foe.name} ยังไม่ยอมเชื่อง!` });
+        ev.push({ t: 'msg', text: eng ? `${this.foe.name} ยังไม่ยอมเข้าแก๊ง!` : `${this.foe.name} ยังไม่ยอมเชื่อง!` });
+        return 'done';
+      }
+      if (it.kind === 'healall') {
+        this.P.forEach((m, i) => { if (m.hp > 0) { m.hp = m.stats.hp; if (i === this.pi) ev.push({ t: 'hp', side: 'p', hp: m.hp }); } });
+        ev.push({ t: 'msg', text: `แบ่ง${it.name}กินกันทั้งแก๊ง ทุกคนฟื้นพลังเต็ม!` });
         return 'done';
       }
       const m = this.P[target];

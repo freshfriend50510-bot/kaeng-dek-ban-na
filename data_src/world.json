@@ -1,8 +1,8 @@
 {
  "start": {
-  "map": "village",
+  "map": "home",
   "x": 4,
-  "y": 11,
+  "y": 4,
   "dir": "down"
  },
  "maps": {
@@ -18,6 +18,100 @@
   "market": {
    "name": "ตลาดนัดตำบล",
    "music": "village"
+  },
+  "kku": {
+   "name": "มหาวิทยาลัยขอนแก่น · คณะวิศวะ",
+   "music": "campus",
+   "encounter": true,
+   "bg": "kku"
+  },
+  "home": {
+   "name": "บ้านเรา",
+   "music": "village",
+   "indoor": true
+  },
+  "store": {
+   "name": "ร้านชำป้าสมร",
+   "music": "village",
+   "indoor": true
+  },
+  "osm": {
+   "name": "ศาลา อสม.",
+   "music": "village",
+   "indoor": true,
+   "floor": "-"
+  },
+  "temple": {
+   "name": "สิมวัดบ้านโนนสะอาด",
+   "music": "village",
+   "indoor": true
+  },
+  "school": {
+   "name": "โรงเรียนบ้านโนนสะอาด",
+   "music": "village",
+   "indoor": true,
+   "floor": "-"
+  },
+  "house_bee": {
+   "name": "บ้านบี",
+   "music": "village",
+   "indoor": true
+  },
+  "house_am": {
+   "name": "บ้านแอม (ร้านซ่อมมือถือ)",
+   "music": "village",
+   "indoor": true
+  },
+  "house_tle": {
+   "name": "บ้านเติ้ล (ส้มตำแม่เติ้ล)",
+   "music": "village",
+   "indoor": true
+  },
+  "house_ter": {
+   "name": "บ้านเต๋อ",
+   "music": "village",
+   "indoor": true
+  },
+  "tiang": {
+   "name": "เถียงนาตาสี",
+   "music": "village",
+   "indoor": true
+  },
+  "ramen": {
+   "name": "ร้านราเมงลมทุ่ง (ยิม 1)",
+   "music": "village",
+   "indoor": true,
+   "bg": "ramen"
+  },
+  "kku_shop": {
+   "name": "โรงช็อปวิศวะ (ยิม 2)",
+   "music": "campus",
+   "indoor": true,
+   "darkUntil": "shop_gate",
+   "bg": "kku_shop",
+   "floor": "-"
+  },
+  "canteen": {
+   "name": "โรงอาหารวิศวะ",
+   "music": "campus",
+   "indoor": true,
+   "floor": "-"
+  },
+  "mookata": {
+   "name": "ร้านหมูกระทะลุงเฉลิม",
+   "music": "campus",
+   "indoor": true
+  },
+  "dorm": {
+   "name": "หอพักนักศึกษา",
+   "music": "campus",
+   "indoor": true
+  },
+  "lecture": {
+   "name": "ตึกเรียนรวมวิศวะ",
+   "music": "campus",
+   "indoor": true,
+   "floor": "-"
   }
  },
  "warps": [
@@ -52,6 +146,150 @@
    "to": "field",
    "tx": 28,
    "ty": 15
+  },
+  {
+   "map": "home",
+   "x": 4,
+   "y": 7,
+   "to": "village",
+   "tx": 4,
+   "ty": 11,
+   "dir": "down"
+  },
+  {
+   "map": "store",
+   "x": 4,
+   "y": 7,
+   "to": "village",
+   "tx": 20,
+   "ty": 11,
+   "dir": "down"
+  },
+  {
+   "map": "osm",
+   "x": 4,
+   "y": 6,
+   "to": "village",
+   "tx": 26,
+   "ty": 11,
+   "dir": "down"
+  },
+  {
+   "map": "temple",
+   "x": 5,
+   "y": 7,
+   "to": "village",
+   "tx": 11,
+   "ty": 4,
+   "dir": "down"
+  },
+  {
+   "map": "school",
+   "x": 5,
+   "y": 7,
+   "to": "village",
+   "tx": 25,
+   "ty": 4,
+   "dir": "down"
+  },
+  {
+   "map": "house_bee",
+   "x": 3,
+   "y": 6,
+   "to": "village",
+   "tx": 4,
+   "ty": 17,
+   "dir": "down"
+  },
+  {
+   "map": "house_am",
+   "x": 3,
+   "y": 7,
+   "to": "village",
+   "tx": 10,
+   "ty": 17,
+   "dir": "down"
+  },
+  {
+   "map": "house_tle",
+   "x": 3,
+   "y": 7,
+   "to": "village",
+   "tx": 21,
+   "ty": 17,
+   "dir": "down"
+  },
+  {
+   "map": "house_ter",
+   "x": 3,
+   "y": 6,
+   "to": "village",
+   "tx": 27,
+   "ty": 17,
+   "dir": "down"
+  },
+  {
+   "map": "tiang",
+   "x": 3,
+   "y": 5,
+   "to": "village",
+   "tx": 24,
+   "ty": 22,
+   "dir": "down"
+  },
+  {
+   "map": "ramen",
+   "x": 6,
+   "y": 12,
+   "to": "market",
+   "tx": 18,
+   "ty": 5,
+   "dir": "down"
+  },
+  {
+   "map": "lecture",
+   "x": 8,
+   "y": 8,
+   "to": "kku",
+   "tx": 12,
+   "ty": 8,
+   "dir": "down"
+  },
+  {
+   "map": "kku_shop",
+   "x": 10,
+   "y": 15,
+   "to": "kku",
+   "tx": 33,
+   "ty": 8,
+   "dir": "down"
+  },
+  {
+   "map": "canteen",
+   "x": 8,
+   "y": 9,
+   "to": "kku",
+   "tx": 8,
+   "ty": 23,
+   "dir": "down"
+  },
+  {
+   "map": "mookata",
+   "x": 4,
+   "y": 8,
+   "to": "kku",
+   "tx": 18,
+   "ty": 23,
+   "dir": "down"
+  },
+  {
+   "map": "dorm",
+   "x": 4,
+   "y": 7,
+   "to": "kku",
+   "tx": 27,
+   "ty": 23,
+   "dir": "down"
   }
  ],
  "doors": [
@@ -59,67 +297,134 @@
    "map": "village",
    "x": 4,
    "y": 10,
-   "script": "door_home"
+   "to": "home",
+   "tx": 4,
+   "ty": 6
   },
   {
    "map": "village",
    "x": 20,
    "y": 10,
-   "script": "door_shop"
+   "to": "store",
+   "tx": 4,
+   "ty": 6
   },
   {
    "map": "village",
    "x": 26,
    "y": 10,
-   "script": "door_osm"
+   "to": "osm",
+   "tx": 4,
+   "ty": 5
   },
   {
    "map": "village",
    "x": 11,
    "y": 3,
-   "script": "door_temple"
+   "to": "temple",
+   "tx": 5,
+   "ty": 6
   },
   {
    "map": "village",
    "x": 25,
    "y": 3,
-   "script": "door_school"
+   "to": "school",
+   "tx": 5,
+   "ty": 6
   },
   {
    "map": "village",
    "x": 4,
    "y": 16,
-   "script": "door_bee"
+   "to": "house_bee",
+   "tx": 3,
+   "ty": 5
   },
   {
    "map": "village",
    "x": 10,
    "y": 16,
-   "script": "door_am"
+   "to": "house_am",
+   "tx": 3,
+   "ty": 6
   },
   {
    "map": "village",
    "x": 21,
    "y": 16,
-   "script": "door_tle"
+   "to": "house_tle",
+   "tx": 3,
+   "ty": 6
   },
   {
    "map": "village",
    "x": 27,
    "y": 16,
-   "script": "door_ter"
+   "to": "house_ter",
+   "tx": 3,
+   "ty": 5
   },
   {
    "map": "village",
    "x": 24,
    "y": 21,
-   "script": "door_tiang"
+   "to": "tiang",
+   "tx": 3,
+   "ty": 4
   },
   {
    "map": "market",
    "x": 18,
    "y": 4,
-   "script": "door_ramen"
+   "to": "ramen",
+   "tx": 6,
+   "ty": 11
+  },
+  {
+   "map": "kku",
+   "x": 12,
+   "y": 7,
+   "to": "lecture",
+   "tx": 8,
+   "ty": 7
+  },
+  {
+   "map": "kku",
+   "x": 33,
+   "y": 7,
+   "to": "kku_shop",
+   "tx": 10,
+   "ty": 14,
+   "need": [
+    "tr_wak1",
+    "tr_wak2"
+   ],
+   "script": "shop_door"
+  },
+  {
+   "map": "kku",
+   "x": 8,
+   "y": 22,
+   "to": "canteen",
+   "tx": 8,
+   "ty": 8
+  },
+  {
+   "map": "kku",
+   "x": 18,
+   "y": 22,
+   "to": "mookata",
+   "tx": 4,
+   "ty": 7
+  },
+  {
+   "map": "kku",
+   "x": 27,
+   "y": 22,
+   "to": "dorm",
+   "tx": 4,
+   "ty": 6
   }
  ],
  "signs": [
@@ -182,17 +487,77 @@
    "x": 17,
    "y": 6,
    "text": "ร้านราเมงลมทุ่ง — ฐานแก๊งพี่ออสซี่ (ยิม 1)"
+  },
+  {
+   "map": "market",
+   "x": 22,
+   "y": 7,
+   "text": "ป้ายรถสองแถว ตลาดนัดตำบล – มหาวิทยาลัยขอนแก่น"
+  },
+  {
+   "map": "kku",
+   "x": 1,
+   "y": 12,
+   "text": "ป้ายรถสองแถว มข. – ตลาดนัดตำบล"
+  },
+  {
+   "map": "kku",
+   "x": 9,
+   "y": 9,
+   "text": "คณะวิศวกรรมศาสตร์ — ตึกเรียนรวม ห้องแล็บเคมีอยู่ชั้นนี้"
+  },
+  {
+   "map": "kku",
+   "x": 21,
+   "y": 2,
+   "text": "ลานจอดรถจักรยานยนต์ ห้ามจอดขวางทางเดิน"
+  },
+  {
+   "map": "kku",
+   "x": 32,
+   "y": 9,
+   "text": "โรงช็อปวิศวะ — เขตพี่ว้าก ผ่านไม่ได้ถ้ายังไม่ชนะพี่ว้ากทั้งสองคน!"
+  },
+  {
+   "map": "kku",
+   "x": 14,
+   "y": 22,
+   "text": "โรงอาหารวิศวะ — น้ำปั่นอิงอิงอร่อยที่สุดในคณะ!"
+  },
+  {
+   "map": "kku",
+   "x": 16,
+   "y": 18,
+   "text": "หมูกระทะลุงเฉลิม — รับคูปองเลี้ยงน้องวิศวะ"
+  },
+  {
+   "map": "kku",
+   "x": 33,
+   "y": 24,
+   "text": "บึงสีฐาน — ห้ามให้อาหารปลาเกินวันละสามถุง"
+  },
+  {
+   "map": "kku",
+   "x": 42,
+   "y": 13,
+   "text": "สะพานข้ามลำน้ำพอง ปิดซ่อม (เปิดให้ผู้ที่มีตราเฟือง) → ทางไปโรงพยาบาลอำเภอ"
+  },
+  {
+   "map": "kku",
+   "x": 42,
+   "y": 18,
+   "text": "ระวัง! น้องวิศวะชอบเดินหลงในหญ้ารก ชวนเข้าแก๊งได้ด้วยคูปองหมูกระทะ"
   }
  ],
  "npcs": [
   {
    "id": "mom",
    "name": "แม่",
-   "map": "village",
-   "x": 6,
-   "y": 11,
+   "map": "home",
+   "x": 2,
+   "y": 3,
    "look": "mom",
-   "dir": "left",
+   "dir": "right",
    "script": "mom"
   },
   {
@@ -252,9 +617,9 @@
   {
    "id": "samorn",
    "name": "ป้าสมร",
-   "map": "village",
-   "x": 21,
-   "y": 11,
+   "map": "store",
+   "x": 4,
+   "y": 3,
    "look": "samorn",
    "dir": "down",
    "script": "samorn"
@@ -262,9 +627,9 @@
   {
    "id": "nual",
    "name": "ป้านวล อสม.",
-   "map": "village",
-   "x": 27,
-   "y": 11,
+   "map": "osm",
+   "x": 4,
+   "y": 3,
    "look": "nual",
    "dir": "down",
    "script": "nual"
@@ -282,9 +647,9 @@
   {
    "id": "monk",
    "name": "หลวงตา",
-   "map": "village",
-   "x": 9,
-   "y": 4,
+   "map": "temple",
+   "x": 5,
+   "y": 3,
    "look": "monk",
    "dir": "down",
    "script": "monk"
@@ -462,11 +827,11 @@
   {
    "id": "hench2",
    "name": "ลูกน้องแก๊งเปา",
-   "map": "market",
-   "x": 18,
+   "map": "ramen",
+   "x": 10,
    "y": 7,
    "look": "henchman2",
-   "dir": "down",
+   "dir": "left",
    "script": "trainer",
    "trainer": {
     "name": "ลูกน้องแก๊งเปา",
@@ -481,10 +846,10 @@
      ]
     ],
     "money": 140,
-    "sight": 2,
+    "sight": 6,
     "flag": "tr_hench2",
     "intro": "จะพบพี่ออสซี่ต้องผ่านเราก่อน!",
-    "lose": "เชิญ... พี่รออยู่ข้างใน"
+    "lose": "ม่านที่ลมพัดไหวเท่านั้นคือทางจริง... อุ๊บ! เผลอบอกไปแล้ว"
    }
   },
   {
@@ -506,6 +871,985 @@
    "look": "samorn",
    "dir": "up",
    "script": "vendor2"
+  },
+  {
+   "id": "bee_mom",
+   "name": "แม่บี",
+   "map": "house_bee",
+   "x": 4,
+   "y": 3,
+   "look": "beemom",
+   "dir": "down",
+   "script": "bee_mom"
+  },
+  {
+   "id": "am_dad",
+   "name": "พ่อแอม",
+   "map": "house_am",
+   "x": 3,
+   "y": 3,
+   "look": "amdad",
+   "dir": "down",
+   "script": "am_dad"
+  },
+  {
+   "id": "tle_mom",
+   "name": "แม่เติ้ล",
+   "map": "house_tle",
+   "x": 3,
+   "y": 3,
+   "look": "tlemom",
+   "dir": "down",
+   "script": "tle_mom"
+  },
+  {
+   "id": "ter_yai",
+   "name": "ยายเต๋อ",
+   "map": "house_ter",
+   "x": 4,
+   "y": 3,
+   "look": "teryai",
+   "dir": "down",
+   "script": "ter_yai"
+  },
+  {
+   "id": "classmate",
+   "name": "เด็กนักเรียนต่าย",
+   "map": "school",
+   "x": 6,
+   "y": 4,
+   "look": "student2",
+   "dir": "up",
+   "script": "classmate"
+  },
+  {
+   "id": "novice",
+   "name": "เณรน้อย",
+   "map": "temple",
+   "x": 2,
+   "y": 5,
+   "look": "novice",
+   "dir": "right",
+   "script": "novice"
+  },
+  {
+   "id": "rival2",
+   "name": "โจ้",
+   "map": "field",
+   "x": 17,
+   "y": 15,
+   "look": "rival",
+   "dir": "left",
+   "script": "trainer",
+   "showIf": "rival1_done",
+   "hideIf": "rival2_done",
+   "trainer": {
+    "name": "โจ้ แก๊งบ้านเหนือ",
+    "dyn": "rival2",
+    "team": [],
+    "money": 150,
+    "sight": 3,
+    "flag": "rival2_done",
+    "intro": "จะไปหาคางคกเจ้าหนองเหรอ ข้ามศพโจ้ไปก่อน! คราวนี้ฝึกมาแล้วนะ!",
+    "lose": "แพ้อีกแล้ว... ไปเลยๆ เดี๋ยวคางคกก็เล่นงานเองแหละ!"
+   }
+  },
+  {
+   "id": "cook",
+   "name": "กุ๊กราเมง",
+   "map": "ramen",
+   "x": 12,
+   "y": 3,
+   "look": "cook",
+   "dir": "down",
+   "script": "cook"
+  },
+  {
+   "id": "ossie",
+   "name": "พี่ออสซี่",
+   "map": "ramen",
+   "x": 7,
+   "y": 3,
+   "look": "ossie",
+   "dir": "down",
+   "script": "ossie"
+  },
+  {
+   "id": "hench3",
+   "name": "ลูกน้องแก๊งโต้ง",
+   "map": "ramen",
+   "x": 1,
+   "y": 5,
+   "look": "henchman",
+   "dir": "right",
+   "script": "trainer",
+   "trainer": {
+    "name": "ลูกน้องแก๊งโต้ง",
+    "team": [
+     [
+      "krahang",
+      8
+     ],
+     [
+      "kongkoi",
+      8
+     ]
+    ],
+    "money": 140,
+    "sight": 5,
+    "flag": "tr_hench3",
+    "intro": "ผ่านม่านมาได้เหรอ! แต่ผ่านเราไม่ได้หรอก!",
+    "lose": "พี่ออสซี่... ขอโทษครับ"
+   }
+  },
+  {
+   "id": "driver",
+   "name": "ลุงสองแถว",
+   "map": "market",
+   "x": 20,
+   "y": 9,
+   "look": "driver",
+   "dir": "up",
+   "script": "driver"
+  },
+  {
+   "id": "driver2",
+   "name": "ลุงสองแถว",
+   "map": "kku",
+   "x": 4,
+   "y": 15,
+   "look": "driver",
+   "dir": "up",
+   "script": "driver2"
+  },
+  {
+   "id": "guard",
+   "name": "ยามสมพงษ์",
+   "map": "kku",
+   "x": 14,
+   "y": 12,
+   "look": "guard",
+   "dir": "left",
+   "script": "guard"
+  },
+  {
+   "id": "gossip1",
+   "name": "พี่ปีสองแนท",
+   "map": "kku",
+   "x": 22,
+   "y": 12,
+   "look": "eng:eng_ie:7",
+   "dir": "right",
+   "script": "gossip1"
+  },
+  {
+   "id": "gossip2",
+   "name": "พี่ปีสองบุ๋ม",
+   "map": "kku",
+   "x": 23,
+   "y": 12,
+   "look": "eng:eng_env:1",
+   "dir": "left",
+   "script": "gossip2"
+  },
+  {
+   "id": "dog",
+   "name": "เจ้าน็อต",
+   "map": "kku",
+   "x": 17,
+   "y": 13,
+   "look": "dog",
+   "dir": "down",
+   "script": "dog"
+  },
+  {
+   "id": "freshy",
+   "name": "น้องปีหนึ่งหลงทาง",
+   "map": "kku",
+   "x": 28,
+   "y": 13,
+   "look": "eng:eng_civil:3",
+   "dir": "down",
+   "script": "freshy"
+  },
+  {
+   "id": "wak1",
+   "name": "พี่ว้ากหนวด",
+   "map": "kku",
+   "x": 30,
+   "y": 8,
+   "look": "wak1",
+   "dir": "right",
+   "script": "trainer",
+   "trainer": {
+    "name": "พี่ว้ากหนวด",
+    "team": [
+     [
+      "eng_civil",
+      14
+     ],
+     [
+      "eng_ie",
+      15
+     ]
+    ],
+    "money": 300,
+    "sight": 3,
+    "flag": "tr_wak1",
+    "intro": "น้องงงงง! หยุดเดี๋ยวนี้! ใครอนุญาตให้เดินเข้าเขตโรงช็อป!",
+    "lose": "ก็... ใช้ได้นี่หว่า ผ่านไปได้ครึ่งทางแล้วนะน้อง"
+   }
+  },
+  {
+   "id": "wak2",
+   "name": "พี่ว้ากเสียงหลง",
+   "map": "kku",
+   "x": 36,
+   "y": 8,
+   "look": "wak2",
+   "dir": "left",
+   "script": "trainer",
+   "trainer": {
+    "name": "พี่ว้ากเสียงหลง",
+    "team": [
+     [
+      "eng_mech",
+      15
+     ],
+     [
+      "eng_elec",
+      15
+     ]
+    ],
+    "money": 300,
+    "sight": 3,
+    "flag": "tr_wak2",
+    "intro": "เสียงไม่ดังพอ! ตะโกนชื่อคณะมาสิบรอบ! ...ไม่ทำเหรอ งั้นสู้!",
+    "lose": "เสียงพี่หายแล้ว... เข้าไปเถอะ พี่เฟรนด์รออยู่ในโรงช็อป"
+   }
+  },
+  {
+   "id": "senior1",
+   "name": "รุ่นพี่ปีสี่เจมส์",
+   "map": "kku",
+   "x": 10,
+   "y": 26,
+   "look": "eng:eng_chem:6",
+   "dir": "down",
+   "script": "trainer",
+   "trainer": {
+    "name": "รุ่นพี่ปีสี่เจมส์",
+    "team": [
+     [
+      "eng_chem",
+      13
+     ],
+     [
+      "eng_env",
+      14
+     ]
+    ],
+    "money": 220,
+    "sight": 3,
+    "flag": "tr_senior1",
+    "intro": "ปีสี่แล้วยังไม่จบ เครียดมาก! ขอระบายหน่อย!",
+    "lose": "แพ้เด็กประถม... ไปทำโปรเจกต์ต่อดีกว่า"
+   }
+  },
+  {
+   "id": "senior2",
+   "name": "นักศึกษาโยธาภูผา",
+   "map": "kku",
+   "x": 41,
+   "y": 13,
+   "look": "eng:eng_civil:0",
+   "dir": "up",
+   "script": "trainer",
+   "trainer": {
+    "name": "นักศึกษาโยธาภูผา",
+    "team": [
+     [
+      "eng_civil",
+      14
+     ],
+     [
+      "eng_mech",
+      13
+     ]
+    ],
+    "money": 220,
+    "sight": 4,
+    "flag": "tr_senior2",
+    "intro": "มาวัดที่ทำสะพานด้วยกันไหม! ไม่มาก็สู้!",
+    "lose": "สะพานยังซ่อมไม่เสร็จหรอก ต้องให้พี่เฟรนด์อนุญาตก่อน"
+   }
+  },
+  {
+   "id": "kitem1",
+   "name": "ของตกอยู่",
+   "map": "kku",
+   "x": 41,
+   "y": 2,
+   "look": "item",
+   "dir": "down",
+   "script": "item",
+   "item": "herb_big",
+   "flag": "kit1",
+   "hideIf": "kit1"
+  },
+  {
+   "id": "kitem2",
+   "name": "ของตกอยู่",
+   "map": "kku",
+   "x": 2,
+   "y": 31,
+   "look": "item",
+   "dir": "down",
+   "script": "item",
+   "item": "coupon",
+   "flag": "kit2",
+   "hideIf": "kit2"
+  },
+  {
+   "id": "kitem3",
+   "name": "ของตกอยู่",
+   "map": "kku",
+   "x": 35,
+   "y": 30,
+   "look": "item",
+   "dir": "down",
+   "script": "item",
+   "item": "melon_shake",
+   "flag": "kit3",
+   "hideIf": "kit3"
+  },
+  {
+   "id": "kitem4",
+   "name": "ของตกอยู่",
+   "map": "kku",
+   "x": 25,
+   "y": 2,
+   "look": "item",
+   "dir": "down",
+   "script": "item",
+   "item": "rice_pork",
+   "flag": "kit4",
+   "hideIf": "kit4"
+  },
+  {
+   "id": "prof",
+   "name": "อาจารย์สมศักดิ์",
+   "map": "lecture",
+   "x": 4,
+   "y": 2,
+   "look": "prof",
+   "dir": "down",
+   "script": "prof"
+  },
+  {
+   "id": "studentk",
+   "name": "นักศึกษาหลับในห้อง",
+   "map": "lecture",
+   "x": 6,
+   "y": 4,
+   "look": "eng:eng_mech:5",
+   "dir": "up",
+   "script": "sleepy"
+  },
+  {
+   "id": "ungying",
+   "name": "อุ๋งอิ๋ง",
+   "map": "lecture",
+   "x": 13,
+   "y": 3,
+   "look": "ungying",
+   "dir": "down",
+   "script": "ungying",
+   "hideIf": "ungying_joined"
+  },
+  {
+   "id": "ingying",
+   "name": "อิงอิง",
+   "map": "canteen",
+   "x": 2,
+   "y": 2,
+   "look": "ingying",
+   "dir": "down",
+   "script": "ingying"
+  },
+  {
+   "id": "chicken",
+   "name": "ป้าข้าวมันไก่",
+   "map": "canteen",
+   "x": 6,
+   "y": 2,
+   "look": "samorn",
+   "dir": "down",
+   "script": "chicken"
+  },
+  {
+   "id": "coop",
+   "name": "พี่สหกรณ์",
+   "map": "canteen",
+   "x": 10,
+   "y": 2,
+   "look": "coop",
+   "dir": "down",
+   "script": "coop"
+  },
+  {
+   "id": "noodle",
+   "name": "ลุงก๋วยเตี๋ยว",
+   "map": "canteen",
+   "x": 14,
+   "y": 2,
+   "look": "vendor",
+   "dir": "down",
+   "script": "noodle"
+  },
+  {
+   "id": "eater1",
+   "name": "น้องวิศวะกินข้าว",
+   "map": "canteen",
+   "x": 8,
+   "y": 6,
+   "look": "eng:eng_elec:4",
+   "dir": "left",
+   "script": "eater1"
+  },
+  {
+   "id": "eater2",
+   "name": "พี่ปีสามกินน้ำปั่น",
+   "map": "canteen",
+   "x": 11,
+   "y": 4,
+   "look": "eng:eng_mech:2",
+   "dir": "down",
+   "script": "eater2"
+  },
+  {
+   "id": "mkowner",
+   "name": "ลุงเฉลิม",
+   "map": "mookata",
+   "x": 4,
+   "y": 3,
+   "look": "mkowner",
+   "dir": "down",
+   "script": "mkowner"
+  },
+  {
+   "id": "mkguest1",
+   "name": "น้องวิศวะหิวโซ",
+   "map": "mookata",
+   "x": 1,
+   "y": 4,
+   "look": "eng:eng_civil:5",
+   "dir": "right",
+   "script": "mkguest"
+  },
+  {
+   "id": "mkguest2",
+   "name": "น้องวิศวะหิวโซ",
+   "map": "mookata",
+   "x": 8,
+   "y": 6,
+   "look": "eng:eng_chem:1",
+   "dir": "left",
+   "script": "mkguest"
+  },
+  {
+   "id": "roommate",
+   "name": "รูมเมทบอย",
+   "map": "dorm",
+   "x": 4,
+   "y": 4,
+   "look": "eng:eng_ie:6",
+   "dir": "down",
+   "script": "roommate"
+  },
+  {
+   "id": "fresh1",
+   "name": "น้องปีหนึ่งต้นข้าว",
+   "map": "kku_shop",
+   "x": 5,
+   "y": 13,
+   "look": "eng:eng_ie:2",
+   "dir": "right",
+   "script": "trainer",
+   "trainer": {
+    "name": "น้องปีหนึ่งต้นข้าว",
+    "team": [
+     [
+      "eng_ie",
+      14
+     ],
+     [
+      "eng_env",
+      14
+     ]
+    ],
+    "money": 200,
+    "sight": 6,
+    "flag": "tr_fresh1",
+    "intro": "พี่เฟรนด์สั่งว่าห้ามใครผ่าน! ระวังพื้นน้ำมันลื่นด้วยนะ!",
+    "lose": "ลื่นล้มเองเลย..."
+   }
+  },
+  {
+   "id": "fresh2",
+   "name": "น้องปีหนึ่งสายพาน",
+   "map": "kku_shop",
+   "x": 17,
+   "y": 7,
+   "look": "eng:eng_mech:7",
+   "dir": "left",
+   "script": "trainer",
+   "trainer": {
+    "name": "น้องปีหนึ่งสายพาน",
+    "team": [
+     [
+      "eng_mech",
+      15
+     ],
+     [
+      "eng_chem",
+      14
+     ]
+    ],
+    "money": 220,
+    "sight": 3,
+    "flag": "tr_fresh2",
+    "intro": "สายพานนี้พาไปทางซ้ายเสมอ แต่ผมพาน้องไปแพ้!",
+    "lose": "ประตูใหญ่ข้างหลังผมเปิดด้วยไฟจากห้องคัตเอาต์นะ"
+   }
+  },
+  {
+   "id": "fresh3",
+   "name": "น้องปีหนึ่งไฟดับ",
+   "map": "kku_shop",
+   "x": 8,
+   "y": 4,
+   "look": "eng:eng_elec:1",
+   "dir": "left",
+   "script": "trainer",
+   "trainer": {
+    "name": "น้องปีหนึ่งไฟดับ",
+    "team": [
+     [
+      "eng_elec",
+      15
+     ],
+     [
+      "eng_civil",
+      15
+     ]
+    ],
+    "money": 240,
+    "sight": 6,
+    "flag": "tr_fresh3",
+    "intro": "มืดแบบนี้ผมก็สู้ได้! เพราะผมเรียนไฟฟ้า!",
+    "lose": "สับคัตเอาต์ตัวไหน ไฟดวงนั้นกับดวงข้างๆ จะสลับกันนะ"
+   }
+  },
+  {
+   "id": "friend",
+   "name": "พี่เฟรนด์",
+   "map": "kku_shop",
+   "x": 15,
+   "y": 2,
+   "look": "friend",
+   "dir": "down",
+   "script": "friend"
+  }
+ ],
+ "rides": [
+  {
+   "map": "market",
+   "npc": "driver",
+   "to": "kku",
+   "tx": 5,
+   "ty": 13,
+   "dir": "down"
+  },
+  {
+   "map": "kku",
+   "npc": "driver2",
+   "to": "market",
+   "tx": 21,
+   "ty": 8,
+   "dir": "left"
+  }
+ ],
+ "gates": [
+  {
+   "map": "kku",
+   "x": 44,
+   "y": 15,
+   "flag": "gym2_done"
+  },
+  {
+   "map": "kku",
+   "x": 44,
+   "y": 16,
+   "flag": "gym2_done"
+  },
+  {
+   "map": "kku_shop",
+   "x": 14,
+   "y": 6,
+   "flag": "shop_gate"
+  },
+  {
+   "map": "kku_shop",
+   "x": 15,
+   "y": 6,
+   "flag": "shop_gate"
+  }
+ ],
+ "curtains": [
+  {
+   "map": "ramen",
+   "y": 10,
+   "ok": [
+    2
+   ],
+   "tx": 6,
+   "ty": 11
+  },
+  {
+   "map": "ramen",
+   "y": 6,
+   "ok": [
+    11
+   ],
+   "tx": 6,
+   "ty": 11
+  }
+ ],
+ "lamps": [
+  {
+   "map": "kku_shop",
+   "x": 2,
+   "y": 1,
+   "i": 0
+  },
+  {
+   "map": "kku_shop",
+   "x": 4,
+   "y": 1,
+   "i": 1
+  },
+  {
+   "map": "kku_shop",
+   "x": 6,
+   "y": 1,
+   "i": 2
+  },
+  {
+   "map": "kku_shop",
+   "x": 8,
+   "y": 1,
+   "i": 3
+  }
+ ],
+ "objects": [
+  {
+   "map": "home",
+   "x": 8,
+   "y": 2,
+   "script": "bed",
+   "label": "นอนพัก (ฟื้นพลัง/บันทึก)"
+  },
+  {
+   "map": "home",
+   "x": 6,
+   "y": 2,
+   "script": "tv",
+   "label": "ดูทีวี"
+  },
+  {
+   "map": "osm",
+   "x": 1,
+   "y": 2,
+   "script": "osm_bed",
+   "label": "นอนพักให้ป้านวลรักษา"
+  },
+  {
+   "map": "osm",
+   "x": 3,
+   "y": 2,
+   "script": "osm_bed",
+   "label": "นอนพักให้ป้านวลรักษา"
+  },
+  {
+   "map": "osm",
+   "x": 5,
+   "y": 2,
+   "script": "osm_bed",
+   "label": "นอนพักให้ป้านวลรักษา"
+  },
+  {
+   "map": "temple",
+   "x": 4,
+   "y": 2,
+   "script": "altar",
+   "label": "ไหว้พระ"
+  },
+  {
+   "map": "temple",
+   "x": 5,
+   "y": 2,
+   "script": "altar",
+   "label": "ไหว้พระ"
+  },
+  {
+   "map": "temple",
+   "x": 6,
+   "y": 2,
+   "script": "altar",
+   "label": "ไหว้พระ"
+  },
+  {
+   "map": "school",
+   "x": 3,
+   "y": 1,
+   "script": "blackboard",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "school",
+   "x": 4,
+   "y": 1,
+   "script": "blackboard",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "school",
+   "x": 5,
+   "y": 1,
+   "script": "blackboard",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "school",
+   "x": 6,
+   "y": 1,
+   "script": "blackboard",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "school",
+   "x": 7,
+   "y": 1,
+   "script": "blackboard",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "school",
+   "x": 8,
+   "y": 1,
+   "script": "blackboard",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "tiang",
+   "x": 1,
+   "y": 2,
+   "script": "storage",
+   "label": "คลังแก๊ง (ฝาก/รับ)"
+  },
+  {
+   "map": "tiang",
+   "x": 3,
+   "y": 2,
+   "script": "storage",
+   "label": "คลังแก๊ง (ฝาก/รับ)"
+  },
+  {
+   "map": "tiang",
+   "x": 5,
+   "y": 2,
+   "script": "storage",
+   "label": "คลังแก๊ง (ฝาก/รับ)"
+  },
+  {
+   "map": "house_am",
+   "x": 3,
+   "y": 2,
+   "script": "am_pc",
+   "label": "ดูคอมพ์แอม"
+  },
+  {
+   "map": "kku_shop",
+   "x": 2,
+   "y": 2,
+   "script": "switch",
+   "label": "สับคัตเอาต์",
+   "arg": 0
+  },
+  {
+   "map": "kku_shop",
+   "x": 4,
+   "y": 2,
+   "script": "switch",
+   "label": "สับคัตเอาต์",
+   "arg": 1
+  },
+  {
+   "map": "kku_shop",
+   "x": 6,
+   "y": 2,
+   "script": "switch",
+   "label": "สับคัตเอาต์",
+   "arg": 2
+  },
+  {
+   "map": "kku_shop",
+   "x": 8,
+   "y": 2,
+   "script": "switch",
+   "label": "สับคัตเอาต์",
+   "arg": 3
+  },
+  {
+   "map": "kku_shop",
+   "x": 5,
+   "y": 5,
+   "script": "shop_hint",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "dorm",
+   "x": 1,
+   "y": 2,
+   "script": "bed",
+   "label": "นอนพัก (ฟื้นพลัง/บันทึก)"
+  },
+  {
+   "map": "dorm",
+   "x": 3,
+   "y": 2,
+   "script": "bed",
+   "label": "นอนพัก (ฟื้นพลัง/บันทึก)"
+  },
+  {
+   "map": "dorm",
+   "x": 7,
+   "y": 2,
+   "script": "storage",
+   "label": "คอมหอ: คลังแก๊ง"
+  },
+  {
+   "map": "lecture",
+   "x": 2,
+   "y": 1,
+   "script": "eng_board",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "lecture",
+   "x": 3,
+   "y": 1,
+   "script": "eng_board",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "lecture",
+   "x": 4,
+   "y": 1,
+   "script": "eng_board",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "lecture",
+   "x": 5,
+   "y": 1,
+   "script": "eng_board",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "lecture",
+   "x": 6,
+   "y": 1,
+   "script": "eng_board",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "lecture",
+   "x": 7,
+   "y": 1,
+   "script": "eng_board",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "lecture",
+   "x": 14,
+   "y": 2,
+   "script": "chem_shelf",
+   "label": "ดูชั้นสารเคมี"
+  },
+  {
+   "map": "kku",
+   "x": 1,
+   "y": 21,
+   "script": "vending",
+   "label": "ตู้กดน้ำ"
+  },
+  {
+   "map": "kku",
+   "x": 14,
+   "y": 21,
+   "script": "vending",
+   "label": "ตู้กดน้ำ"
+  },
+  {
+   "map": "kku",
+   "x": 12,
+   "y": 10,
+   "script": "gear_statue",
+   "label": "ดูอนุสาวรีย์เฟือง"
+  },
+  {
+   "map": "kku",
+   "x": 2,
+   "y": 15,
+   "script": "songthaew",
+   "label": "ดูรถสองแถว"
+  },
+  {
+   "map": "kku",
+   "x": 3,
+   "y": 15,
+   "script": "songthaew",
+   "label": "ดูรถสองแถว"
+  },
+  {
+   "map": "market",
+   "x": 21,
+   "y": 9,
+   "script": "songthaew",
+   "label": "ดูรถสองแถว"
+  },
+  {
+   "map": "market",
+   "x": 22,
+   "y": 9,
+   "script": "songthaew",
+   "label": "ดูรถสองแถว"
+  },
+  {
+   "map": "canteen",
+   "x": 1,
+   "y": 2,
+   "script": "blender",
+   "label": "ดูเครื่องปั่น"
+  },
+  {
+   "map": "canteen",
+   "x": 3,
+   "y": 2,
+   "script": "blender",
+   "label": "ดูเครื่องปั่น"
   }
  ]
 }
