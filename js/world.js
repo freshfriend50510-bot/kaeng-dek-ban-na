@@ -301,7 +301,8 @@
       }
     }
     // สุ่มเจอผีสางในนาข้าว / น้องวิศวะในหญ้ารก
-    if (W.def.encounter && (W.def.encTiles || 'Tgv').includes(here) && G.rng() < (W.def.encRate || 0.14)) {
+    if (W.encCD > 0) W.encCD--;   // เพิ่งสู้ไป เดินได้อีกสักพักก่อนเจอตัวใหม่
+    else if (W.def.encounter && (W.def.encTiles || 'Tgv').includes(here) && G.rng() < (W.def.encRate || 0.14)) {
       const table = G.DATA.encounters[W.map];
       const night = G.isNight(), wet = G.raining();
       const weight = (e) => (night ? e.night : e.day) * (wet && G.DATA.species[e.sp].type === 'water' ? 2.5 : 1);   // ฝนตก ผีน้ำออกมาเยอะ
@@ -313,6 +314,7 @@
           const lv = G.rng.int(e.min, e.max);
           const lead = S.party.find((m) => m.hp > 0);
           if (S.repel > 0 && lead && lv < lead.lv) return;
+          W.encCD = 5;
           G.runScript('wild', e.sp, lv);
           return;
         }
