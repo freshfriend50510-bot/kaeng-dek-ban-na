@@ -38,6 +38,27 @@
     await SCRIPTS.enter(to);
   };
 
+  // จบด่าน: ให้ผู้เล่นเลือกเองว่าจะชวนเด็กบ้านนาคนไหนเข้าแก๊ง (เข้ามาที่เลเวล 10)
+  const JOIN_LV = 10;
+  async function pickKid(flag, who) {
+    if (F()[flag]) return;
+    const left = KIDS.filter((k) => !has(k));
+    if (!left.length) { F()[flag] = true; return; }
+    await say(left.length === 1 ? `${G.DATA.species[left[0]].name}วิ่งมาหา อยากเข้าแก๊งด้วย!` : 'เด็กๆ ในหมู่บ้านได้ข่าวว่าแก๊งเราชนะอีกแล้ว หลายคนอยากเข้าแก๊งด้วย!', who);
+    for (;;) {
+      const i = await G.ui.choose(left.map((k) => ({ icon: k, label: G.DATA.species[k].name, sub: `${G.TYPE_TH[G.DATA.species[k].type]} · Lv${JOIN_LV}` })),
+        { title: 'ชวนใครเข้าแก๊ง? (เลือกได้หนึ่งคน)', cls: 'starter', cancel: false, info: (j) => G.DATA.species[left[j]].desc });
+      const k = left[i], sp = G.DATA.species[k];
+      await say(KID_LINES[k][0], sp.name);
+      if (!(await G.ui.confirm(`ชวน${sp.name}เข้าแก๊งใช่ไหม?`))) continue;
+      recruit(G.makeMon(k, JOIN_LV));
+      F()[flag] = true; G.sfx('level');
+      await say(KID_LINES[k][1], sp.name);
+      await say(`${sp.name} เข้าแก๊งแล้ว! (Lv ${JOIN_LV})${S().party.some((m) => m.sp === k) ? '' : ' ทีมเต็ม เลยไปรออยู่ในคลังแก๊ง'}`);
+      return k;
+    }
+  }
+
   async function blackout() {
     await say('ทุกคนหมดแรง... ฟ้ามืดลงต่อหน้าต่อตา');
     const lost = Math.floor(S().money * 0.1);
@@ -166,16 +187,7 @@
       G.rainFor(500);
       await say('บั้งไฟพุ่งทะลุเมฆ แล้วฝนก็โปรยลงมาเย็นฉ่ำทั้งหมู่บ้าน! ไกลๆ ได้ยินเสียงคางคกร้องอ๊บๆ อย่างพอใจ');
       G.music(G.world.def.music);
-      const order = KIDS.indexOf(S().starter);
-      const k = KIDS[(order + 2) % 4], sp = G.DATA.species[k];
-      if (!has(k)) {
-        await say(`${S().name}! เราดูมาตั้งนานแล้ว แก๊งนี้สนุกที่สุดในหมู่บ้าน ขอเข้าด้วยคนนะ!`, sp.name);
-        const lead = S().party.reduce((a, m) => Math.max(a, m.lv), 1);
-        recruit(G.makeMon(k, Math.max(10, lead - 1)));
-        G.sfx('level');
-        await say(`${sp.name} เข้าแก๊งแล้ว! ตอนนี้แก๊งมีเด็กบ้านนาสามคนแล้ว`);
-        F().member3_joined = true;
-      }
+      await pickKid('member3_joined');   // ปกติเลือกไปแล้วตอนชนะพี่ออสซี่ (กันเซฟเก่า)
       await G.ui.sayAll(['พี่ออสซี่บอกว่าคนต่อไปคือพี่เฟรนด์ หัวโจกวิศวะที่มหาวิทยาลัยขอนแก่น', 'ลุงสองแถวที่ตลาดนัดตำบลวิ่งรถไป มข. ทุกวัน ไปนั่งรถลุงเขาได้เลย',
         'เอานี่ไป ค่าขนมเดินทาง'], 'ผู้ใหญ่บ้านสมบัติ');
       S().money += 500; G.sfx('buy'); await say('ได้รับเงิน 500 บาท');
@@ -320,14 +332,8 @@
       F().boss1_done = true; G.refreshNpcs();
       G.rainFor(400); G.sfx('level');
       await say('ฟ้าคำราม แล้วฝนก็เทลงมาเป็นครั้งแรกในรอบสามเดือน!');
-      const order = KIDS.indexOf(S().starter);
-      const k = KIDS[(order + 1) % 4], sp = G.DATA.species[k];
-      await say(`${S().name}! เห็นนะว่าเก่งแค่ไหน ให้เราเข้าแก๊งด้วยคน!`, sp.name);
-      recruit(G.makeMon(k, Math.max(6, S().party[0].lv - 1)));
-      G.sfx('level');
-      await say(`${sp.name} เข้าแก๊งแล้ว!`);
-      F().member2_joined = true;
-      await say('ทางคันนาข้ามหนองไปตลาดนัดตำบลเปิดแล้ว ได้ยินว่าแก๊งพี่ออสซี่คุมร้านราเมงที่นั่น...', sp.name);
+      const k = await pickKid('member2_joined');
+      await say('ทางคันนาข้ามหนองไปตลาดนัดตำบลเปิดแล้ว ได้ยินว่าแก๊งพี่ออสซี่คุมร้านราเมงที่นั่น...', k ? G.DATA.species[k].name : S().name);
     },
     // ---------- ตลาดนัด ยิม 1 ----------
     async vendor() { await say(F().gym1_done ? 'ตั้งแต่แก๊งพี่ออสซี่เลิกคุมตลาด ลูกชิ้นขายดีขึ้นเท่าตัว!' : 'ตลาดนัดตำบลคึกคักทุกวันเสาร์ แต่ช่วงนี้แก๊งพี่ออสซี่มาเดินคุม ใครก็ไม่กล้าเข้าร้านราเมง', 'พ่อค้าลูกชิ้น'); },
@@ -353,6 +359,7 @@
       await say('ได้รับ ตราผ้าโพก!');
       await say('แล้วก็นี่ ท่าลับของพี่ สอนให้เพื่อนธาตุลมในแก๊งได้ทุกคน', 'พี่ออสซี่');
       await give('tm_wind_blade', 1);
+      await pickKid('member3_joined');
       await G.ui.sayAll(['ต่อไปน้องต้องไปเจอพี่เฟรนด์ วิศวะเครื่องกลหัวไม้ที่ มข. ระวังไฟช็อตล่ะ ฮ่าๆ', 'แต่ก่อนไป กลับไปฉลองที่หมู่บ้านก่อนสิ ได้ยินว่าจะจุดบั้งไฟกันนี่'], 'พี่ออสซี่');
     },
     async driver() {
@@ -458,6 +465,7 @@
     async friend(n) {
       const ung = inParty('ungying');
       if (F().gym2_done) {
+        if (!F().member4_joined) await pickKid('member4_joined');
         if (ung) await say('...ดูแลอุ๋งอิ๋งดีๆ ล่ะ ไม่ใช่ว่าพี่ห่วงหรอกนะ แค่... ช่างเถอะ ไปไกลๆ เลย', n.name);
         else await say('ไปเจอพี่บูมให้ได้นะ หมอนั่นตีแรงกว่าที่เห็นเยอะ', n.name);
         return;
@@ -486,6 +494,7 @@
       await say('ได้รับ ตราเฟือง!');
       await say('แล้วก็ท่าลับของพี่ ช็อตวงจร สอนให้เพื่อนธาตุสายฟ้าได้ทุกคน', n.name);
       await give('tm_short_circuit', 1);
+      await pickKid('member4_joined');
       if (ung) {
         await say('เฟรนด์... เราขอโทษจริงๆ นะ เรื่องวันนั้นเราผิดเอง', 'อุ๋งอิ๋ง');
         await say('......อือ ได้ยินแล้ว ไปช่วยเด็กพวกนี้ให้ดีๆ ล่ะ แค่นั้นแหละ', n.name);
