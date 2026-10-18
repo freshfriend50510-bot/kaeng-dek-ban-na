@@ -147,7 +147,8 @@
     return { s, fixes };
   };
   const playTime = (ms) => { const m = Math.floor(ms / 60000); return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')} ชม.`; };
-  G.slotSummary = (n) => {
+  G.slotSummary = (n) => { try { return slotSummary(n); } catch (e) { console.error(e); return { label: `ช่อง ${n} — อ่านเซฟไม่ได้`, sub: '', empty: true }; } };
+  const slotSummary = (n) => {
     const s = G.loadSave(n);
     if (!s) return { label: `ช่อง ${n} — ว่าง`, sub: '', empty: true };
     const badges = ['gym1', 'gym2', 'gym3', 'gym4'].filter((f) => s.flags[f + '_done']).length;
@@ -234,7 +235,22 @@
   });
 
   // ---------- หน้าจอเริ่ม ----------
+  // หน้าแรกห้ามค้าง: ถ้าเมนูปกติพัง (เช่น เซฟในเบราว์เซอร์เสีย) แสดงข้อผิดพลาดแล้วให้เมนูสำรองแทน
   async function title() {
+    try { return await titleMenu(); } catch (e) {
+      console.error(e); showError(e);
+      const i = await G.ui.choose(['เล่นต่อช่อง 1', 'เล่นต่อช่อง 2', 'เล่นต่อช่อง 3', 'เริ่มเกมใหม่'], { cancel: false, cls: 'title-menu', title: 'เมนูสำรอง (หน้าแรกโหลดไม่สำเร็จ)' });
+      if (i < 3) {
+        let sv = null; try { sv = G.loadSave(i + 1); } catch (e2) { showError(e2); }
+        if (sv) return start(sv, i + 1);
+        await G.ui.say(`เปิดเซฟช่อง ${i + 1} ไม่ได้`); return title();
+      }
+      const free = [1, 2, 3].find((n) => { try { return !G.loadSave(n); } catch (e2) { return false; } });
+      if (!free) { await G.ui.say('ไม่มีช่องว่าง ลองเลือกเล่นต่อช่องเดิมก่อน'); return title(); }
+      return start(null, free);
+    }
+  }
+  async function titleMenu() {
     G.scene = 'title';
     const any = [1, 2, 3].some((n) => !G.slotSummary(n).empty);
     const found = G.allSaves();
@@ -360,7 +376,9 @@
   window.addEventListener('resize', fit); fit();
 
   // แสดงข้อผิดพลาดบนจอ จะได้รู้ว่าพังตรงไหน
-  window.addEventListener('error', (e) => { const t = document.querySelector('#toast'); t.textContent = 'ผิดพลาด: ' + e.message; t.classList.add('on', 'err'); });
+  function showError(e) { const t = document.querySelector('#toast'); t.textContent = 'ผิดพลาด: ' + ((e && (e.message || e.reason && e.reason.message || e.reason)) || e); t.classList.add('on', 'err'); }
+  window.addEventListener('error', showError);
+  window.addEventListener('unhandledrejection', showError);
 
   G.state = null;
   requestAnimationFrame(frame);

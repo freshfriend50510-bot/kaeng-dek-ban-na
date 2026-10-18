@@ -256,3 +256,4 @@ table.moves td, table.moves th { padding: calc(var(--u) * 0.5) calc(var(--u) * 2
 .nb-filter b { color: var(--cream); } .nb-filter small { margin-left: auto; opacity: 0.6; font-size: 0.65em; }
 .nb-filter .nb-arrow { color: var(--gold); cursor: pointer; pointer-events: auto; padding: 0 calc(var(--u) * 1); }
 .nb-filter .ty-ico { width: 1.1em; height: 1.1em; }
+#toast { z-index: 30; } #toast.err { white-space: normal; max-width: 90%; }
