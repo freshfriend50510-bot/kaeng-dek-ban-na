@@ -2477,6 +2477,67 @@
    "dir": "down",
    "script": "boommom",
    "showIf": "gym3_done"
+  },
+  {
+   "id": "kru_village",
+   "name": "ครูมวยบุญหลาย",
+   "map": "village",
+   "x": 22,
+   "y": 6,
+   "look": "kru",
+   "dir": "down",
+   "script": "tutor"
+  },
+  {
+   "id": "kru_kku",
+   "name": "อาจารย์ทองพูน",
+   "map": "lecture",
+   "x": 11,
+   "y": 6,
+   "look": "teacher",
+   "dir": "down",
+   "script": "tutor"
+  },
+  {
+   "id": "kru_amphoe",
+   "name": "ครูมวยบุญหลาย",
+   "map": "amphoe",
+   "x": 8,
+   "y": 9,
+   "look": "kru",
+   "dir": "down",
+   "script": "tutor",
+   "showIf": "phong_arrived"
+  },
+  {
+   "id": "lvshop_market",
+   "name": "ยายเพ็ญข้าวจี่",
+   "map": "market",
+   "x": 6,
+   "y": 9,
+   "look": "khaoji",
+   "dir": "down",
+   "script": "lvshop"
+  },
+  {
+   "id": "lvshop_amphoe",
+   "name": "ยายเพ็ญข้าวจี่",
+   "map": "amphoe",
+   "x": 16,
+   "y": 15,
+   "look": "khaoji",
+   "dir": "down",
+   "script": "lvshop"
+  },
+  {
+   "id": "lvshop_kku",
+   "name": "ยายเพ็ญข้าวจี่",
+   "map": "kku",
+   "x": 24,
+   "y": 13,
+   "look": "khaoji",
+   "dir": "down",
+   "script": "lvshop"
   }
  ],
  "rides": [

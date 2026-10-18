@@ -285,6 +285,9 @@
         '....WWWWWWT.....',
         '.....WPPPPW.....',
         '......FF.FF.....'] },
+    // ครูมวยสอนท่า (มงคลแดงคาดหัว กางเกงมวยแดง) และยายขายข้าวจี่
+    kru: { hair: 'buzz', H: C.hairGray, S: C.skinTan, C: '#2f3d6b', P: '#c5482b', extra: ['grin', 'shorts'], patch: ['headband'], W: '#c5482b' },
+    khaoji: { hair: 'tied', H: C.hairGray, S: C.skinOld, C: '#e8913a', P: '#4a3b2f', extra: ['grin'], patch: ['apron'], A: '#8a5a34' },
     // คนในโรงพยาบาลและตัวอำเภอ
     receptionist: { hair: 'tied', H: C.hairBlack, S: C.skinMid, C: '#8ab8d8', P: '#2f3d6b', extra: ['glasses'] },
     headnurse: { hair: 'bob', H: C.hairGray, S: C.skinMid, C: '#f4f4ec', P: '#f4f4ec', F: '#f4f4ec', extra: ['glasses'], patch: ['nursecap'], R: '#d9455a' },

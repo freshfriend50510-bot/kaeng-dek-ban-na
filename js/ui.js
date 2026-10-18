@@ -297,7 +297,7 @@
 
   // ---------- กระเป๋า ----------
   let lastTab = null;
-  const BAG_TABS = [['ยา', ['heal', 'healall', 'cure']], ['ของกินชวน', ['recruit', 'repel']], ['ของถือ', ['held']], ['ของสำคัญ', ['tm', 'key', 'kit']]];
+  const BAG_TABS = [['ยา', ['heal', 'healall', 'cure']], ['เพิ่มเลเวล', ['exp', 'lvup']], ['ของกินชวน', ['recruit', 'repel']], ['ของถือ', ['held']], ['ของสำคัญ', ['tm', 'key', 'kit']]];
   const SOURCE = { tm_wind_blade: 'รางวัลชนะยิม 1 พี่ออสซี่', tm_short_circuit: 'รางวัลชนะยิม 2 พี่เฟรนด์', tm_mud_therapy: 'รางวัลชนะยิม 3 พี่บูม', first_aid: 'พี่บูมให้หลังกลับใจ', rod: 'ลุงเปลี่ยนให้เป็นค่าหาไส้เดือน', porridge: 'ซื้อจากตลาดเช้าตัวอำเภอ', yantra: 'หลวงตามอบให้หลังฝนตก', goggles: 'พ่อแอมให้ (แว่นสมัยเรียนวิศวะ)' };
   const BADGES = [['gym1', 'ตราผ้าโพก', 'พี่ออสซี่ · ร้านราเมงลมทุ่ง', 'เปิดทางรถสองแถวไป มข.'], ['gym2', 'ตราเฟือง', 'พี่เฟรนด์ · โรงช็อปวิศวะ มข.', 'เปิดสะพานข้ามลำน้ำพอง'],
     ['gym3', 'ตราหูฟัง', 'พี่บูม · คลินิกหลังโรงพยาบาลอำเภอ', 'เฒ่าจ้ำอนุญาตให้เข้าดอนปู่ตา'], ['gym4', 'ตราไม้เรียว', 'พี่ต้นน้ำ · ห้องสมุดโรงเรียนมัธยม', '—']];
@@ -378,6 +378,15 @@
         if (m.held) S.bag[m.held] = (S.bag[m.held] || 0) + 1;
         S.bag[ids[i]]--; m.held = ids[i]; G.sfx('buy'); await G.ui.say(`${m.name} ถือ${it.name}แล้ว`);
       } else if (it.kind === 'tm') await G.ui.teachTM(ids[i]);
+      else if (it.kind === 'exp' || it.kind === 'lvup') {
+        const t = await G.ui.partyMenu({ pick: true, title: `ให้ใครกิน${it.name}?` });
+        if (t < 0) continue;
+        const m = S.party[t];
+        if (m.lv >= 100) { await G.ui.say(`${m.name} เลเวลสูงสุดแล้ว`); continue; }
+        S.bag[ids[i]]--; G.sfx('heal');
+        await G.ui.say(`${m.name} กิน${it.name} อร่อยมาก!`);
+        await G.ui.giveExp(m, it.kind === 'exp' ? it.value : G.expFor(Math.min(100, m.lv + it.value)) - m.exp);
+      }
       else if (it.kind === 'kit') {   // กระเป๋าปฐมพยาบาล: วันละครั้ง (นับวันจากเวลาเล่นในเกม)
         const day = Math.floor((S.playMs || 0) / (1440 * 1000));
         if (S.kitDay === day) { await G.ui.say('วันนี้ใช้กระเป๋าปฐมพยาบาลไปแล้ว พรุ่งนี้ค่อยใช้ใหม่นะ'); continue; }
@@ -388,6 +397,85 @@
       else await G.ui.say(`${it.name}ใช้ได้ตอนต่อสู้เท่านั้น`);
     }
   };
+  // ---------- EXP นอกการต่อสู้ (ของกินเพิ่มเลเวล) ----------
+  G.ui.giveExp = async function (m, amount) {
+    const sp = G.DATA.species[m.sp], before = m.lv, stage = G.growthStage(m.lv), learned = [];
+    m.exp += Math.max(0, Math.floor(amount));
+    while (m.lv < 100 && m.exp >= G.expFor(m.lv + 1)) {
+      m.lv++; G.refreshStats(m);
+      for (const [lv, mid] of sp.learnset) if (lv === m.lv && !m.moves.some((x) => x.id === mid)) learned.push(mid);
+    }
+    if (m.lv === before) { await G.ui.say(`${m.name} ได้รับประสบการณ์ ${Math.floor(amount)} (อีก ${G.expFor(m.lv + 1) - m.exp} ถึงเลเวลถัดไป)`); return; }
+    G.sfx('level'); await G.ui.say(`${m.name} เลเวลอัปเป็น ${m.lv}!`);
+    if (sp.kind === 'kid' && G.growthStage(m.lv) > stage) await G.ui.say(`${m.name} เติบโตขึ้นเป็นขั้นที่ ${G.growthStage(m.lv)}!`);
+    for (const mid of learned) await G.ui.learnMove(m, mid);
+  };
+  // เรียนท่าใหม่นอกการต่อสู้: ท่าเต็ม 4 ให้เลือกลืมท่าเก่า (หรือไม่เรียน) คืน true ถ้าได้เรียน
+  G.ui.learnMove = async function (m, mid) {
+    const mv = G.DATA.moves[mid];
+    if (m.moves.some((x) => x.id === mid)) { await G.ui.say(`${m.name} ใช้ท่า ${mv.name} อยู่แล้ว`); return false; }
+    if (m.moves.length < 4) { m.moves.push({ id: mid, pp: mv.pp }); G.sfx('level'); await G.ui.say(`${m.name} เรียนท่า ${mv.name} ได้แล้ว!`); return true; }
+    await G.ui.say(`${m.name} อยากเรียนท่า ${mv.name} แต่จำได้แค่ 4 ท่า จะลืมท่าไหน?`, null, { auto: 1 });
+    const k = await G.ui.choose(m.moves.map((x) => G.DATA.moves[x.id].name).concat([`ไม่เรียน ${mv.name}`]), { cls: 'small', info: (j) => (m.moves[j] ? G.DATA.moves[m.moves[j].id].desc : '') });
+    if (k < 0 || k >= 4) { await G.ui.say(`${m.name} ไม่ได้เรียน ${mv.name}`); return false; }
+    const old = G.DATA.moves[m.moves[k].id].name;
+    m.moves[k] = { id: mid, pp: mv.pp }; G.sfx('level'); await G.ui.say(`ลืม ${old} แล้วเรียน ${mv.name} แทน!`);
+    return true;
+  };
+
+  // ---------- ครูสอนท่า: จัดท่าฟรี (ท่าที่เคยเรียนตามเลเวล/ซื้อ/ท่าลับที่เคยสอน) และขายท่าพิเศษตามธาตุ ----------
+  const TUTOR = [['wrench_throw', 400], ['cheer_faculty', 500], ['piston_ram', 900], ['river_splash', 400], ['foam_burst', 800], ['mermaid_song', 1000],
+    ['hoe_swing', 400], ['brick_smash', 700], ['stone_drop', 900], ['live_wire', 400], ['plasma', 700], ['ghost_light', 1000],
+    ['basket_flap', 300], ['clean_wind', 700], ['takhian_leaf', 1000]];
+  const movePool = (m) => {   // ท่าที่สมาชิกคนนี้ใช้ได้ทั้งหมด
+    const sp = G.DATA.species[m.sp], ids = new Set(sp.learnset.filter(([lv]) => lv <= m.lv).map(([, id]) => id));
+    for (const id of m.extra || []) ids.add(id);
+    for (const x of m.moves) ids.add(x.id);
+    return [...ids].filter((id) => G.DATA.moves[id]);
+  };
+  const moveInfo = (id) => { const mv = G.DATA.moves[id]; return `${G.TYPE_TH[mv.type]} · ${mv.cat === 'status' ? 'ท่าสถานะ' : 'พลัง ' + mv.power} · ${mv.desc}`; };
+  G.ui.arrangeMoves = async function (m) {
+    for (;;) {
+      const items = m.moves.map((x) => ({ icon: `type:${G.DATA.moves[x.id].type}`, label: G.DATA.moves[x.id].name, sub: `${x.pp}/${G.DATA.moves[x.id].pp}` }));
+      if (m.moves.length < 4) items.push({ label: '+ ใส่ท่าเพิ่ม', sub: `${m.moves.length}/4` });
+      const k = await G.ui.choose(items, { title: `จัดท่าของ ${m.name} (เลือกช่องที่จะเปลี่ยน)`, cls: 'small', info: (j) => (m.moves[j] ? moveInfo(m.moves[j].id) : 'เลือกท่าที่เคยเรียนมาใส่ช่องว่าง') });
+      if (k < 0) return;
+      const pool = movePool(m).filter((id) => !m.moves.some((x) => x.id === id));
+      const opts = pool.map((id) => ({ icon: `type:${G.DATA.moves[id].type}`, label: G.DATA.moves[id].name, sub: G.TYPE_TH[G.DATA.moves[id].type] }));
+      if (k < m.moves.length && m.moves.length > 1) opts.push({ label: 'ลืมท่านี้ (เว้นช่องว่าง)' });
+      if (!opts.length) { await G.ui.say('ยังไม่มีท่าอื่นให้เปลี่ยน ลองเรียนท่าพิเศษกับครูดูนะ'); continue; }
+      const j = await G.ui.choose(opts, { title: k < m.moves.length ? `เปลี่ยน ${G.DATA.moves[m.moves[k].id].name} เป็น...` : 'ใส่ท่าไหน?', cls: 'party', info: (q) => (pool[q] ? moveInfo(pool[q]) : 'ลืมแล้วเรียนกลับมาใหม่ได้ฟรีที่ครูสอนท่า') });
+      if (j < 0) continue;
+      if (j >= pool.length) { m.moves.splice(k, 1); G.sfx('tick'); continue; }
+      const id = pool[j], slot = { id, pp: G.DATA.moves[id].pp };
+      if (k < m.moves.length) m.moves[k] = slot; else m.moves.push(slot);
+      G.sfx('buy');
+    }
+  };
+  G.ui.tutor = async function (name) {
+    const S = G.state;
+    for (;;) {
+      const i = await G.ui.choose(['จัดท่า (ฟรี)', 'เรียนท่าพิเศษ (เสียเงิน)', 'ไม่เป็นไร'], { title: `${name} · เงิน ${S.money} บาท`, cls: 'small',
+        info: (k) => ['เปลี่ยนท่าที่ใช้สู้ เอาท่าที่ลืมไปแล้วกลับมาใช้ได้ฟรี', 'สอนท่าใหม่ที่เรียนเองไม่ได้ ต้องเป็นธาตุเดียวกัน (ท่าปกติเรียนได้ทุกคน)', ''][k] });
+      if (i < 0 || i === 2) return;
+      const t = await G.ui.partyMenu({ pick: true, title: i === 0 ? 'จะจัดท่าให้ใคร?' : 'จะเรียนท่าพิเศษให้ใคร?' });
+      if (t < 0) continue;
+      const m = S.party[t], type = G.DATA.species[m.sp].type;
+      if (i === 0) { await G.ui.arrangeMoves(m); continue; }
+      const list = TUTOR.filter(([id]) => { const mv = G.DATA.moves[id]; return mv && (mv.type === type || mv.type === 'normal'); });
+      const has = (id) => movePool(m).includes(id);
+      const k = await G.ui.choose(list.map(([id, price]) => ({ icon: `type:${G.DATA.moves[id].type}`, label: G.DATA.moves[id].name, sub: has(id) ? 'เรียนแล้ว' : `${price} บาท`, disabled: has(id) })),
+        { title: `ท่าพิเศษสำหรับ ${m.name} (ธาตุ${G.TYPE_TH[type]})`, cls: 'party', info: (q) => (list[q] ? moveInfo(list[q][0]) : '') });
+      if (k < 0) continue;
+      const [id, price] = list[k];
+      if (S.money < price) { await G.ui.say(`เงินไม่พอ ท่านี้ ${price} บาท`, name); continue; }
+      if (!(await G.ui.confirm(`สอนท่า ${G.DATA.moves[id].name} ให้${m.name} ${price} บาทนะ ตกลงไหม?`, name))) continue;
+      S.money -= price; m.extra = [...(m.extra || []), id]; G.sfx('buy');
+      await G.ui.say('ฮึบ! ฝึกจนเหงื่อท่วม...', name);
+      if (!(await G.ui.learnMove(m, id))) await G.ui.say('ไม่เป็นไร ท่านี้จำไว้แล้ว มาจัดท่าใส่ทีหลังได้ฟรี', name);
+    }
+  };
+
   // ท่าลับรางวัลยิม: สอนใครก็ได้ที่ธาตุตรงกัน ใช้ซ้ำได้
   G.ui.teachTM = async function (id) {
     const S = G.state, it = G.DATA.items[id], mv = G.DATA.moves[it.move];
@@ -403,6 +491,7 @@
       if (k < 0 || k >= 4) return;
       m.moves[k] = { id: it.move, pp: mv.pp };
     }
+    m.extra = [...new Set([...(m.extra || []), it.move])];
     G.sfx('level'); await G.ui.say(`${m.name} เรียนท่าลับ ${mv.name} ได้แล้ว!`);
   };
 

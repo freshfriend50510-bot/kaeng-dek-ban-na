@@ -134,6 +134,7 @@
         .map((x) => ({ id: x.id, pp: num(x.pp, 0, D.moves[x.id].pp, D.moves[x.id].pp) }));
       if (!m.moves.length) { fix(); m.moves = G.movesAt(m.sp, m.lv).map((id) => ({ id, pp: D.moves[id].pp })); }
       if (m.held && !D.items[m.held]) { fix(); m.held = null; }
+      m.extra = Array.isArray(m.extra) ? m.extra.filter((id) => D.moves[id]) : [];   // ท่าพิเศษ/ท่าลับที่เคยเรียน (จัดใส่ได้ฟรี)
       if (m.look && !/^eng:[a-z_]+:\d+$/.test(m.look)) { fix(); delete m.look; }
       m.name = String(m.name || D.species[m.sp].name).slice(0, 16);
       return m;
