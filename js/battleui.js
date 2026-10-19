@@ -238,7 +238,7 @@
     raw_bite: ['on', '🦷', { text: 'งั่ม!' }], basket_flap: ['throw', '🧺', { spin: true }], wail: ['wave', '🎵', { text: 'ฮือออ~' }], spook: ['on', '👻', { text: 'แบ่!!' }],
     beg_merit: ['self', '🥣', { hearts: true }], mud_spout: ['beam', '🐸', { c: '#8a5a34' }], belly_flop: ['drop', '🐸', { big: true }], rain_call: ['self', '🌧️', { rain: true }],
     gape: ['self', '😮', { rain: true }], wind_blade: ['slash', '🌾', { c: '#c8f0b0' }], bamboo_sword: ['slash', '🎋', { c: '#d8e8a0' }], samurai_stare: ['on', '👁️', { text: 'จ้อง...' }],
-    wind_step: ['self', '💨', { after: true }], buffalo_charge: ['rush', '🐃', { big: true }], radio_wave: ['wave', '📻', { arcs: true }], monsoon_splash: ['cloud', '🌧️', { rain: true, big: true }],
+    wind_step: ['self', '💨', { after: true }], buffalo_charge: ['rush', '🐃', { big: true, ride: true, text: 'ม้อออ!' }], radio_wave: ['wave', '📻', { arcs: true }], monsoon_splash: ['cloud', '🌧️', { rain: true, big: true }],
     kite_storm: ['throw', '🪁', { tornado: true }], wrench_throw: ['throw', '🔧', { spin: true }], tighten_bolt: ['self', '🔩', { spin: true }], grease: ['throw', '🛢️', { blobs: true }],
     piston_ram: ['rush', '⚙️', { spin: true }], pour_concrete: ['drop', '🪣', { pour: '#a8a8a8' }], level_check: ['self', '🔭', { aim: true }], brick_smash: ['drop', '🧱', { n: 3 }],
     live_wire: ['beam', '🔌', { c: '#f2d24b', zig: true }], multimeter: ['on', '📟', { text: '0.00V' }], short_circuit: ['on', '🔌', { sparks: true }], blackout: ['dark', '💡'],
@@ -267,7 +267,7 @@
     incendiary: ['drop', '🔥', { n: 5, sat: true }],
   };
   // ท่าทางของตัวละครที่ใช้ท่า ปรับเพิ่มบางท่า (ท่าที่มีอยู่แล้ว)
-  const MOTION_OF = { spin: 'spin', whirlwind: 'spin', mask_dance: 'spin', piston_ram: 'rush', buffalo_charge: 'rush', belly_bump: 'rush', conveyor_rush: 'rush', wheel_ram: 'rush',
+  const MOTION_OF = { spin: 'spin', whirlwind: 'spin', mask_dance: 'spin', piston_ram: 'rush', buffalo_charge: 'ride', belly_bump: 'rush', conveyor_rush: 'rush', wheel_ram: 'rush',
     koi_hop: 'jump', pond_dive: 'jump', belly_flop: 'jump', field_slam: 'jump', stone_drop: 'stomp', brick_smash: 'stomp', wind_step: 'dashx', blackout: 'vanish', spook: 'vanish', glow_flash: 'cast',
     wak_shout: 'shout', pound_ground: 'shout', wail: 'shout', cheer_faculty: 'shout', squeak_wheel: 'shout', lecture: 'shout', silly_face: 'bounce', tongue: 'bounce', sticky_rice: 'bounce',
     level_check: 'aim', samurai_stare: 'aim', nang_gaze: 'aim', looking_down: 'aim', raw_bite: 'lunge', hoe_swing: 'slash', bamboo_sword: 'slash', wood_sword: 'slash', wind_blade: 'slash', lean_strike: 'slash' };
@@ -295,7 +295,7 @@
       }
     } else if (kind === 'rush') {
       const k = cl(t / 0.65), x = ax + (tx - ax) * k, y = ay + 6 + (ty - ay) * k;
-      if (t < 0.7) { em(prop, x, y, size + 2, o.spin ? t * 16 : 0, right); for (let i = 1; i < 4; i++) dot('rgba(216,180,122,0.7)', x - (tx - ax) * 0.08 * i, y + 8, 3 - i * 0.6); }
+      if (t < 0.7 && !o.ride) { em(prop, x, y, size + 2, o.spin ? t * 16 : 0, right); for (let i = 1; i < 4; i++) dot('rgba(216,180,122,0.7)', x - (tx - ax) * 0.08 * i, y + 8, 3 - i * 0.6); }
       if (hit) { ctx.globalAlpha = 1 - hit; burst(tx, ty, hit); if (o.boom) { dot('#f2a03a', tx, ty, 4 + hit * 20); dot('#fff2a8', tx, ty, 2 + hit * 10); } if (o.text) say(o.text, tx, ty - 30, 1 - hit); }
     } else if (kind === 'drop') {
       const n = o.n || 1;
@@ -486,6 +486,15 @@
             if (t > out && t < out + 0.14) { P.sx *= 1.18; P.sy *= 0.86; }
             if (a.m === 'dashx' && (t < 0.05 || (t > out - 0.03 && t < out + 0.03))) P.alpha = 0.5;
             break; }
+          case 'ride': {   // กระโดดขึ้นหลังควาย ควบไปชน แล้วควบกลับ
+            const mount = t < 0.1 ? ease(t / 0.1) : t > 0.9 ? 1 - ease((t - 0.9) / 0.1) : 1;
+            const k = t < 0.1 ? 0 : t < 0.5 ? ease((t - 0.1) / 0.4) : t < 0.64 ? 1 : 1 - ease((t - 0.64) / 0.26);
+            const run = t > 0.1 && t < 0.9 && !(t > 0.5 && t < 0.64), bob = run ? -Math.abs(S(t * PI * 12)) * 3 : 0;
+            go(k * 0.72); P.dy += -18 * mount + bob;
+            P.rot = (t > 0.1 && t < 0.5 ? 0.1 : t > 0.5 && t < 0.6 ? -0.12 : 0) * (side === 'p' ? 1 : -1);
+            if (t > 0.5 && t < 0.6) { P.sx *= 1.1; P.sy *= 0.9; }
+            P.mount = { a: mount, lift: 18 * mount, run, back: t > 0.64 };
+            break; }
           case 'jump': case 'stomp': {
             const up = a.m === 'stomp' ? 44 : 34, k = Math.min(1, t / 0.7);
             P.dy = -S(k * PI) * up; P.dx = vx * 0.1 * S(k * PI);
@@ -544,6 +553,13 @@
         const g = pose.call(null, side, now - i * 45); ctx.save(); ctx.globalAlpha = 0.16 * (4 - i);
         if (flip) { ctx.translate(x + 48 + g.dx, y + g.dy); ctx.scale(-3, 3); } else { ctx.translate(x + g.dx, y + g.dy); ctx.scale(3, 3); }
         ctx.drawImage(G.sprite(id), 0, 0); ctx.restore();
+      }
+      if (P.mount) {   // ควายใต้ตัวผู้ขี่ + ฝุ่นตลบตามหลัง
+        const M = P.mount, fwd = side === 'p', bx = x + 24 + P.dx - (1 - M.a) * (fwd ? 22 : -22), by = y + 40 + P.dy + M.lift;
+        ctx.save(); ctx.globalAlpha = M.a;
+        if (M.run) for (let i = 1; i < 5; i++) { ctx.fillStyle = `rgba(216,180,122,${0.7 - i * 0.12})`; ctx.beginPath(); ctx.arc(bx + (fwd ? -1 : 1) * (14 + i * 8), by + 14 - ((now / 40 + i * 3) % 6), 5 - i * 0.6, 0, 7); ctx.fill(); }
+        ctx.translate(Math.round(bx), Math.round(by)); if (fwd !== M.back) ctx.scale(-1, 1);
+        ctx.imageSmoothingEnabled = true; ctx.fillStyle = '#000'; ctx.font = EMOJI(44); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('🐃', 0, 0); ctx.restore();
       }
       if (P.aura) { const [ca] = FXC[P.aura] || FXC.normal; ctx.save(); ctx.globalAlpha = 0.35 + 0.15 * Math.sin(now / 60); ctx.fillStyle = ca; ctx.beginPath(); ctx.ellipse(x + 24 + P.dx, y + 30 + P.dy, 26, 30, 0, 0, 7); ctx.fill(); ctx.restore(); }
       ctx.save();
