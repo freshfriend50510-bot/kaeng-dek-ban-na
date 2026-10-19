@@ -333,8 +333,21 @@
   }
 
   // ---------- วนลูปเกม ----------
-  const canvas = document.querySelector('#game'), ctx = canvas.getContext('2d');
-  ctx.imageSmoothingEnabled = false;
+  // วาดเกมลงภาพ 240×160 (buf) แล้วค่อยขยายขึ้นจอจริง (present) ให้พิกเซลคมเท่ากันทุกขนาดจอ
+  const screenCv = document.querySelector('#game'), sctx = screenCv.getContext('2d');
+  const canvas = document.createElement('canvas'); canvas.width = 240; canvas.height = 160;
+  const ctx = canvas.getContext('2d'); ctx.imageSmoothingEnabled = false;
+  G.screenBuf = canvas;
+  const mid = document.createElement('canvas'), mctx2 = mid.getContext('2d');
+  function present() {
+    const W = screenCv.width, H = screenCv.height, k = W / 240;
+    if (Math.abs(k - Math.round(k)) < 0.01) { sctx.imageSmoothingEnabled = false; sctx.drawImage(canvas, 0, 0, W, H); return; }
+    // ขยายเป็นจำนวนเต็มเท่าแบบคม แล้วย่อลงเนียนๆ (sharp bilinear) ขอบพิกเซลไม่หยัก ไม่เบลอ
+    const n = Math.ceil(k);
+    if (mid.width !== 240 * n) { mid.width = 240 * n; mid.height = 160 * n; }
+    mctx2.imageSmoothingEnabled = false; mctx2.drawImage(canvas, 0, 0, mid.width, mid.height);
+    sctx.imageSmoothingEnabled = true; sctx.imageSmoothingQuality = 'high'; sctx.drawImage(mid, 0, 0, W, H);
+  }
   let last = performance.now(), acc = 0;
   function frame(now) {
     const dt = Math.min(100, now - last); last = now; acc += dt;
@@ -361,6 +374,7 @@
       const h = Math.floor(G.state.time / 60), m = Math.floor(G.state.time % 60);
       document.querySelector('#clock').textContent = `${G.raining() ? '☂ ' : ''}${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')} ${G.PERIOD_TH[G.period()]}`;
     }
+    present();
     G.updateHud();
     requestAnimationFrame(frame);
   }
@@ -384,10 +398,13 @@
     const scr = document.querySelector('#screen');
     const touch = matchMedia('(pointer: coarse)').matches;
     const maxW = window.innerWidth - 16, maxH = window.innerHeight - (touch ? 190 : 16);
+    const dpr = window.devicePixelRatio || 1;
     let s = Math.min(maxW / 240, maxH / 160);
-    if (s >= 2) s = Math.floor(s * 2) / 2;
+    s = Math.max(1, Math.floor(s * 240 * dpr) / (240 * dpr));   // ขนาดลงตัวกับพิกเซลจริงของจอ
     scr.style.width = 240 * s + 'px'; scr.style.height = 160 * s + 'px';
+    const g = document.querySelector('#game'); g.width = Math.round(240 * s * dpr); g.height = Math.round(160 * s * dpr);
     document.documentElement.style.setProperty('--px', s + 'px');
+    G.dpr = dpr; G.pxScale = s;
   }
   window.addEventListener('resize', fit); fit();
 

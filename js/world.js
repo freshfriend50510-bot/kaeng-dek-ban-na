@@ -685,6 +685,30 @@
     if (!G.mapShot) ctx.drawImage(vignette(), 0, 0);   // mapShot = ถ่ายภาพแมพเต็มแผ่นตอนทดสอบ
   };
 
+  // ภาพแมพทั้งแผ่นจากช่องจริง (16 พิกเซลต่อช่อง ไม่มีตัวละคร/ความมืด) ใช้ทำมินิแมพและแผนที่ใหญ่ แคชตามแมพ+จำนวน flag
+  const fullCache = {};
+  G.world.mapImage = function () {
+    const key = W.map + '|' + Object.keys(G.state.flags).length;
+    if (fullCache.key === key) return fullCache.img;
+    const rows = W.rows, c = document.createElement('canvas'); c.width = rows[0].length * TS; c.height = rows.length * TS;
+    const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+    for (let y = 0; y < rows.length; y++) for (let x = 0; x < rows[0].length; x++) {
+      const ch = rows[y][x];
+      if (ch === 'X') { const base = W.def.indoor ? '_' : '0'; g.drawImage(tileCanvas(base, x, y, 0, tileVariant(base, x, y)), x * TS, y * TS); if (!G.world.gateOpen(x, y)) drawGate(g, x * TS, y * TS, W.def.indoor); continue; }
+      g.drawImage(tileCanvas(ch, x, y, 0, tileVariant(ch, x, y)), x * TS, y * TS);
+    }
+    for (let y = 0; y < rows.length; y++) for (let x = 0; x < rows[0].length; x++) decor(g, rows[y][x], x, y, x * TS, y * TS, 0, false, []);
+    fullCache.key = key; fullCache.img = c;
+    return c;
+  };
+  // ย่อภาพแบบเนียน: ลดทีละครึ่งจนใกล้ขนาดเป้าหมาย (คมกว่าย่อทีเดียว)
+  G.downscale = function (src, w, h) {
+    let cur = src;
+    while (cur.width / 2 >= w && cur.height / 2 >= h) { const n = document.createElement('canvas'); n.width = Math.round(cur.width / 2); n.height = Math.round(cur.height / 2); const x = n.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(cur, 0, 0, n.width, n.height); cur = n; }
+    const out = document.createElement('canvas'); out.width = w; out.height = h; const x = out.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(cur, 0, 0, w, h);
+    return out;
+  };
+
   // ---------- ของประกอบฉาก: ปลาว่าย ใบไม้ร่วง รถวิ่ง คนเดิน เงาเมฆ น้ำระยิบ ----------
   const WALKER_LOOKS = {
     village: ['elder', 'samorn', 'beedad', 'beemom', 'vendor', 'coop', 'teryai'], market: ['vendor', 'coop', 'samorn', 'driver', 'beemom', 'mkowner'],

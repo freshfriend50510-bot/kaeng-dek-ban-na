@@ -5,24 +5,23 @@
   const hud = $('#hud'), partyEl = $('#party-hud'), mini = $('#minimap'), mctx = mini.getContext('2d');
   const STATUS = { par: 'ชา', slp: 'หลับ', psn: 'ท้องเสีย' };
 
-  // สีของแต่ละช่องบนแผนที่ย่อ
-  const MAPCOL = { 'ถ': '#7a5230', 'ท': '#8a5a34', 'ก': '#2f7276', 'ค': '#3f8a45', 'ง': '#6b4a2f', 'ฉ': '#7a3a22', 'ช': '#c9a45a', 'ซ': '#5a3a22', 'ฌ': '#a02a36', 'ฏ': '#9fe0ff', 'ฑ': '#2a1a50', 'ฒ': '#d9455a', 'ณ': '#3a3f48', 'ด': '#e8ecf0', 'ต': '#24345a', '(': '#2a3360', ')': '#7a2ad0', '*': '#ff4fb0', ',': '#d9455a', ';': '#b9b0a2', '|': '#6b4a2f', '{': '#dfe2ee', '}': '#a82a3a', '`': '#2a6ad8', d: '#e8d4a0', v: '#7a9a4a', y: '#8a8070', U: '#f0f0ea', '[': '#3a8ac0', ']': '#e8e8e0', 1: '#4fb05a', 3: '#3a8ad8', 4: '#e8c034', 5: '#d9455a', '=': '#9a5ad0', '.': '#9caf55', f: '#9caf55', ':': '#c47a4a', '#': '#3f6b34', P: '#24402a', w: '#4f8fb0', T: '#6e9b3a',
-    R: '#b08a4a', r: '#9a3a2a', A: '#a63a2a', M: '#b5402a', K: '#3a2a24', H: '#6b5040', h: '#d8d0c0', m: '#f2efe4', n: '#2b3f8a',
-    D: '#2a1d18', S: '#8a6a4a', o: '#d9b25a', b: '#8a8a8a', '^': '#c5482b', I: '#5a3a22', L: '#a0784e', F: '#8a6a4a',
-    a: '#55555e', '+': '#9a9aa2', e: '#cbbfa8', g: '#5f8a3a', J: '#3a6a3a', N: '#8f949e', C: '#e6dcc8', q: '#7d8794', Q: '#6b7480',
-    l: '#cbbfa8', j: '#8a6440', z: '#c5482b', i: '#4f8a45', '!': '#d9b25a', '&': '#3f7a34', $: '#c5482b', '?': '#2f6b5a', '@': '#2f6fb0',
-    0: '#8a6440', X: '#c5482b', _: '#b8875a', '%': '#4a3a30', x: '#c5482b', '~': '#2b3f8a', E: '#5f6873', '>': '#3a3f48', '<': '#3a3f48',
-    O: '#1f1d24', Z: '#5f6873', Y: '#e8dcc0', '2': '#8a3f6b' };
-  const mapCache = {};
-  function mapImage(id, scale) {
-    const key = id + scale;
-    if (mapCache[key]) return mapCache[key];
-    const rows = G.DATA.maps[id], c = document.createElement('canvas');
-    c.width = rows[0].length * scale; c.height = rows.length * scale;
-    const x = c.getContext('2d');
-    rows.forEach((r, y) => { for (let i = 0; i < r.length; i++) { x.fillStyle = MAPCOL[r[i]] || '#9caf55'; x.fillRect(i * scale, y * scale, scale, scale); } });
-    mapCache[key] = c;
-    return c;
+  // หมุดบนแผนที่: ลูกศรตัวเรา ดาวเป้าหมาย จุดคน
+  const star = (x, cx, cy, r, fill) => { x.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, rr = k % 2 ? r * 0.45 : r; x.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); } x.closePath(); x.fillStyle = fill; x.fill(); x.lineWidth = Math.max(1, r / 4); x.strokeStyle = '#18203f'; x.stroke(); };
+  const arrow = (x, cx, cy, r, dir, fill) => {
+    const a = { up: -Math.PI / 2, down: Math.PI / 2, left: Math.PI, right: 0 }[dir] || 0;
+    x.save(); x.translate(cx, cy); x.rotate(a); x.beginPath(); x.moveTo(r, 0); x.lineTo(-r * 0.75, -r * 0.75); x.lineTo(-r * 0.35, 0); x.lineTo(-r * 0.75, r * 0.75); x.closePath();
+    x.fillStyle = fill; x.fill(); x.lineWidth = Math.max(1, r / 3.5); x.strokeStyle = '#18203f'; x.stroke(); x.restore();
+  };
+  function pins(x, f, big) {   // f = พิกเซลต่อช่อง
+    const F = G.state.flags, id = G.state.map;
+    for (const n of G.world.npcs) {
+      const foe = n.trainer && !F[n.trainer.flag];
+      x.fillStyle = foe ? '#d9455a' : 'rgba(246,238,216,0.9)'; x.beginPath(); x.arc((n.x + 0.5) * f, (n.y + 0.5) * f, f * (foe ? 0.42 : 0.3), 0, 7); x.fill();
+      if (foe) { x.lineWidth = Math.max(1, f / 8); x.strokeStyle = '#18203f'; x.stroke(); }
+    }
+    const obj = G.objective();
+    if ((big || G.settings.guide) && obj.map === id) star(x, (obj.x + 0.5) * f, (obj.y + 0.5) * f, f * (big ? 0.75 : 1.1), '#ffd84a');
+    arrow(x, (G.state.x + 0.5) * f, (G.state.y + 0.5) * f, f * (big ? 0.7 : 1.05), G.state.dir, '#ffffff');
   }
 
   // ---------- สมาชิกแก๊ง ----------
@@ -48,20 +47,17 @@
   });
 
   // ---------- มินิแมพ ----------
+  let miniKey = '', miniBase = null;
   function drawMini() {
-    const id = G.state.map, img = mapImage(id, 2);
-    if (mini.width !== img.width || mini.height !== img.height) {
-      mini.width = img.width; mini.height = img.height;
-      const k = Math.min(0.75, 72 / img.width, 54 / img.height);   // แมพใหญ่ (ตัวเมือง) ย่อลงไม่ให้มินิแมพบังจอ
-      mini.style.width = `calc(var(--px) * ${img.width * k})`; mini.style.height = `calc(var(--px) * ${img.height * k})`;
+    const rows = G.DATA.maps[G.state.map], cols = rows[0].length, nr = rows.length;
+    const k = Math.min(1.5, 72 / cols, 54 / nr), dpr = G.dpr || 1, px = G.pxScale || 3;   // แมพใหญ่ (ตัวเมือง) ย่อลงไม่ให้บังจอ
+    const f = Math.max(2, Math.round(k * px * dpr)), key = G.world.mapImage().width + '|' + f + '|' + G.state.map + '|' + Object.keys(G.state.flags).length;
+    if (key !== miniKey) {   // ภาพแมพจริงย่อลงให้ช่องละ f พิกเซลจอพอดี
+      miniKey = key; miniBase = G.downscale(G.world.mapImage(), cols * f, nr * f);
+      mini.width = cols * f; mini.height = nr * f; mini.style.width = cols * f / dpr + 'px'; mini.style.height = nr * f / dpr + 'px';
     }
-    mctx.drawImage(img, 0, 0);
-    for (const n of G.world.npcs) { mctx.fillStyle = n.trainer && !G.state.flags[n.trainer.flag] ? '#d9455a' : '#f6eed8'; mctx.fillRect(n.x * 2, n.y * 2, 2, 2); }
-    const obj = G.objective();
-    if (G.settings.guide && obj.map === id) { mctx.fillStyle = '#ffd84a'; mctx.fillRect(obj.x * 2 - 1, obj.y * 2 - 1, 4, 4); }
-    const blink = Math.floor(performance.now() / 300) % 2;
-    mctx.fillStyle = blink ? '#ffffff' : '#18203f';
-    mctx.fillRect(G.state.x * 2 - 1, G.state.y * 2 - 1, 4, 4);
+    mctx.drawImage(miniBase, 0, 0);
+    pins(mctx, f, false);
   }
   mini.addEventListener('click', () => { G.unlockAudio(); G.runScript('_map'); });
 
@@ -75,15 +71,15 @@
 
   // ---------- แผนที่ใหญ่ ----------
   G.SCRIPTS._map = async function () {
-    const id = G.state.map, rows = G.DATA.maps[id], sc = 14;
+    const id = G.state.map, rows = G.DATA.maps[id], sc = (G.dpr || 1) >= 1.5 ? 32 : 16, u = sc / 16;   // จอความละเอียดสูง วาดแผนที่ละเอียดเป็นสองเท่า
     const html = `<div class="choice-title">แผนที่: ${G.DATA.world.maps[id].name}</div>
       <div class="bigmap-wrap"><canvas id="bigmap" width="${rows[0].length * sc}" height="${rows.length * sc}"></canvas></div>
       <div class="legend"><span><i class="me"></i>เรา</span><span><i class="goal"></i>เป้าหมาย</span><span><i class="foe"></i>คนที่ยังไม่ได้สู้</span><span><i class="exit"></i>ทางไปที่อื่น</span></div>`;
     const p = G.ui.panel(html, 'bigmap-sheet');
     const c = document.querySelector('#bigmap'), x = c.getContext('2d');
-    x.drawImage(mapImage(id, sc), 0, 0);
-    x.font = '17px Itim, Tahoma, sans-serif'; x.textAlign = 'center';
-    const label = (t, px, py) => { x.lineWidth = 3; x.strokeStyle = 'rgba(24,32,63,.9)'; x.strokeText(t, px, py); x.fillStyle = '#f6eed8'; x.fillText(t, px, py); };
+    x.imageSmoothingEnabled = false; x.drawImage(G.world.mapImage(), 0, 0, c.width, c.height);
+    x.font = `${17 * u}px Itim, Tahoma, sans-serif`; x.textAlign = 'center';
+    const label = (t, px, py) => { x.lineWidth = 3 * u; x.strokeStyle = 'rgba(24,32,63,.9)'; x.strokeText(t, px, py); x.fillStyle = '#f6eed8'; x.fillText(t, px, py); };
     for (const d of G.DATA.world.doors.filter((d) => d.map === id && d.to)) label(G.DATA.world.maps[d.to].name.replace(/^(.*?) · .*/, '$1'), d.x * sc + sc / 2, d.y * sc - sc * 1.2);
     const EXTRA = { village: [['ศาลากลางบ้าน', 11.5, 7], ['ดอนปู่ตา', 3.5, 2], ['หนองน้ำ', 5, 22]], donputa: [['ตูบปู่ตา', 6.5, 9.5], ['หนองแม่นาค', 15.5, 2.5], ['ลานตัดไม้', 26, 8]], field: [['หนองใหญ่ (คางคก)', 24, 13]], market: [['รถสองแถวไป มข.', 20, 11]],
       kku: [['บึงสีฐาน', 38, 26], ['ลานจอดรถ', 22.5, 2], ['หญ้ารก', 16, 30], ['สะพานลำน้ำพอง', 44, 13.5], ['รถสองแถวกลับตลาด', 6, 11.5], ['ลานเฟือง', 12.5, 12.5]],
@@ -92,15 +88,13 @@
       city: [['บึงแก่นนคร', 14, 2.2], ['ถนนมิตรภาพ', 30, 14.6], ['ถนนคนเดิน (ค่ำ)', 43.5, 39.2], ['สวนสาธารณะ', 55, 18.6], ['ป้ายสองแถว', 4, 18.8], ['ไปสนามบิน →', 58, 13.2]],
       hospital: [['เวชระเบียน', 15, 13], ['จุดคัดกรอง', 3, 8.6]], ward: [['ห้องยา', 20.5, 9.8], ['น้องจ๋า', 3.5, 10.6]] };
     for (const [t, ex, ey] of EXTRA[id] || []) label(t, ex * sc, ey * sc);
+    const said = new Set();
     for (const w of G.DATA.world.warps.filter((w) => w.map === id && !G.DATA.world.maps[id].indoor)) {
-      x.fillStyle = '#5fb8e0'; x.fillRect(w.x * sc, w.y * sc, sc, sc);
-      label('ไป' + G.DATA.world.maps[w.to].name, Math.min(c.width - 80, Math.max(80, w.x * sc + sc / 2)), Math.min(c.height - 6, Math.max(18, w.y * sc + (w.y === 0 ? sc + 18 : -8))));
+      x.fillStyle = 'rgba(95,184,224,0.75)'; x.fillRect(w.x * sc, w.y * sc, sc, sc);
+      if (said.has(w.to)) continue; said.add(w.to);   // ทางออกกว้างหลายช่อง เขียนชื่อครั้งเดียว
+      label('ไป' + G.DATA.world.maps[w.to].name, Math.min(c.width - 80 * u, Math.max(80 * u, w.x * sc + sc / 2)), Math.min(c.height - 6 * u, Math.max(18 * u, w.y * sc + (w.y === 0 ? sc + 18 * u : -8 * u))));
     }
-    for (const n of G.world.npcs) if (n.trainer && !G.state.flags[n.trainer.flag]) { x.fillStyle = '#d9455a'; x.fillRect(n.x * sc, n.y * sc, sc, sc); }
-    const obj = G.objective();
-    if (obj.map === id) { x.fillStyle = '#ffd84a'; x.beginPath(); x.arc(obj.x * sc + sc / 2, obj.y * sc + sc / 2, sc * 0.55, 0, 7); x.fill(); }
-    x.fillStyle = '#ffffff'; x.strokeStyle = '#18203f'; x.lineWidth = 2;
-    x.beginPath(); x.arc(G.state.x * sc + sc / 2, G.state.y * sc + sc / 2, sc * 0.45, 0, 7); x.fill(); x.stroke();
+    pins(x, sc, true);
     await p;
   };
   G.SCRIPTS._mon = (i) => (G.state.party[i] ? G.ui.monInfo(G.state.party[i]) : null);
