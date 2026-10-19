@@ -22,7 +22,7 @@
 (function (G) {
   'use strict';
   const TS = 16, VW = 15, VH = 10;
-  const WALK = '.:fTL_-x~><O2aeg+0dv1345=;{';   // ต้องตรงกับ WALK ใน tools/build_data.py
+  const WALK = '.:fTL_-x~><O2aeg+0dv1345=;{ฌต';   // ต้องตรงกับ WALK ใน tools/build_data.py
   const COUNTER = 'c67,';              // คุยกับคนหลังเคาน์เตอร์ได้
   G.world = { npcs: [], map: null, rows: null, moving: null, anim: 0, follow: null };
   const W = G.world;
@@ -33,7 +33,7 @@
   // var = ตัวเลือกเพิ่ม เช่น ผนังด้านหน้า/บน พื้นของแผนที่ เฟรมน้ำ
   function tileCanvas(ch, x, y, frame, vr) {
     const v = Math.floor(hash(x, y) * 4);
-    const anim = 'w~><iv)*`{'.includes(ch);   // vr ของน้ำ/ข้าว: dry = ก่อนฝนตก, mud = ขอบหนองแห้ง, lotus = บัวหลังฝน
+    const anim = 'w~><iv)*`{ฏฑต'.includes(ch);   // vr ของน้ำ/ข้าว: dry = ก่อนฝนตก, mud = ขอบหนองแห้ง, lotus = บัวหลังฝน
     const key = ch + v + (anim ? frame : '') + (vr || '');
     if (tileCache[key]) return tileCache[key];
     const c = document.createElement('canvas'); c.width = c.height = TS;
@@ -46,7 +46,18 @@
     const wood = () => { R('#b8875a', 0, 0, 16, 16); for (let i = 3; i < 16; i += 4) R('#a07448', 0, i, 16, 1); R('#a07448', (v * 5) % 16, 0, 1, 3); R('#a07448', (v * 7 + 8) % 16, 4, 1, 3); };
     const tilefl = () => { R('#d8d6cc', 0, 0, 16, 16); R('#c4c2b8', 0, 0, 16, 1); R('#c4c2b8', 0, 0, 1, 16); R('#c4c2b8', 8, 0, 1, 16); R('#c4c2b8', 0, 8, 16, 1); };
     const darkfl = () => { R('#16141f', 0, 0, 16, 16); R('#221d33', 0, 0, 16, 1); R('#221d33', 0, 0, 1, 16); if ((x + y) % 2) R('#1b1828', 1, 1, 15, 15); };   // พื้นห้องเกม/สนาม
-    const floor = () => ((vr || '').startsWith('F-') ? tilefl() : (vr || '').startsWith('F{') ? darkfl() : wood());
+    const netfl = () => {   // ร้านเน็ต: พรมกรมท่าลายหกเหลี่ยม
+      R('#1c2740', 0, 0, 16, 16); g.strokeStyle = '#273556'; g.lineWidth = 1; g.beginPath();
+      for (const [hx, hy] of [[4, 4], [12, 4], [8, 11], [0, 11], [16, 11]]) { g.moveTo(hx - 3, hy); g.lineTo(hx - 1.5, hy - 3); g.lineTo(hx + 1.5, hy - 3); g.lineTo(hx + 3, hy); g.lineTo(hx + 1.5, hy + 3); g.lineTo(hx - 1.5, hy + 3); g.closePath(); }
+      g.stroke(); if (v === 1) R('#2f8a9a', 8, 11, 1, 1);
+    };
+    const marble = () => {   // โรงแรม: หินอ่อนครีม ลายเส้น ขอบทอง
+      R('#efe6d6', 0, 0, 16, 16); R('#e2d6c0', 0, 0, 16, 1); R('#e2d6c0', 0, 0, 1, 16);
+      g.strokeStyle = '#d6c8ae'; g.lineWidth = 1; g.beginPath(); g.moveTo(2 + v * 2, 2); g.quadraticCurveTo(8, 6 + v, 14 - v, 13); g.stroke();
+      if ((x + y) % 2 === 0) { R('#c9a45a', 0, 0, 2, 1); R('#c9a45a', 0, 0, 1, 2); }
+    };
+    const fl = vr || '';
+    const floor = () => (fl.startsWith('F-') ? tilefl() : fl.startsWith('F{') ? darkfl() : fl.startsWith('Fn') ? netfl() : fl.startsWith('F*') ? marble() : wood());
     switch (ch) {
       case '.': grass(); break;
       case 'f': grass(); [['#e8c34a', 3, 4], ['#f2efe4', 10, 9], ['#d9455a', 6, 12]].forEach(([col, a, b]) => { R(col, a, b, 2, 2); R('#5f7f43', a, b + 2, 1, 2); }); break;
@@ -85,6 +96,7 @@
       case 'D':
         if (vr === 'DC') { R('#e6dcc8', 0, 0, 16, 16); R('#5a6a7a', 2, 1, 12, 15); R('#9fc4dc', 3, 2, 4, 13); R('#9fc4dc', 9, 2, 4, 13); R('#d9b25a', 7, 8, 2, 1); }
         else if (vr === 'DQ') { R('#7d8794', 0, 0, 16, 16); R('#3a3f48', 1, 1, 14, 15); for (let i = 3; i < 16; i += 3) R('#555c66', 1, i, 14, 1); R('#f2d24b', 1, 1, 14, 1); }
+        else if (vr === 'DM') { R('#7a4a2a', 0, 0, 16, 16); R('#c9a45a', 1, 0, 14, 16); R('#b8bcc4', 2, 1, 6, 15); R('#d0d4dc', 8, 1, 6, 15); R('#8f949e', 7, 1, 2, 15); R('#e8ecf0', 3, 2, 1, 12); R('#f2d24b', 6, 0, 4, 1); }
         else if (vr === 'DA') { R('#1b2036', 0, 0, 16, 16); R('#5fe0f0', 0, 0, 16, 1); R('#9fd8f0', 1, 2, 6, 14); R('#9fd8f0', 9, 2, 6, 14); R('#c8ecf8', 2, 3, 2, 8); R('#c8ecf8', 10, 3, 2, 8); R('#3a3f48', 7, 1, 2, 15); R('#b04ae8', 0, 1, 16, 1); }
         else { R('#6b5040', 0, 0, 16, 16); R('#3a2a20', 3, 1, 10, 15); R('#2a1d18', 4, 2, 8, 14); R('#d9b25a', 10, 9, 1, 1); }
         break;
@@ -135,6 +147,18 @@
         break; }
       case '%':
         if (vr === 'faceH') { R('#eef2f4', 0, 0, 16, 16); R('#c8dce4', 0, 10, 16, 1); R('#9fc4dc', 0, 12, 16, 4); if (v === 3) { R('#9fc4dc', 4, 3, 8, 5); R('#f4f4ec', 4, 3, 8, 1); } else if (v === 1) { R('#d9455a', 7, 3, 2, 6); R('#d9455a', 5, 5, 6, 2); } }
+        else if (vr === 'faceN') {   // ผนังร้านเน็ต: เขียวเข้ม แถบไฟนีออน โปสเตอร์เกม
+          R('#16323a', 0, 0, 16, 16); R('#1d3f48', 0, 0, 16, 2); R('#ff4fb0', 0, 11, 16, 1); R('#0e2026', 0, 12, 16, 4); R('#4fe0ff', 0, 14, 16, 1);
+          if (v === 2) { R('#0c0d14', 2, 1, 12, 9); R(['#d9455a', '#7a2ad0', '#2a8ad8'][(x + y) % 3], 3, 2, 10, 7); R('#ffffff', 4, 3, 5, 1); R('#f2d24b', 9, 5, 3, 3); R('#0c0d14', 4, 7, 7, 1); }
+          else if (v === 0) { R('#0c0d14', 4, 3, 8, 5); R('#5fe0f0', 5, 4, 6, 1); R('#ff4fb0', 5, 6, 4, 1); }
+        }
+        else if (vr === 'topN') { R('#0b181d', 0, 0, 16, 16); R('#16323a', 0, 0, 16, 2); }
+        else if (vr === 'faceM') {   // ผนังโรงแรม: ครีม บัวทอง บุไม้ช่วงล่าง ภาพแขวน/โคมผนัง
+          R('#efe0c0', 0, 0, 16, 16); R('#e4d2ae', 0, 0, 16, 1); R('#c9a45a', 0, 8, 16, 1); R('#7a4a2a', 0, 9, 16, 7); R('#8a5a34', 1, 10, 6, 5); R('#8a5a34', 9, 10, 6, 5); R('#c9a45a', 0, 15, 16, 1);
+          if (v === 2) { R('#b08a3a', 3, 1, 10, 7); R('#7fb0c8', 4, 2, 8, 3); R('#6a9a50', 4, 5, 8, 2); R('#f2d24b', 9, 2, 2, 1); }
+          else if (v === 1) { R('#c9a45a', 7, 3, 2, 4); O('#fff2c0', 8, 2.5, 3, 2); }
+        }
+        else if (vr === 'topM') { R('#5a3a22', 0, 0, 16, 16); R('#6b4a2f', 0, 0, 16, 2); }
         else if (vr === 'faceE') { R('#1d1a2e', 0, 0, 16, 16); R('#2a2542', 0, 0, 16, 9); R('#b04ae8', 0, 10, 16, 1); R('#5fe0f0', 0, 13, 16, 1); R('#120f1c', 0, 15, 16, 1); if (v === 2) { R('#3a3460', 3, 2, 10, 6); R('#ff4fb0', 4, 3, 3, 4); R('#4fe0ff', 9, 3, 3, 4); } }
         else if (vr === 'topE') { R('#100e18', 0, 0, 16, 16); R('#1d1a2e', 0, 0, 16, 2); }
         else if (vr === 'topH') { R('#8a9aa8', 0, 0, 16, 16); R('#9aaab8', 0, 0, 16, 2); }
@@ -174,6 +198,37 @@
       case '8': floor(); R('#6b4a2f', 1, 3, 14, 10); O('#3a3a3a', 8, 7, 5, 4); O('#8a8a8a', 8, 6, 4, 2); R('#c5482b', 6, 6, 1, 1); R('#e88aa8', 9, 7, 2, 1); R('#5a3a22', 2, 13, 2, 3); R('#5a3a22', 12, 13, 2, 3); break;
       case '9': floor(); R('#6b4a2f', 1, 8, 14, 8); R('#2a2a2a', 3, 1, 10, 7); R(frame ? '#5fb8e0' : '#4a90c0', 4, 2, 8, 5); R('#b8bcc4', 4, 10, 8, 2); break;
 
+
+      // ---------- เฟอร์นิเจอร์ในร้านเน็ต/โรงแรม (อักษรไทยเป็นรหัสช่อง) ----------
+      case 'ก': floor(); R('#1f4f52', 1, 4, 14, 10); R('#2f7276', 1, 4, 14, 3); R('#183e40', 0, 6, 2, 8); R('#183e40', 14, 6, 2, 8);
+        R('#3a8a8e', 3, 8, 4, 4); R('#3a8a8e', 9, 8, 4, 4); R('#4fa4a8', 3, 8, 4, 1); R('#4fa4a8', 9, 8, 4, 1); R('#c9a45a', 2, 14, 1, 2); R('#c9a45a', 13, 14, 1, 2); break;   // โซฟากำมะหยี่
+      case 'ค': floor(); R('#b08a3a', 5, 11, 6, 5); R('#c9a45a', 4, 10, 8, 2);
+        for (const [a, b, r] of [[8, 6, 4], [4, 7, 3], [12, 7, 3], [6, 3, 2.5], [10, 3, 2.5]]) O(a % 4 ? '#3f8a45' : '#2f6b34', a, b, r, r * 0.8);
+        R('#5aa45a', 7, 2, 1, 3); R('#5aa45a', 11, 5, 2, 1); break;   // ต้นไม้ใหญ่กระถางทอง
+      case 'ง': floor(); R('#5a3a22', 1, 1, 14, 14); R('#6b4a2f', 2, 2, 12, 12);
+        for (let yy = 3; yy < 13; yy += 3) for (let xx = 3; xx < 13; xx += 3) { R('#c9a45a', xx + 1, yy, 1, 1); R(hash(xx + x, yy + y) < 0.6 ? '#f2d24b' : '#3a2a20', xx, yy + 1, 2, 1); }
+        break;   // ตู้กุญแจห้อง
+      case 'ฉ': floor(); R('#5a2a1a', 0, 6, 16, 10); R('#7a3a22', 0, 7, 16, 8); R('#c9a45a', 0, 10, 16, 1); R('#f4f0e6', 0, 3, 16, 4); R('#ded6c4', 0, 6, 16, 1);
+        if (v === 0) { R('#2a2a33', 3, 0, 6, 4); R('#5fb8e0', 4, 1, 4, 2); } else if (v === 1) { O('#f2d24b', 8, 4, 2, 1.2); R('#c9a45a', 7, 2, 2, 1); } else if (v === 2) { R('#f4f4ec', 5, 3, 5, 2); R('#c5482b', 6, 3, 3, 1); }
+        break;   // เคาน์เตอร์หินอ่อนต้อนรับ
+      case 'ช': floor(); R('#c9a45a', 2, 2, 1, 13); R('#c9a45a', 13, 2, 1, 13); R('#c9a45a', 2, 2, 12, 1); R('#b08a3a', 2, 13, 12, 1);
+        R('#2f6fb0', 4, 5, 8, 4); R('#d9455a', 4, 9, 5, 4); R('#4a3020', 9, 9, 3, 4); O('#2a2a2a', 4, 15, 1.5, 1); O('#2a2a2a', 12, 15, 1.5, 1); break;   // รถเข็นกระเป๋า
+      case 'ซ': floor(); O('#3a2416', 8, 10, 7, 4); O('#5a3a22', 8, 9, 7, 4); R('#4a2e1c', 3, 12, 1, 4); R('#4a2e1c', 12, 12, 1, 4);
+        R('#e8ecf0', 7, 4, 2, 5); O('#e86a9a', 7, 3, 1.5, 1.5); O('#f2d24b', 9.5, 3.5, 1.5, 1.5); O('#d9455a', 8, 1.8, 1.4, 1.4); R('#4f8a45', 8, 4, 1, 2); break;   // โต๊ะกาแฟ แจกันดอกไม้
+      case 'ฌ': floor(); R('#8a1f2a', 0, 0, 16, 16); R('#a02a36', 1, 1, 14, 14);
+        for (let k = 2; k < 16; k += 4) { R('#b8434e', k, 7, 2, 2); }
+        break;   // พรมแดงขอบทอง
+      case 'ฏ': floor(); R('#2a2e3a', 1, 0, 14, 16); R('#9fe0ff', 2, 1, 12, 13); R('#c8f0ff', 2, 1, 12, 1);
+        for (const yy of [3, 7, 11]) { R('#5f6873', 2, yy + 2, 12, 1); for (let k = 0; k < 5; k++) R(['#d9455a', '#f2d24b', '#6cc04a', '#e86a9a', '#2f6fb0'][(k + yy + v) % 5], 3 + k * 2, yy - 1, 1, 3); }
+        if (frame) R('#ffffff', 12, 2, 1, 10); R('#14141a', 1, 14, 14, 2); break;   // ตู้แช่น้ำเรืองแสง
+      case 'ฑ': floor(); R('#1a1030', 2, 0, 12, 16); R('#2a1a50', 3, 1, 10, 3); R(frame ? '#ff4fb0' : '#4fe0ff', 4, 1, 8, 2);
+        R('#0c0d14', 3, 4, 10, 6); R(frame ? '#2a8a3a' : '#2a3a9a', 4, 5, 8, 4); R('#f2d24b', 5 + frame * 3, 6, 2, 2); R('#ffffff', 9, 7 - frame, 1, 1);
+        R('#3a2a60', 2, 10, 12, 3); R('#d9455a', 4, 11, 2, 1); R('#2a2a2a', 4, 9, 1, 2); O('#f2d24b', 9, 11.5, 1, 1); O('#4fe07a', 11, 11.5, 1, 1); R('#120a24', 3, 13, 10, 3); break;   // ตู้เกมอาเขต
+      case 'ฒ': floor(); O(['#d9455a', '#2f6fb0', '#f2d24b', '#7a2ad0'][v], 8, 10, 6.5, 5); O(['#e86a7a', '#4f8fd0', '#f8e27a', '#9a5ad0'][v], 7, 8, 4, 2.5); R('rgba(0,0,0,0.25)', 3, 14, 10, 1); break;   // บีนแบก
+      case 'ณ': floor(); R('#3a3f48', 5, 6, 6, 9); R('#5f6873', 4, 5, 8, 2); R('#4fa05a', 6, 8, 4, 1); R('#2a2e35', 5, 14, 6, 1); break;   // ถังขยะ
+      case 'ด': floor(); R('#e8ecf0', 4, 6, 8, 10); R('#c8ccd4', 4, 14, 8, 2); R('#9fd8f0', 5, 0, 6, 6); R('#c8ecf8', 6, 1, 2, 4); R('#d9455a', 5, 9, 2, 2); R('#2f6fb0', 9, 9, 2, 2); break;   // ตู้กดน้ำดื่ม
+      case 'ต': R('#24345a', 0, 0, 16, 16); R('#2a3d68', 0, 0, 16, 1); R('#2a3d68', 0, 0, 1, 16);
+        if ((v + frame) % 2) R('#b06aff', 7, 7, 2, 2); break;   // พรมทางเดิน (ขอบไฟนีออนวาดใน decor)
       // ---------- ด่านสุดท้าย: เมืองขอนแก่น สนามอีสปอร์ต ----------
       case '(': {   // ผนังกระจกสนามอีสปอร์ต: กระจกน้ำเงินม่วง เส้นเฟรม แถบนีออนที่ขอบบน
         R('#1b2036', 0, 0, 16, 16); R('#2a3360', 1, 1, 6, 14); R('#2a3360', 9, 1, 6, 14);
@@ -235,6 +290,7 @@
         const rgb = ['#ff4f6a', '#ffd84a', '#4fe07a', '#4fb8ff', '#b06aff'];
         for (let k = 0; k < 5; k++) R(rgb[(k + frame + v) % 5], 3 + k * 2, 11, 2, 1);
         R('#5a5f66', 13, 11, 2, 3);
+        R('#14141a', 5, 13, 6, 3); R(['#d9455a', '#4fb8ff', '#4fe07a', '#b06aff'][v], 7, 13, 2, 3);   // เก้าอี้เกมมิ่ง
         break; }
       default: grass();
     }
@@ -459,13 +515,68 @@
   // ---------- วาด ----------
   // เส้นสีบนพื้น: ต่อไปทางช่องข้างๆ ที่เป็นสีเดียวกันหรือเป็นประตู (บิตบน/ขวา/ล่าง/ซ้าย)
   const LINK = (ch, x, y) => [[0, -1], [1, 0], [0, 1], [-1, 0]].map(([dx, dy]) => { const t = tileAt(x + dx, y + dy); return t === ch || t === 'D' ? '1' : '0'; }).join('');
+  // ---------- รายละเอียดทับช่อง (วาดทุกเฟรม ไม่แคช เพราะขึ้นกับช่องข้างๆ และเวลา) ----------
+  const TALL = '#PJ&hHCUNQ(D%RrAMmKkcsBW6789]),|`$@z^SI!';   // ของสูงที่ทอดเงาลงช่องข้างล่าง/ขวา
+  const WATERS = 'wi';
+  const GROUND = '.:fTgveda;{_-+L0O2x1345=ฌต';
+  function decor(ctx, ch, x, y, sx, sy, frame, nightLit, lamps) {
+    const at = (dx, dy) => tileAt(x + dx, y + dy);
+    const R = (c, a, b, w, h) => { ctx.fillStyle = c; ctx.fillRect(sx + a, sy + b, w, h); };
+    if (WATERS.includes(ch) && tileVariant(ch, x, y) !== 'mud') {   // ขอบน้ำ: หาดทรายบางๆ + ฟองคลื่นขยับ
+      const land = (t) => !WATERS.includes(t) && t !== '0';
+      const f = (frame + x + y) % 2;
+      if (land(at(0, -1))) { R('rgba(222,206,160,0.9)', 0, 0, 16, 2); R('rgba(240,250,255,0.85)', f, 2, 4, 1); R('rgba(240,250,255,0.85)', 8 + f, 2, 5, 1); }
+      if (land(at(0, 1))) { R('rgba(222,206,160,0.9)', 0, 14, 16, 2); R('rgba(240,250,255,0.8)', 3 - f, 13, 5, 1); R('rgba(240,250,255,0.8)', 11 - f, 13, 3, 1); }
+      if (land(at(-1, 0))) { R('rgba(222,206,160,0.9)', 0, 0, 2, 16); R('rgba(240,250,255,0.8)', 2, 3 + f, 1, 4); R('rgba(240,250,255,0.8)', 2, 10 + f, 1, 3); }
+      if (land(at(1, 0))) { R('rgba(222,206,160,0.9)', 14, 0, 2, 16); R('rgba(240,250,255,0.8)', 13, 2 - f + 2, 1, 4); R('rgba(240,250,255,0.8)', 13, 11 - f, 1, 3); }
+      return;
+    }
+    if (GROUND.includes(ch)) {
+      // เงาตกจากของสูง: แดดส่องจากซ้ายบน เงาลงด้านล่างและด้านขวา
+      const up = at(0, -1), left = at(-1, 0), ul = at(-1, -1);
+      if (TALL.includes(up) && up !== ch) { ctx.fillStyle = 'rgba(20,24,40,0.22)'; ctx.fillRect(sx, sy, 16, 3); ctx.fillStyle = 'rgba(20,24,40,0.12)'; ctx.fillRect(sx, sy + 3, 16, 2); }
+      if (TALL.includes(left) && left !== ch) { ctx.fillStyle = 'rgba(20,24,40,0.16)'; ctx.fillRect(sx, sy + (TALL.includes(up) ? 5 : 0), 3, 16 - (TALL.includes(up) ? 5 : 0)); }
+      else if (TALL.includes(ul) && !TALL.includes(up)) { ctx.fillStyle = 'rgba(20,24,40,0.14)'; ctx.fillRect(sx, sy, 3, 3); }
+    }
+    if (ch === 'ต') {   // พรมทางเดินร้านเน็ต: เส้นไฟนีออนตามขอบ
+      const c = frame ? '#4fe0ff' : '#2f9ab0';
+      if (at(-1, 0) !== 'ต') R(c, 0, 0, 1, 16); if (at(1, 0) !== 'ต') R(c, 15, 0, 1, 16);
+      if (at(0, -1) !== 'ต') R(c, 0, 0, 16, 1); if (at(0, 1) !== 'ต') R(c, 0, 15, 16, 1);
+    }
+    if (ch === 'ฌ') {   // พรมแดง: ขอบทองด้านที่ไม่ต่อพรม
+      if (at(-1, 0) !== 'ฌ') R('#c9a45a', 0, 0, 2, 16); if (at(1, 0) !== 'ฌ') R('#c9a45a', 14, 0, 2, 16);
+      if (at(0, -1) !== 'ฌ') R('#c9a45a', 0, 0, 16, 2); if (at(0, 1) !== 'ฌ') R('#c9a45a', 0, 14, 16, 2);
+    }
+    if (ch === ':') {   // ทางดิน: หญ้าแซมขอบ
+      const grassy = (t) => '.fJ#&S'.includes(t);
+      const tuft = (a, b) => { R('#8fa64e', a, b, 1, 2); R('#a9bc62', a + 1, b - 1, 1, 2); };
+      if (grassy(at(0, -1))) for (let k = (x * 5) % 4; k < 16; k += 5) tuft(k, 0);
+      if (grassy(at(0, 1))) for (let k = (x * 3) % 4 + 1; k < 16; k += 5) tuft(k, 14);
+      if (grassy(at(-1, 0))) for (let k = (y * 5) % 4; k < 16; k += 5) tuft(0, k);
+      if (grassy(at(1, 0))) for (let k = (y * 3) % 4 + 2; k < 16; k += 5) tuft(14, k);
+    }
+    if (ch === 'a') {   // ขอบถนนติดฟุตปาธ: ขอบคอนกรีต + เส้นขาวริมถนน
+      if (at(0, -1) !== 'a' && at(0, -1) !== '+' && at(0, -1) !== '@') { R('#8a8a90', 0, 0, 16, 2); R('#e8e4d8', 0, 3, 16, 1); }
+      if (at(0, 1) !== 'a' && at(0, 1) !== '+' && at(0, 1) !== '@') { R('#e8e4d8', 0, 12, 16, 1); R('#3e3e46', 0, 14, 16, 2); }
+    }
+    if (nightLit && 'CUhm'.includes(ch)) {   // กลางคืน: บางห้องเปิดไฟ
+      const v = Math.floor(hash(x, y) * 4), lit = hash(x * 7, y * 3) < 0.55;
+      if (!lit) return;
+      const win = ch === 'C' ? [4, 4, 4, 5] : ch === 'U' ? (tileVariant(ch, x, y) === 'cross' ? null : [4, 4, 4, 6]) : v % 2 ? [4, 5, 8, 5] : null;
+      if (!win) return;
+      const flick = 0.75 + 0.25 * Math.sin((W.anim + x * 37 + y * 11) / 40);
+      R(`rgba(255,214,130,${0.85 * flick})`, ...win);
+      if (ch === 'C') R(`rgba(255,214,130,${0.85 * flick})`, 9, 4, 3, 5);
+      lamps.push([sx + 8, sy + 7, 14]);
+    }
+  }
   // ข้อความบนป้ายไฟนีออนแต่ละป้าย (แผนที่:x เริ่ม,y)
   const NEON = { 'city:31,1': ' ★VALOLAND★CHAMPIONS★ESPORTS★ ', 'city:3,19': '★ HOTEL★', 'city:14,21': 'OPEN24H', 'city:24,20': 'NET★GG',
     'city:41,18': 'NIGHT★' };
   function tileVariant(ch, x, y) {
-    if (ch === '%') return (y + 1 < W.rows.length && tileAt(x, y + 1) !== '%' ? 'face' : 'top') + (W.def.floor === '-' && W.def.music === 'hospital' ? 'H' : W.def.floor === '{' ? 'E' : '');
+    if (ch === '%') return (y + 1 < W.rows.length && tileAt(x, y + 1) !== '%' ? 'face' : 'top') + (W.def.floor === '-' && W.def.music === 'hospital' ? 'H' : W.def.floor === '{' ? 'E' : W.def.floor === 'n' ? 'N' : W.def.floor === '*' ? 'M' : '');
     if (ch === 'U') return tileAt(x, y - 1) === 'N' && x % 6 === 2 ? 'cross' : '';
-    if ('_xtcskBpWG~O2678[]1345=|`'.includes(ch)) return 'F' + (W.def.floor || '_') + ('1345='.includes(ch) ? LINK(ch, x, y) : '') + (ch === 'O' && W.def.wet ? 'wet' : '');
+    if ('_xtcskBpWG~O2678[]1345=|`กคงฉชซฌฏฑฒณดต'.includes(ch)) return 'F' + (W.def.floor || '_') + ('1345='.includes(ch) ? LINK(ch, x, y) : '') + (ch === 'O' && W.def.wet ? 'wet' : '');
     if (ch === '*') {   // ป้ายไฟนีออน: หาตัวอักษรตามตำแหน่งในแถบป้าย
       let x0 = x; while (tileAt(x0 - 1, y) === '*') x0--;
       const word = NEON[`${W.map}:${x0},${y}`] || 'OPEN★';
@@ -473,6 +584,7 @@
     }
     if (ch === '!' && W.map === 'amphoe') return 'clock';
     if (ch === 'a') return y % 2 === 1 && x % 2 === 0 && tileAt(x, y + 1) === 'a' ? 'lane' : '';
+    if (ch === 'D' && W.def.floor === '*') return 'DM';
     if (ch === 'D') return 'D' + (tileAt(x - 1, y) === 'C' || tileAt(x + 1, y) === 'C' ? 'C' : tileAt(x - 1, y) === 'Q' || tileAt(x + 1, y) === 'Q' ? 'Q' : '(D'.includes(tileAt(x - 1, y)) && '(D'.includes(tileAt(x + 1, y)) ? 'A' : '');
     if (ch === '(') return tileAt(x, y - 1) !== '(' && tileAt(x, y - 1) !== ')' ? 'top' : tileAt(x, y + 1) !== '(' && tileAt(x, y + 1) !== ')' ? 'base' : '';
     if (ch === 'Z') { const o = objAt(x, y); return o && G.state.flags['sw_' + o.arg] ? 'on' : ''; }
@@ -514,6 +626,12 @@
       if (ch === '*' || ch === ')') lamps.push([x * TS - cx + 8, y * TS - cy + 8, ch === ')' ? 30 : 24]);
       if (ch === 'Y' && tileVariant(ch, x, y) === 'on') lamps.push([x * TS - cx + 8, y * TS - cy + 7, 46]);
       if (ch === '~') drawCurtainSway(ctx, x, y, x * TS - cx, y * TS - cy);
+    }
+    // รายละเอียดเสริมทับพื้น: เงาตึก/ต้นไม้ ขอบน้ำ ขอบทางดิน ขอบถนน ไฟหน้าต่างตอนกลางคืน
+    const nightLit = !W.def.indoor && G.isNight();
+    for (let y = y0; y <= y0 + VH; y++) for (let x = x0; x <= x0 + VW; x++) {
+      if (y >= rows || x >= cols) continue;
+      decor(ctx, W.rows[y][x], x, y, x * TS - cx, y * TS - cy, frame, nightLit, lamps);
     }
     if (W.amb) drawAmbientLow(ctx, cx, cy);
     // ตัวละคร เรียงตามแกน y
@@ -738,7 +856,7 @@
   function drawActor(ctx, look, x, y, dir, frame, npc) {
     const custom = !!G._spriteDefs.CUSTOM[look];
     const bob = custom && npc == null && frame ? Math.floor(W.anim / 6) % 2 : 0;
-    ctx.fillStyle = 'rgba(0,0,0,0.22)'; ctx.fillRect(x + 3, y + 14, 10, 2);
+    ctx.fillStyle = 'rgba(10,14,30,0.26)'; ctx.beginPath(); ctx.ellipse(x + 8, y + 15, 5.5, 2, 0, 0, 7); ctx.fill();   // เงานุ่มใต้เท้า
     const spr = custom && (look === 'toad' || look === 'item' || look === 'buffalo' || look === 'bed') ? G.sprite(look) : G.actorSprite(look, dir, frame);
     ctx.drawImage(spr, x, y - bob);
     if (npc && npc.trainer && !G.state.flags[npc.trainer.flag]) { ctx.fillStyle = '#c5482b'; ctx.fillRect(x + 7, y - 4, 2, 2); }

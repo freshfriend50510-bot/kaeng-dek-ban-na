@@ -185,13 +185,13 @@
    "name": "ร้านเน็ตหน้าตลาด",
    "music": "city",
    "indoor": true,
-   "floor": "{"
+   "floor": "n"
   },
   "hotel": {
    "name": "โรงแรมนักแข่ง",
    "music": "city",
    "indoor": true,
-   "floor": "_"
+   "floor": "*"
   },
   "cstore": {
    "name": "ร้านสะดวกซื้อ",
@@ -549,42 +549,6 @@
    "dir": "down"
   },
   {
-   "map": "netcafe",
-   "x": 9,
-   "y": 13,
-   "to": "city",
-   "tx": 27,
-   "ty": 26,
-   "dir": "down"
-  },
-  {
-   "map": "netcafe",
-   "x": 10,
-   "y": 13,
-   "to": "city",
-   "tx": 27,
-   "ty": 26,
-   "dir": "down"
-  },
-  {
-   "map": "hotel",
-   "x": 7,
-   "y": 10,
-   "to": "city",
-   "tx": 6,
-   "ty": 26,
-   "dir": "down"
-  },
-  {
-   "map": "hotel",
-   "x": 8,
-   "y": 10,
-   "to": "city",
-   "tx": 6,
-   "ty": 26,
-   "dir": "down"
-  },
-  {
    "map": "cstore",
    "x": 6,
    "y": 9,
@@ -709,6 +673,42 @@
    "tx": 12,
    "ty": 12,
    "dir": "up"
+  },
+  {
+   "map": "netcafe",
+   "x": 10,
+   "y": 14,
+   "to": "city",
+   "tx": 27,
+   "ty": 26,
+   "dir": "down"
+  },
+  {
+   "map": "netcafe",
+   "x": 11,
+   "y": 14,
+   "to": "city",
+   "tx": 27,
+   "ty": 26,
+   "dir": "down"
+  },
+  {
+   "map": "hotel",
+   "x": 8,
+   "y": 11,
+   "to": "city",
+   "tx": 6,
+   "ty": 26,
+   "dir": "down"
+  },
+  {
+   "map": "hotel",
+   "x": 9,
+   "y": 11,
+   "to": "city",
+   "tx": 6,
+   "ty": 26,
+   "dir": "down"
   }
  ],
  "doors": [
@@ -1034,8 +1034,8 @@
    "x": 6,
    "y": 25,
    "to": "hotel",
-   "tx": 7,
-   "ty": 9,
+   "tx": 8,
+   "ty": 10,
    "name": "โรงแรมนักแข่ง",
    "sells": "พักฟรี · บันทึกเกม"
   },
@@ -1054,8 +1054,8 @@
    "x": 27,
    "y": 25,
    "to": "netcafe",
-   "tx": 9,
-   "ty": 12,
+   "tx": 10,
+   "ty": 13,
    "open": [
     10,
     2
@@ -1096,7 +1096,7 @@
   },
   {
    "map": "hotel",
-   "x": 13,
+   "x": 14,
    "y": 1,
    "script": "line",
    "label": "ขึ้นลิฟต์",
@@ -3218,7 +3218,7 @@
    "name": "เด็กติดเกม",
    "map": "netcafe",
    "x": 12,
-   "y": 4,
+   "y": 6,
    "look": "henchman2",
    "dir": "up",
    "lines": [
@@ -3231,8 +3231,8 @@
    "id": "c_netkid2",
    "name": "สาวเกมเมอร์",
    "map": "netcafe",
-   "x": 3,
-   "y": 8,
+   "x": 15,
+   "y": 9,
    "look": "student2",
    "dir": "up",
    "lines": [
@@ -3922,7 +3922,7 @@
   {
    "map": "netcafe",
    "x": 13,
-   "y": 3,
+   "y": 5,
    "script": "line",
    "label": "ดูเครื่อง 07",
    "lines": [
@@ -3932,7 +3932,7 @@
   },
   {
    "map": "netcafe",
-   "x": 12,
+   "x": 10,
    "y": 2,
    "script": "line",
    "label": "ดูทีวี",
