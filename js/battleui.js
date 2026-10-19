@@ -36,7 +36,7 @@
           if (e.reward && skip) break;
           await G.ui.say(e.text, null, { battle: true, auto: 650, onDouble: e.reward ? () => { skip = true; } : null });
           break;
-        case 'anim': startAct(e.side, e.type, e.cat, e.id, 0); V.fx = { side: e.side, type: e.type, cat: e.cat, id: e.id, t0: performance.now() }; G.sfx(e.cat === 'status' ? 'status' : 'attack'); await wait(SIG[e.id] ? 430 : e.cat === 'status' ? 300 : 260); break;
+        case 'anim': startAct(e.side, e.type, e.cat, e.id, 0); V.fx = { side: e.side, type: e.type, cat: e.cat, id: e.id, t0: performance.now() }; G.sfx(e.cat === 'status' ? 'status' : 'attack'); await wait(SIG[e.id] ? Math.round(durOf(e.id) * 0.566) : e.cat === 'status' ? 300 : 260); break;
         case 'hit': V.shake = { side: e.side, t: 0 }; V.knock = { side: e.side, t0: performance.now() }; G.sfx(e.eff > 1 ? 'super' : 'hit'); await wait(200); break;
         case 'crit': V.critFlash = 10; V.shake = { side: e.side, t: 0 }; G.sfx('super'); await wait(160); break;
         case 'hp': await tweenHp(b, e.side, e.hp); break;
@@ -230,9 +230,9 @@
   //  wave = คลื่น/เสียงจากผู้ใช้ไปหาศัตรู · self = ของโผล่เหนือตัวผู้ใช้ · on = ของโผล่ที่ตัวศัตรู · beam = ลำแสงตรง
   //  slash = รอยฟัน · dark = จอมืด    ตัวเลือก: text = คำพูดเด้งที่ศัตรู, zzz = ศัตรูง่วง, n = จำนวนชิ้น, c = สี
   const SIG = {
-    silly_face: ['self', '🤪', { text: '?!' }], mud_throw: ['throw', '🟤'], pound_ground: ['wave', '📢', { text: 'เฮ้ยยย!!', self: true }],
+    silly_face: ['self', '🤪', { text: '?!' }], mud_throw: ['throw', '🟤', { blobs: true, bc: '#6b4a2a' }], pound_ground: ['wave', '📢', { text: 'เฮ้ยยย!!', self: true }],
     field_slam: ['drop', '🌾', { n: 3 }], push_glasses: ['self', '👓', { glint: true }], battery_shot: ['throw', '🔋'], lecture: ['wave', '📚', { text: 'บลาๆๆ', zzz: true }],
-    plasma: ['beam', '⚡', { c: '#fff2a8' }], belly_bump: ['rush', '🫃', { text: 'ดึ๋ง!' }], sweet_smile: ['wave', '💕'], bamboo_squirt: ['beam', '🎋', { c: '#7cc6de' }],
+    plasma: ['beam', '⚡', { c: '#fff2a8' }], belly_bump: ['body', '🫃', { text: 'ดึ๋ง!', boing: true }], sweet_smile: ['wave', '💕'], bamboo_squirt: ['beam', '🎋', { c: '#7cc6de' }],
     sticky_rice: ['self', '🍙', { hearts: true }], pond_dive: ['drop', '💦', { n: 3 }], tongue: ['self', '😛', { text: 'แบร่~' }], dust_kick: ['cloud', '💨'],
     spin: ['self', '🌀', { spin: true }], whirlwind: ['on', '🌪️', { spin: true }], splash_spook: ['throw', '👻'], koi_hop: ['drop', '🦶', { n: 2 }],
     raw_bite: ['on', '🦷', { text: 'งั่ม!' }], basket_flap: ['throw', '🧺', { spin: true }], wail: ['wave', '🎵', { text: 'ฮือออ~' }], spook: ['on', '👻', { text: 'แบ่!!' }],
@@ -251,7 +251,7 @@
     wood_sword: ['slash', '🗡️', { c: '#d9b25a' }], treasure_guard: ['self', '💰', { coins: true }], stone_drop: ['drop', '🧱', { n: 4 }], saline_drip: ['self', '💧', { iv: true }],
     night_round: ['beam', '🔦', { c: '#fff8c0' }], take_meds: ['throw', '💊', { text: 'กินยายัง?' }], wheel_ram: ['rush', '🦽'], squeak_wheel: ['wave', '🛞', { text: 'เอี๊ยดดด!' }],
     wrong_ward: ['on', '🔀', { spin: true, text: 'ทางไหน?' }], bandage: ['self', '🩹', { hearts: true }], inject: ['throw', '💉'], case_present: ['on', '📊', { zzz: true }],
-    anatomy_strike: ['throw', '🦴', { spin: true }], mud_therapy: ['throw', '🟤', { big: true }], herbal_pot: ['self', '🏺', { steam: true }], numb_shot: ['throw', '💉', { zzz: true }],
+    anatomy_strike: ['throw', '🦴', { spin: true }], mud_therapy: ['drop', '🟤', { big: true, text: 'ปึก!' }], herbal_pot: ['self', '🏺', { steam: true }], numb_shot: ['throw', '💉', { zzz: true }],
     pulse_check: ['self', '🩺', { ecg: true }], looking_down: ['on', '😏', { text: 'หึ...' }],
     // ท่าพื้นฐาน + ท่าวาโลแลนด์ (m = ท่าทางของตัวละคร ถ้าไม่ใส่จะเดาจากแบบเอฟเฟกต์)
     tackle: ['body', '💥', { m: 'rush' }], dash: ['body', '💨', { m: 'dashx', after: true }], flicker: ['on', '💡', { flash: true, blink: true }],
@@ -266,13 +266,232 @@
     operator: ['snipe', '🔭', { big: true, text: 'ปัง!!' }], hot_hands: ['throw', '🔥', { big: true }], tour_de_force: ['snipe', '💎', { text: 'สง่างาม~' }],
     incendiary: ['drop', '🔥', { n: 5, sat: true }],
   };
+  // ---------- ฉากเฉพาะท่า: วาดตามชื่อท่าตรงๆ (กระดานสอน กินข้าวเหนียว กระโดดลงนา ขากรรไกรงับ ฯลฯ) แทนแบบทั่วไปใน SIG ----------
+  const PI = Math.PI;
+  function chalkBoard(H, lines, talk, screen) {   // กระดาน/จอพรีเซนต์ข้างผู้ใช้ เขียนทีละบรรทัด
+    const { ctx, t, ax, ay, dir, cl, say, em } = H, a = cl(t * 8) * (1 - cl((t - 0.9) * 10)); if (a <= 0) return;
+    const w = 48, h = 32, x = Math.round(ax + (dir > 0 ? 24 : -24 - w)), y = Math.round(ay - 46);
+    ctx.save(); ctx.globalAlpha = a;
+    ctx.fillStyle = '#5a3a1e'; ctx.fillRect(x + 6, y + h, 2, 14); ctx.fillRect(x + w - 8, y + h, 2, 14);
+    ctx.fillStyle = screen ? '#9aa0ac' : '#8a5a34'; ctx.fillRect(x - 2, y - 2, w + 4, h + 4);
+    ctx.fillStyle = screen ? '#f6f8fc' : '#2f5a3a'; ctx.fillRect(x, y, w, h);
+    if (!screen) { ctx.fillStyle = '#d8d0b8'; ctx.fillRect(x + 2, y + h - 1, w - 4, 2); }
+    ctx.font = '6px Itim, Tahoma, sans-serif'; ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    let pen = null;
+    lines.forEach((ln, i) => {
+      const k = cl((t - 0.1) * 3.4 - i * 0.9); if (k <= 0) return;
+      ctx.save(); ctx.beginPath(); ctx.rect(x + 2, y, (w - 4) * k, h); ctx.clip();
+      ctx.fillStyle = screen ? (i ? '#203040' : '#2f6fb0') : '#f4f4ec'; ctx.fillText(ln, x + 3, y + 2 + i * 9); ctx.restore();
+      if (k < 1) pen = [x + 3 + (w - 6) * k, y + 6 + i * 9];
+    });
+    if (screen) for (let i = 0; i < 3; i++) { const k = cl((t - 0.45) * 4 - i * 0.3); ctx.fillStyle = ['#d9455a', '#f2a03a', '#5fae4a'][i]; ctx.fillRect(x + 30 + i * 5, y + h - 3 - k * (8 + i * 4), 4, k * (8 + i * 4)); }
+    ctx.restore();
+    if (pen) em(screen ? '🖊️' : '🖍️', pen[0] + 3, pen[1] - 3, 8, 0, false, a);
+    if (screen && t > 0.5) { H.dot('#ff3040', x + 32 + Math.sin(t * 20) * 6, y + 20 + Math.cos(t * 13) * 3, 1.5); }
+    if (t > 0.2 && t < 0.88) say(talk, ax, ay - 34 - (Math.floor(t * 6) % 2), a);
+  }
+  function teeth(ctx, x, y, w, up) {   // แถวฟันขาวพร้อมเหงือก
+    ctx.fillStyle = '#c0485a'; ctx.fillRect(x - w / 2, up ? y - 4 : y, w, 4);
+    ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#2a2030'; ctx.lineWidth = 1;
+    for (let i = 0; i < 5; i++) { const x0 = x - w / 2 + (i * w) / 5; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x0 + w / 10, y + (up ? 7 : -7)); ctx.lineTo(x0 + w / 5, y); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  }
+  const tan = 'rgba(216,180,122,', heal = (H, from) => { const { t, ax, ay, dot } = H; if (t > from) for (let i = 0; i < 7; i++) dot(i % 2 ? '#8fe06a' : '#e8ffd8', ax - 14 + i * 5, ay + 14 - (t - from) * 70 - (i % 3) * 5, 1.5); };
+  const SCENE = {
+    lecture: (H) => chalkBoard(H, ['บทที่ 1: ทฤษฎี', 'F = m · a', '∫ f(x) dx = ?'], 'บลาๆๆ...'),
+    case_present: (H) => chalkBoard(H, ['Case #47', 'ไข้ 3 วัน', 'Dx: ?'], 'และเคสถัดไป...', true),
+    sticky_rice: (H) => {   // ปั้นข้าวเหนียวใส่ปาก กัดสามคำ เศษข้าวร่วง แล้วฟื้นพลัง
+      const { t, ax, ay, dir, em, say, dot } = H, bites = Math.min(3, Math.floor(t * 4.2));
+      if (t < 0.75) em('🍙', ax + dir * 10, ay - 2 + Math.sin(t * 40), 22 - bites * 4);
+      if (t > 0.2 && t < 0.8) for (let i = 0; i < 3; i++) dot('#f8f4e8', ax + dir * (5 + i * 3), ay + 2 + ((t * 70 + i * 7) % 16), 1);
+      if (t > 0.2 && t < 0.75) say('งั่มๆ', ax, ay - 32, 1);
+      if (t > 0.7) em('😋', ax, ay - 30, 12, 0, false, 1 - H.cl((t - 0.9) * 10));
+      heal(H, 0.7);
+    },
+    field_slam: (H) => {   // กระโดดลงนา: เงาใต้ศัตรู แล้วโคลนกระจาย ต้นข้าวปลิว
+      const { ctx, t, tx, ty, dot, em, say, cl } = H;
+      if (t < 0.5) { ctx.globalAlpha = 0.4; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(tx, ty + 20, 4 + t * 26, 2 + t * 7, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1; }
+      else { const h = cl((t - 0.5) / 0.45); ctx.globalAlpha = 1 - h * 0.8;
+        for (let i = 0; i < 12; i++) { const a = PI * (0.1 + (i / 11) * 0.8); dot(i % 3 ? '#6b4a2a' : '#8a6a44', tx + Math.cos(a) * h * 30 * (i % 2 ? 1 : -1), ty + 18 - Math.sin(a) * h * 34 + h * h * 30, 3 - h); }
+        for (let i = 0; i < 3; i++) em('🌾', tx + (i - 1) * 16 * h, ty + 10 - h * 22, 10, (i - 1) * h * 2);
+        ctx.globalAlpha = 1; say('ตูม!', tx, ty - 30, 1 - h); }
+    },
+    pond_dive: (H) => {   // กระโดดตูมลงหนอง: เสาน้ำกระเซ็น หยดน้ำ วงน้ำ
+      const { ctx, t, tx, ty, dot, say, cl } = H;
+      if (t < 0.5) { ctx.globalAlpha = 0.5; ctx.strokeStyle = '#9fd8f0'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(tx, ty + 20, 6 + t * 20, 2 + t * 5, 0, 0, 7); ctx.stroke(); ctx.globalAlpha = 1; }
+      else { const h = cl((t - 0.5) / 0.45); ctx.globalAlpha = 1 - h * 0.7;
+        ctx.fillStyle = 'rgba(159,216,240,0.85)'; const ch = Math.sin(h * PI) * 46; ctx.fillRect(tx - 7, ty + 18 - ch, 14, ch);
+        for (let i = 0; i < 14; i++) { const a = (i / 13) * PI; dot(i % 2 ? '#e8f8ff' : '#7cc6de', tx + Math.cos(a) * h * 34, ty + 14 - Math.sin(a) * h * 38 + h * h * 34, 2.5); }
+        ctx.strokeStyle = '#e8f8ff'; ctx.lineWidth = 1.5; for (let r = 0; r < 2; r++) { ctx.beginPath(); ctx.ellipse(tx, ty + 20, 10 + h * 30 + r * 8, 3 + h * 8 + r * 2, 0, 0, 7); ctx.stroke(); }
+        ctx.globalAlpha = 1; say('ตูม!!', tx, ty - 34, 1 - h); }
+    },
+    belly_flop: (H) => {   // กระโดดทับทั้งตัว: ฝุ่นวงแหวน ดาวหมุน
+      const { ctx, t, tx, ty, dot, em, say, cl } = H;
+      if (t < 0.5) { ctx.globalAlpha = 0.45; ctx.fillStyle = '#000'; ctx.beginPath(); ctx.ellipse(tx, ty + 20, 4 + t * 30, 2 + t * 8, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1; }
+      else { const h = cl((t - 0.5) / 0.45); ctx.globalAlpha = 1 - h;
+        for (let i = 0; i < 10; i++) { const a = (i / 10) * PI * 2; dot(tan + '0.85)', tx + Math.cos(a) * (10 + h * 26), ty + 20 + Math.sin(a) * (3 + h * 7), 4 - h * 2); }
+        for (let i = 0; i < 3; i++) em('⭐', tx + Math.cos(i * 2.1 + t * 9) * 18, ty - 22 + Math.sin(i * 2.1 + t * 9) * 5, 8);
+        ctx.globalAlpha = 1; say('อั้ก!', tx, ty - 34, 1 - h); }
+    },
+    koi_hop: (H) => {   // กระโดดกอยขาเดียว: ฝุ่นตรงจุดที่เท้าลงทีละจังหวะ แล้วกระแทกพื้นใส่ศัตรู
+      const { ctx, t, ax, ay, tx, ty, dot, burst, say, cl } = H;
+      for (let j = 1; j <= 3; j++) { const at = (0.55 * j) / 3, d = t - at; if (d < 0 || d > 0.3) continue; const k = (0.7 * j) / 3; ctx.globalAlpha = 1 - d / 0.3; for (let i = 0; i < 4; i++) dot(tan + '0.9)', ax + (tx - ax) * k + (i - 1.5) * 5, ay + 22 + (ty - ay) * k - d * 20, 2.5); ctx.globalAlpha = 1; }
+      if (t > 0.55) { const h = cl((t - 0.55) / 0.45); ctx.globalAlpha = 1 - h; burst(tx, ty + 6, h, '#d8b47a'); ctx.globalAlpha = 1; say('ฮึบ!', tx, ty - 30, 1 - h); }
+    },
+    dust_kick: (H) => {   // เตะฝุ่น: ฝุ่นพุ่งจากปลายเท้าเป็นรูปพัด แล้วตลบที่ศัตรู
+      const { ctx, t, ax, ay, tx, ty, dir, dot, em, say, cl } = H;
+      if (t > 0.22 && t < 0.4) em('🦶', ax + dir * 16, ay + 14, 11, dir * -0.6, dir < 0);
+      for (let i = 0; i < 16; i++) { const k = cl((t - 0.28 - (i % 5) * 0.03) / 0.35); if (k <= 0 || k >= 1) continue; const sp = (i / 15 - 0.5) * 30 * k; dot(tan + (0.9 - k * 0.4) + ')', ax + (tx - ax) * k, ay + 18 + (ty - ay - 12) * k + sp - Math.sin(k * PI) * 10, 2 + k * 2); }
+      if (t > 0.6) { const h = cl((t - 0.6) / 0.4); ctx.globalAlpha = 1 - h; for (let i = 0; i < 7; i++) dot(tan + '0.6)', tx + Math.cos(i * 0.9 + t * 4) * (8 + h * 12), ty + Math.sin(i * 1.4 + t * 4) * (6 + h * 6), 6 + h * 4); ctx.globalAlpha = 1; say('แค่กๆ', tx, ty - 32, 1 - h); }
+    },
+    spin: (H) => {   // หมุนติ้ว: ลมวนรอบตัวตอนพุ่ง แล้วกระแทกเป็นวง
+      const { ctx, t, ax, ay, tx, ty, dot, burst, cl } = H, k = cl(t / 0.42), x = ax + (tx - ax) * k * 0.78, y = ay + (ty - ay) * k * 0.78;
+      if (t < 0.7) for (let i = 0; i < 3; i++) { ctx.strokeStyle = 'rgba(200,240,176,0.8)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(x, y + 4 - i * 9, 16 - i * 2, 4, 0, t * 30 + i, t * 30 + i + 3.6); ctx.stroke(); }
+      if (t > 0.42) { const h = cl((t - 0.42) / 0.5); ctx.globalAlpha = 1 - h; burst(tx, ty, h, '#c8f0b0'); for (let i = 0; i < 5; i++) dot('#5fae4a', tx + Math.cos(i * 1.3 + h * 6) * h * 22, ty + Math.sin(i * 1.3 + h * 6) * h * 14, 2); ctx.globalAlpha = 1; }
+    },
+    splash_spook: (H) => {   // โผล่หน้าผีหลอก แล้วพ่นน้ำเย็นจากปาก
+      const { ctx, t, ax, ay, tx, ty, dir, dot, em, say, cl } = H;
+      if (t < 0.32) { em('👻', ax + dir * 6, ay - 26, 10 + cl(t * 8) * 8); say('แบ่!', ax, ay - 42, 1); }
+      for (let i = 0; i < 14; i++) { const k = cl((t - 0.25 - i * 0.018) / 0.3); if (k <= 0 || k >= 1) continue; dot(i % 2 ? '#e8f8ff' : '#7cc6de', ax + dir * 8 + (tx - ax - dir * 8) * k, ay - 6 + (ty - ay + 6) * k - Math.sin(k * PI) * 10 + Math.sin(i) * 2, 2.5); }
+      if (t > 0.55) { const h = cl((t - 0.55) / 0.45); ctx.globalAlpha = 1 - h; for (let i = 0; i < 8; i++) dot('#bfe8f8', tx + Math.cos(i * 0.8) * h * 22, ty + Math.sin(i * 0.8) * h * 16, 2.5); em('❄️', tx + 12, ty - 14 - h * 8, 9); ctx.globalAlpha = 1; say('เย็นเฉียบ!', tx, ty - 32, 1 - h); }
+    },
+    raw_bite: (H) => {   // ขากรรไกรใหญ่บน-ล่างงับปิดใส่ศัตรู
+      const { ctx, t, tx, ty, say, burst, cl } = H, c = t < 0.45 ? Math.pow(t / 0.45, 2) : 1, a = 1 - cl((t - 0.75) * 4);
+      if (a > 0) { ctx.save(); ctx.globalAlpha = a; teeth(ctx, tx, ty - 32 + c * 24, 40, true); teeth(ctx, tx, ty + 28 - c * 24, 40, false); ctx.restore(); }
+      if (t > 0.45) { const h = cl((t - 0.45) / 0.5); ctx.globalAlpha = 1 - h; burst(tx, ty - 2, h); ctx.globalAlpha = 1; say('งั่ม!', tx + 18, ty - 30, 1 - h); }
+    },
+    basket_flap: (H) => {   // กระพือกระด้ง: กระด้งกลมโบกขึ้นลง ลมและแกลบปลิวไปหาศัตรู
+      const { ctx, t, ax, ay, tx, ty, dir, dot, cl, burst } = H, bx = ax + dir * 16, by = ay - 6, ry = 12 * Math.abs(Math.cos(t * 24)) + 2;
+      if (t < 0.8) { ctx.fillStyle = '#c9a063'; ctx.strokeStyle = '#7a5a2a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(bx, by, 13, ry, 0, 0, 7); ctx.fill(); ctx.stroke(); ctx.strokeStyle = 'rgba(122,90,42,0.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(bx, by, 8, ry * 0.6, 0, 0, 7); ctx.stroke(); }
+      for (let i = 0; i < 3; i++) { const k = cl(t * 1.6 - 0.15 - i * 0.18); if (k <= 0 || k >= 1) continue; ctx.strokeStyle = 'rgba(200,240,176,0.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(bx + (tx - bx) * k, by + (ty - by) * k, 8 + i * 3, dir > 0 ? -1 : 2.1, dir > 0 ? 1 : 4.2); ctx.stroke(); }
+      for (let i = 0; i < 10; i++) { const k = cl((t - 0.2 - i * 0.03) / 0.45); if (k <= 0 || k >= 1) continue; dot('#e8d07a', bx + (tx - bx) * k, by + (ty - by) * k + Math.sin(i * 2 + k * 12) * 10, 1.3); }
+      if (t > 0.6) { const h = cl((t - 0.6) / 0.4); ctx.globalAlpha = 1 - h; burst(tx, ty, h, '#c8f0b0'); ctx.globalAlpha = 1; }
+    },
+    kite_storm: (H) => {   // ว่าวจุฬาลอยเหนือสนาม สายป่านจากมือผู้ใช้ แล้วลมหมุนเป็นพายุที่ศัตรู
+      const { ctx, t, ax, ay, tx, ty, dir, em, cl } = H, kx = ax + (tx - ax) * 0.55 + Math.sin(t * 7) * 12, ky = 18 + Math.cos(t * 5) * 5, a = 1 - cl((t - 0.88) * 8);
+      ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = '#f4f4ec'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(ax + dir * 8, ay - 8); ctx.quadraticCurveTo(ax + dir * 30, ky + 40, kx, ky + 6); ctx.stroke(); ctx.restore();
+      em('🪁', kx, ky, 18, Math.sin(t * 9) * 0.4, dir < 0, a);
+      if (t > 0.35) { const h = cl((t - 0.35) / 0.55); ctx.globalAlpha = a; for (let r = 0; r < 5; r++) { ctx.strokeStyle = r % 2 ? '#c8f0b0' : '#5fae4a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(tx, ty + 16 - r * 9, 5 + r * 4 * h + 2, 3, 0, t * 26 + r, t * 26 + r + 4.4); ctx.stroke(); } for (let i = 0; i < 3; i++) em('🍃', tx + Math.cos(t * 14 + i * 2) * 18, ty - 4 + Math.sin(t * 14 + i * 2) * 8 - i * 6, 8); ctx.globalAlpha = 1; }
+    },
+    grease: (H) => {   // อัดจารบี: กระบอกอัดที่มือ จารบีดำพุ่งเป็นสาย แล้วนองลื่นใต้ศัตรู
+      const { ctx, t, ax, ay, tx, ty, dir, dot, em, say, cl } = H;
+      if (t < 0.7) em('🛢️', ax + dir * 14, ay + 2, 12);
+      for (let i = 0; i < 10; i++) { const k = cl((t - 0.15 - i * 0.03) / 0.35); if (k <= 0 || k >= 1) continue; dot('#1e1a18', ax + dir * 16 + (tx - ax - dir * 16) * k, ay + (ty - ay) * k - Math.sin(k * PI) * 16, 3); dot('#6a6060', ax + dir * 16 + (tx - ax - dir * 16) * k - 1, ay + (ty - ay) * k - Math.sin(k * PI) * 16 - 1, 1); }
+      if (t > 0.5) { const h = cl((t - 0.5) / 0.4); ctx.globalAlpha = 1 - cl((t - 0.9) * 10); ctx.fillStyle = '#1e1a18'; ctx.beginPath(); ctx.ellipse(tx, ty + 20, 6 + h * 18, 2 + h * 4, 0, 0, 7); ctx.fill(); ctx.fillStyle = '#8a8a9a'; ctx.fillRect(tx - 6 + h * 4, ty + 18, 6, 1); for (let i = 0; i < 4; i++) dot('#1e1a18', tx - 10 + i * 7, ty - 4 + i * 3, 2.5); ctx.globalAlpha = 1; say('ลื่น!', tx, ty - 32, 1 - cl((t - 0.85) * 6)); }
+    },
+    brick_smash: (H) => {   // วางก้อนอิฐ มือสับลงมา อิฐหักสองท่อน เศษกระจาย
+      const { ctx, t, tx, ty, dot, em, say, cl } = H, bx = tx - 12, by = ty - 2;
+      const bk = (x, y, w, r) => { ctx.save(); ctx.translate(x + w / 2, y + 5); ctx.rotate(r); ctx.fillStyle = '#b8503a'; ctx.fillRect(-w / 2, -5, w, 10); ctx.fillStyle = '#e0c8a8'; ctx.fillRect(-w / 2, -1, w, 1); ctx.fillStyle = '#8a3a2a'; ctx.fillRect(-w / 2, 4, w, 1); ctx.restore(); };
+      if (t < 0.5) { bk(bx, by, 24, 0); if (t > 0.25) em('✋', tx, by - 24 + cl((t - 0.25) / 0.25) * 18, 14, -0.4); }
+      else { const h = cl((t - 0.5) / 0.45); ctx.globalAlpha = 1 - cl((h - 0.7) * 3); bk(bx - h * 12, by + h * h * 18, 12, -h * 1.2); bk(bx + 12 + h * 12, by + h * h * 18, 12, h * 1.2); for (let i = 0; i < 8; i++) dot(i % 2 ? '#b8503a' : '#e0c8a8', tx + Math.cos(i * 0.8) * h * 26, by + Math.sin(i * 0.8) * h * 14 - h * 6, 1.5); ctx.globalAlpha = 1; say('ป้าก!', tx, ty - 32, 1 - h); }
+    },
+    dike_stance: (H) => {   // ปักหลักคันนา: ค้อนตอกหลักไม้ลงคันดินสามที แล้วยืนหยัดมีเกราะดิน
+      const { ctx, t, ax, ay, dir, dot, em, say, cl } = H, sx = ax + dir * 22, gy = ay + 22, sink = Math.min(3, Math.floor(t * 5.5)) * 3, a = 1 - cl((t - 0.9) * 10);
+      ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = '#7a5a2a'; ctx.beginPath(); ctx.ellipse(ax + dir * 8, gy + 2, 30, 5, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = '#9a6a3a'; ctx.fillRect(sx - 3, gy - 24 + sink, 6, 24 - sink); ctx.fillStyle = '#c89a5a'; ctx.fillRect(sx - 3, gy - 24 + sink, 6, 2); ctx.restore();
+      if (t < 0.62) { const ph = (t * 5.5) % 1; em('🔨', sx + dir * 7, gy - 34 + sink - Math.sin(ph * PI) * 8, 18, dir * (0.9 - ph * 1.6), dir < 0); if (ph < 0.2) for (let i = 0; i < 4; i++) dot(tan + '0.9)', sx + (i - 1.5) * 5, gy - 2 - ph * 20, 2); }
+      if (t > 0.6) { const h = cl((t - 0.6) / 0.3); ctx.globalAlpha = a * 0.7; ctx.strokeStyle = '#d8b47a'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.ellipse(ax, ay + 4, 18 + h * 4, 26 + h * 4, 0, 0, 7); ctx.stroke(); ctx.globalAlpha = 1; say('ปักหลัก!', ax, ay - 34, a); }
+    },
+    river_splash: (H) => {   // สะบัดหางปลา น้ำสาดเป็นโค้งใส่หน้า
+      const { ctx, t, ax, ay, tx, ty, dir, dot, em, say, cl } = H;
+      if (t < 0.45) em('🐟', ax + dir * 14, ay + 4, 14, Math.sin(t * 28) * 0.7, dir < 0);
+      for (let i = 0; i < 12; i++) { const k = cl((t - 0.2 - i * 0.02) / 0.4); if (k <= 0 || k >= 1) continue; dot(i % 3 ? '#7cc6de' : '#e8f8ff', ax + (tx - ax) * k, ay + (ty - ay) * k - Math.sin(k * PI) * (30 + (i % 4) * 4), 2.5); }
+      if (t > 0.6) { const h = cl((t - 0.6) / 0.4); ctx.globalAlpha = 1 - h; for (let i = 0; i < 9; i++) dot('#e8f8ff', tx + Math.cos(i * 0.7) * h * 24, ty - 4 + Math.sin(i * 0.7) * h * 18, 2.5); ctx.globalAlpha = 1; say('ซ่า!', tx, ty - 32, 1 - h); }
+    },
+    wrong_ward: (H) => {   // รถเข็นวนรอบศัตรูจนงง เส้นทางวนเป็นวงรี
+      const { ctx, t, tx, ty, em, say, cl } = H, a = 1 - cl((t - 0.88) * 8);
+      ctx.save(); ctx.globalAlpha = a * 0.6; ctx.setLineDash([3, 3]); ctx.strokeStyle = '#f4f4ec'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(tx, ty + 14, 28, 9, 0, 0, 7); ctx.stroke(); ctx.restore();
+      const g = t * PI * 5, x = tx + Math.cos(g) * 28, y = ty + 14 + Math.sin(g) * 9;
+      em('🦽', x, y - 6, 16, 0, Math.sin(g) > 0, a);
+      if (t > 0.3) for (let i = 0; i < 3; i++) em('💫', tx + Math.cos(t * 12 + i * 2.1) * 12, ty - 22 + Math.sin(t * 12 + i * 2.1) * 4, 8, 0, false, a);
+      if (t > 0.25) say('ตึกไหนเนี่ย?', tx, ty - 36, a);
+    },
+    anatomy_strike: (H) => {   // ทุบตามกายวิภาค: เป้าแดงขึ้นที่หัว อก เข่า แล้วกระดูกทุบทีละจุด
+      const { ctx, t, tx, ty, em, say, burst, cl } = H, pts = [[0, -16], [3, 0], [-4, 14]];
+      pts.forEach(([dx, dy], i) => {
+        const x = tx + dx, y = ty + dy, on = t - 0.08 - i * 0.14, hitAt = t - 0.3 - i * 0.14;
+        if (on > 0 && hitAt < 0.15) { ctx.strokeStyle = '#ff3040'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(x, y, 6 - Math.min(on, 0.3) * 6, 0, 7); ctx.moveTo(x - 8, y); ctx.lineTo(x + 8, y); ctx.moveTo(x, y - 8); ctx.lineTo(x, y + 8); ctx.stroke(); }
+        if (hitAt > -0.12 && hitAt < 0) em('🦴', x + 10, y - 10 + (hitAt + 0.12) * 80, 11, 0.8);
+        if (hitAt > 0 && hitAt < 0.25) { ctx.globalAlpha = 1 - hitAt * 4; burst(x, y, hitAt * 3, '#f4f4ec'); ctx.globalAlpha = 1; }
+      });
+      if (t > 0.3) say('จุดนี้!', tx, ty - 36, 1 - cl((t - 0.85) * 6));
+    },
+    bandage: (H) => {   // พันผ้าพันแผลรอบตัวทีละรอบ แล้วติดพลาสเตอร์
+      const { ctx, t, ax, ay, em, cl } = H, a = 1 - cl((t - 0.9) * 10);
+      for (let i = 0; i < 5; i++) { const k = cl((t - i * 0.11) * 6); if (k <= 0) continue; ctx.save(); ctx.globalAlpha = a; ctx.translate(ax, ay - 12 + i * 7); ctx.rotate(-0.25); ctx.fillStyle = '#c8c0b0'; ctx.fillRect(-13, 1, 26 * k, 4); ctx.fillStyle = '#f8f6f0'; ctx.fillRect(-13, 0, 26 * k, 4); ctx.restore(); }
+      if (t > 0.6) em('🩹', ax + 8, ay - 14, 10, 0.3, false, a);
+      heal(H, 0.6);
+    },
+    beg_merit: (H) => {   // ยื่นขันขอส่วนบุญ ของกินหล่นจากฟ้าลงขัน
+      const { t, ax, ay, em, say, cl } = H, a = 1 - cl((t - 0.9) * 10);
+      em('🥣', ax, ay - 22, 14, 0, false, a);
+      ['🍚', '🍌', '🍬'].forEach((f, i) => { const k = cl((t - 0.12 - i * 0.16) / 0.25); if (k > 0 && k < 1) em(f, ax - 6 + i * 6, ay - 76 + k * 52, 10); });
+      if (t > 0.3) say('สาธุ~', ax, ay - 46, a);
+      heal(H, 0.65);
+    },
+    battery_shot: (H) => {   // ขว้างถ่านไฟฉาย แล้วไฟช็อตแตกเป็นซิกแซก
+      const { ctx, t, ax, ay, tx, ty, em, line, cl } = H, k = cl(t / 0.55);
+      if (t < 0.56) em('🔋', ax + (tx - ax) * k, ay + (ty - ay) * k - Math.sin(k * PI) * 24, 12, t * 14);
+      if (t > 0.55) { const h = cl((t - 0.55) / 0.45); ctx.globalAlpha = 1 - h; for (let i = 0; i < 5; i++) { const a0 = i * 1.26 + h, r = 6 + h * 18; line(i % 2 ? '#fff2a8' : '#f2d24b', 2, [[tx, ty], [tx + Math.cos(a0) * r * 0.5 + 3, ty + Math.sin(a0) * r * 0.5 - 3], [tx + Math.cos(a0) * r, ty + Math.sin(a0) * r]]); } em('⚡', tx, ty - 22, 12); ctx.globalAlpha = 1; }
+    },
+    treasure_guard: (H) => {   // กอดไหสมบัติแน่น เหรียญหมุนรอบ
+      const { ctx, t, ax, ay, em, say, cl } = H, a = 1 - cl((t - 0.9) * 10);
+      em('🏺', ax, ay + 6, 18, Math.sin(t * 30) * 0.05, false, a);
+      for (let i = 0; i < 5; i++) em('🪙', ax + Math.cos(t * 8 + i * 1.26) * 22, ay + Math.sin(t * 8 + i * 1.26) * 8 - 4, 8, 0, false, a);
+      if (t > 0.4) { ctx.globalAlpha = a * 0.6; ctx.strokeStyle = '#f2d24b'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(ax, ay + 4, 22, 28, 0, 0, 7); ctx.stroke(); ctx.globalAlpha = 1; }
+      if (t > 0.2) say('ของข้า!', ax, ay - 34, a);
+    },
+    piston_ram: (H) => {   // กระบอกสูบที่ผู้ใช้ ก้านลูกสูบยืดกระแทกศัตรู พ่นไอ
+      const { ctx, t, ax, ay, tx, ty, dir, dot, burst, cl } = H, bx = ax + dir * 14, by = ay, a = 1 - cl((t - 0.88) * 8);
+      const e = t < 0.2 ? 0 : t < 0.48 ? Math.pow((t - 0.2) / 0.28, 2) : t < 0.65 ? 1 : 1 - (t - 0.65) / 0.25, ex = bx + (tx - bx) * 0.8 * Math.max(0, e), ey = by + (ty - by) * 0.8 * Math.max(0, e);
+      ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = '#c0c4cc'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(ex, ey); ctx.stroke();
+      ctx.fillStyle = '#6a7080'; ctx.fillRect(bx - 7, by - 7, 14, 14); ctx.fillStyle = '#9aa0ac'; ctx.fillRect(bx - 7, by - 7, 14, 3);
+      ctx.fillStyle = '#5a6070'; ctx.beginPath(); ctx.arc(ex, ey, 6, 0, 7); ctx.fill(); ctx.restore();
+      if (t > 0.2 && t < 0.7) for (let i = 0; i < 3; i++) dot('rgba(255,255,255,0.6)', bx - dir * (6 + i * 4), by - 8 - ((t * 60 + i * 5) % 14), 2.5);
+      if (t > 0.48) { const h = cl((t - 0.48) / 0.45); ctx.globalAlpha = 1 - h; burst(tx, ty, h); ctx.globalAlpha = 1; }
+    },
+    conveyor_rush: (H) => {   // สายพานวิ่งจากผู้ใช้ถึงศัตรู กล่องไหลตาม
+      const { ctx, t, now, ax, ay, tx, ty, em, burst, cl } = H, a = cl(t * 6) * (1 - cl((t - 0.85) * 7)), y0 = ay + 22, y1 = ty + 22;
+      ctx.save(); ctx.globalAlpha = a; ctx.strokeStyle = '#3a3a44'; ctx.lineWidth = 9; ctx.beginPath(); ctx.moveTo(ax, y0); ctx.lineTo(tx, y1); ctx.stroke();
+      for (let i = 0; i < 12; i++) { const k = ((i / 12) + now / 900) % 1; ctx.fillStyle = '#7a7a88'; ctx.fillRect(ax + (tx - ax) * k - 1, y0 + (y1 - y0) * k - 3, 2, 6); }
+      ctx.restore();
+      for (let i = 0; i < 2; i++) { const k = cl((t - i * 0.15) / 0.6); if (k > 0 && k < 1) em('📦', ax + (tx - ax) * k, y0 + (y1 - y0) * k - 8, 10); }
+      if (t > 0.45) { const h = cl((t - 0.45) / 0.5); ctx.globalAlpha = 1 - h; burst(tx, ty, h); ctx.globalAlpha = 1; }
+    },
+    stone_drop: (H) => {   // อิฐเจดีย์เก่าร่วงจากยอดเจดีย์ที่โผล่เหนือศัตรู
+      const { ctx, t, tx, ty, em, dot, cl } = H;
+      em('🛕', tx, ty - 62, 20, 0, false, cl(t * 5) * (1 - cl((t - 0.8) * 5)));
+      for (let i = 0; i < 4; i++) { const k = cl((t - 0.15 - i * 0.09) / 0.35); if (k <= 0) continue; const x = tx + (i - 1.5) * 10; if (k < 1) em('🧱', x, ty - 50 + k * 54, 11, i * 0.7); else { ctx.globalAlpha = Math.max(0, 1 - (t - 0.5 - i * 0.09) * 3); dot(tan + '0.8)', x, ty + 10, 6); ctx.globalAlpha = 1; } }
+    },
+    pound_ground: (H) => {   // ตะโกนลั่นทุ่ง: วงเสียงแผ่จากปาก ต้นหญ้าเอนตาม
+      const { ctx, t, ax, ay, line, say, cl } = H;
+      for (let i = 0; i < 3; i++) { const k = cl(t * 1.8 - i * 0.25); if (k <= 0 || k >= 1) continue; ctx.globalAlpha = 1 - k; ctx.strokeStyle = '#fff8e0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(ax, ay - 8, 10 + k * 46, 6 + k * 24, 0, 0, 7); ctx.stroke(); ctx.globalAlpha = 1; }
+      for (let i = 0; i < 10; i++) { const gx = ax - 50 + i * 11, lean = Math.sin(t * 12 + i) * 4 * (1 - t) + (gx < ax ? -3 : 3) * cl(t * 3); line('#5fae4a', 1.5, [[gx, ay + 26], [gx + lean, ay + 18]]); }
+      say('เฮ้ยยย!!', ax, ay - 34, 1 - cl((t - 0.85) * 6));
+    },
+    push_glasses: (H) => {   // นิ้วดันแว่นขึ้น แว่นวิ้ง แล้วเป้าเล็งที่ศัตรู
+      const { ctx, t, ax, ay, tx, ty, dir, em, cl } = H;
+      em('👓', ax + dir * 2, ay - 14 - cl(t / 0.35) * 5, 14);
+      if (t < 0.35) em('☝️', ax + dir * 4, ay - 2 - cl(t / 0.35) * 6, 9);
+      if (t > 0.35 && t < 0.7) em('✨', ax + dir * 10, ay - 24, 8 + Math.sin(t * 30) * 2);
+      if (t > 0.45) { const r = 12 - (t - 0.45) * 10; ctx.strokeStyle = '#d9455a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(tx, ty - 6, r, 0, 7); ctx.moveTo(tx - r - 4, ty - 6); ctx.lineTo(tx + r + 4, ty - 6); ctx.moveTo(tx, ty - 6 - r - 4); ctx.lineTo(tx, ty - 6 + r + 4); ctx.stroke(); }
+    },
+    wak_shout: (H) => {   // เข้าไปว้ากใกล้ๆ หน้า เส้นเสียงแตกใส่ศัตรู
+      const { ctx, t, tx, ty, line, say, em, cl } = H;
+      if (t > 0.25 && t < 0.75) { for (let i = 0; i < 6; i++) { const a0 = i * 1.05 + t * 3, r = 14 + ((t * 80 + i * 6) % 14); line('#fff8e0', 2, [[tx + Math.cos(a0) * r, ty - 4 + Math.sin(a0) * r * 0.7], [tx + Math.cos(a0) * (r + 6), ty - 4 + Math.sin(a0) * (r + 6) * 0.7]]); } say('ว้ากกก!!', tx, ty - 34 + Math.sin(t * 60) * 1.5, 1); }
+      if (t > 0.6) em('💫', tx, ty - 22, 10, t * 6, false, 1 - cl((t - 0.85) * 6));
+    },
+  };
   // ท่าทางของตัวละครที่ใช้ท่า ปรับเพิ่มบางท่า (ท่าที่มีอยู่แล้ว)
-  const MOTION_OF = { spin: 'spin', whirlwind: 'spin', mask_dance: 'spin', piston_ram: 'rush', buffalo_charge: 'ride', belly_bump: 'rush', conveyor_rush: 'rush', wheel_ram: 'rush',
-    koi_hop: 'jump', pond_dive: 'jump', belly_flop: 'jump', field_slam: 'jump', stone_drop: 'stomp', brick_smash: 'stomp', wind_step: 'dashx', blackout: 'vanish', spook: 'vanish', glow_flash: 'cast',
-    wak_shout: 'shout', pound_ground: 'shout', wail: 'shout', cheer_faculty: 'shout', squeak_wheel: 'shout', lecture: 'shout', silly_face: 'bounce', tongue: 'bounce', sticky_rice: 'bounce',
+  const MOTION_OF = { whirlwind: 'spin', mask_dance: 'spin', piston_ram: 'lunge', buffalo_charge: 'ride', belly_bump: 'bump', conveyor_rush: 'rush', wheel_ram: 'rush',
+    koi_hop: 'hop', pond_dive: 'leap', belly_flop: 'leap', field_slam: 'leap', spin: 'spinrush', dust_kick: 'kick', basket_flap: 'fan', river_splash: 'fan', kite_storm: 'fan', dike_stance: 'hammer', treasure_guard: 'eat', anatomy_strike: 'slash', splash_spook: 'recoil', grease: 'throw', wrong_ward: 'cast', case_present: 'talk', bandage: 'spin', beg_merit: 'bounce', push_glasses: 'aim', stone_drop: 'stomp', brick_smash: 'slash', wind_step: 'dashx', blackout: 'vanish', spook: 'vanish', glow_flash: 'cast',
+    wak_shout: 'inface', pound_ground: 'shout', wail: 'shout', cheer_faculty: 'shout', squeak_wheel: 'shout', lecture: 'talk', silly_face: 'bounce', tongue: 'bounce', sticky_rice: 'eat',
     level_check: 'aim', samurai_stare: 'aim', nang_gaze: 'aim', looking_down: 'aim', raw_bite: 'lunge', hoe_swing: 'slash', bamboo_sword: 'slash', wood_sword: 'slash', wind_blade: 'slash', lean_strike: 'slash' };
   const MOTION_BY_KIND = { throw: 'throw', rush: 'lunge', body: 'rush', drop: 'jump', cloud: 'cast', wave: 'shout', self: 'bounce', on: 'cast', beam: 'recoil', slash: 'slash', dark: 'vanish', multi: 'throw', snipe: 'aim', ground: 'stomp', rocket: 'recoil' };
   G.motionFor = (id, cat) => { const sg = SIG[id]; return (sg && sg[2] && sg[2].m) || MOTION_OF[id] || (sg && MOTION_BY_KIND[sg[0]]) || (cat === 'status' ? 'bounce' : cat === 'spec' ? 'cast' : 'lunge'); };
+  // ท่าที่เล่นนานกว่าปกติ (เขียนกระดาน กินข้าว ปักหลัก ฯลฯ) จังหวะโดนตีอยู่ที่ ~57% ของเวลา
+  const DUR = { lecture: 1400, case_present: 1400, sticky_rice: 1100, beg_merit: 1100, bandage: 1000, dike_stance: 1100, wrong_ward: 1100, anatomy_strike: 1000, kite_storm: 1000 };
+  const durOf = (id) => DUR[id] || (SIG[id] ? 760 : 560);
+  G.fxDur = durOf;
   const EMOJI = (size) => `${size}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif`;
   function drawSig(ctx, now, f, t, sig, P) {
     const [kind, prop, o = {}] = sig, { ax, ay, tx, ty, c1, c2, cl, dot, line } = P;
@@ -283,7 +502,9 @@
     const say = (txt, x, y, a) => { ctx.save(); ctx.globalAlpha = a; ctx.font = '10px Itim, Tahoma, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 3; ctx.strokeStyle = '#18203f'; ctx.strokeText(txt, x, y); ctx.fillStyle = '#fff8e0'; ctx.fillText(txt, x, y); ctx.restore(); };
     const burst = (x, y, s, c) => { for (let i = 0; i < 8; i++) { const a = (i * Math.PI) / 4; line(i % 2 ? c2 : c || c1, 2, [[x + Math.cos(a) * (3 + s * 8), y + Math.sin(a) * (3 + s * 8)], [x + Math.cos(a) * (8 + s * 14), y + Math.sin(a) * (8 + s * 14)]]); } };
     const right = tx > ax, size = o.big ? 22 : 15, hit = t > 0.55 ? (t - 0.55) / 0.45 : 0;
-    if (kind === 'throw') {
+    const sc = SCENE[f.id];
+    if (sc) sc({ ctx, t, now, ax, ay, tx, ty, right, dir: right ? 1 : -1, hit, c1, c2, cl, dot, line, em, say, burst, o });
+    else if (kind === 'throw') {
       const k = cl(t / 0.6), x = ax + (tx - ax) * k, y = ay + (ty - ay) * k - Math.sin(k * Math.PI) * 26;
       if (t < 0.62) em(prop, x, y, size, o.spin ? t * 18 : 0);
       if (hit) {
@@ -368,6 +589,7 @@
     } else if (kind === 'body') {   // ตัวละครพุ่งไปเอง: เส้นความเร็ว + แรงกระแทกตอนถึงตัว
       if (t > 0.1 && t < 0.5) { ctx.globalAlpha = 0.7; for (let i = 0; i < 5; i++) { const k = cl((t - 0.1) / 0.4), x = ax + (tx - ax) * k * 0.8, y = ay + (ty - ay) * k * 0.8 + (i - 2) * 6; line(o.c || c2, 1.5, [[x - (right ? 26 : -26), y], [x - (right ? 8 : -8), y]]); } ctx.globalAlpha = 1; }
       if (t > 0.42) { const h = cl((t - 0.42) / 0.5); ctx.globalAlpha = 1 - h; burst(tx, ty, h, o.c); em(prop, tx, ty - 4, 14 + h * 10); for (let i = 0; i < 3; i++) em('⭐', tx + Math.cos(i * 2.1 + t * 8) * 18, ty - 18 + Math.sin(i * 2.1 + t * 8) * 6, 7); ctx.globalAlpha = 1; }
+      if (o.boing && t > 0.42) { const h = cl((t - 0.42) / 0.5); ctx.globalAlpha = 1 - h; ctx.strokeStyle = '#ffd0e0'; ctx.lineWidth = 2; for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.ellipse(tx, ty + 4, 6 + h * 20 + i * 6, 4 + h * 10 + i * 3, 0, 0, 7); ctx.stroke(); } ctx.globalAlpha = 1; }
     } else if (kind === 'multi') {   // ของหลายชิ้นต่อกัน: มีด กระสุน ลูกบอลเด้ง ลูกศร
       const n = o.n || 3;
       if (o.turret) em('🗼', ax + (right ? 22 : -22), ay + 4, 14);
@@ -400,13 +622,13 @@
     }
     ctx.globalAlpha = 1;
     if (o.zzz && t > 0.45) for (let i = 0; i < 3; i++) say('z', tx + 10 + i * 6, ty - 14 - i * 7 - (t - 0.45) * 20, 1 - cl((t - 0.85) * 6));
-    if (o.text && !['self', 'on', 'snipe', 'rocket', 'rush'].includes(kind) && t > 0.4) say(o.text, tx, ty - 28, 1 - cl((t - 0.85) * 6));
+    if (o.text && !sc && !['self', 'on', 'snipe', 'rocket', 'rush'].includes(kind) && t > 0.4) say(o.text, tx, ty - 28, 1 - cl((t - 0.85) * 6));
   }
   const SIG_NOTES = { '🎵': 1, '🎶': 1, '💕': 1, '🍃': 1 };
   function drawFx(ctx, now) {
     const f = V.fx; if (!f) return;
     const sig = SIG[f.id];
-    const t = (now - f.t0) / ((G.settings.fast ? 0.5 : 1) * (sig ? 760 : 560));
+    const t = (now - f.t0) / ((G.settings.fast ? 0.5 : 1) * durOf(f.id));
     if (t >= 1) { V.fx = null; return; }
     const C = { p: [62, 92], f: [178, 44] }, [ax, ay] = C[f.side], [tx, ty] = C[f.side === 'p' ? 'f' : 'p'];
     const [c1, c2] = FXC[f.type] || FXC.normal, cl = (v) => Math.max(0, Math.min(1, v));
@@ -464,7 +686,7 @@
   G.battleFx = (side, type, cat, ago = 0, id) => { V.fx = { side, type, cat, id, t0: performance.now() - ago }; startAct(side, type, cat, id, ago); };
   // ---------- ท่าทางตัวละคร: ผู้ใช้ท่าขยับตามท่า (พุ่ง กระโดด หมุน ขว้าง ร่าย ตะโกน หายตัว เล็ง ฟัน) ฝ่ายโดนตีถูกกระแทกถอย ----------
   function startAct(side, type, cat, id, ago) {
-    const dur = (G.settings.fast ? 0.5 : 1) * (SIG[id] ? 760 : 560);
+    const dur = (G.settings.fast ? 0.5 : 1) * durOf(id);
     V.act = { side, type, m: G.motionFor(id, cat), t0: performance.now() - (ago || 0), dur };
   }
   const ease = (v) => (v <= 0 ? 0 : v >= 1 ? 1 : v * v * (3 - 2 * v));
@@ -480,10 +702,12 @@
         const [vx, vy] = side === 'p' ? [116, -46] : [-116, 46], S = Math.sin, PI = Math.PI;
         const go = (k) => { P.dx = vx * k; P.dy = vy * k; };
         switch (a.m) {
-          case 'rush': case 'dashx': {
+          case 'rush': case 'dashx': case 'bump': case 'spinrush': {
             const out = a.m === 'dashx' ? 0.25 : 0.42, k = t < out ? ease(t / out) : t < out + 0.18 ? 1 : 1 - ease((t - out - 0.18) / (1 - out - 0.18));
-            go(k * 0.78); P.ghost = true;
-            if (t > out && t < out + 0.14) { P.sx *= 1.18; P.sy *= 0.86; }
+            go(k * 0.78); P.ghost = a.m !== 'bump';
+            if (t > out && t < out + 0.14) { P.sx *= a.m === 'bump' ? 1.4 : 1.18; P.sy *= a.m === 'bump' ? 0.78 : 0.86; }
+            if (a.m === 'bump' && t > out + 0.14 && t < out + 0.4) P.dy -= S(((t - out - 0.14) / 0.26) * PI) * 12;   // พุงเด้งกลับ
+            if (a.m === 'spinrush') P.rot = ease(Math.min(1, t / 0.75)) * PI * 6 * (side === 'p' ? 1 : -1);
             if (a.m === 'dashx' && (t < 0.05 || (t > out - 0.03 && t < out + 0.03))) P.alpha = 0.5;
             break; }
           case 'ride': {   // กระโดดขึ้นหลังควาย ควบไปชน แล้วควบกลับ
@@ -494,6 +718,30 @@
             P.rot = (t > 0.1 && t < 0.5 ? 0.1 : t > 0.5 && t < 0.6 ? -0.12 : 0) * (side === 'p' ? 1 : -1);
             if (t > 0.5 && t < 0.6) { P.sx *= 1.1; P.sy *= 0.9; }
             P.mount = { a: mount, lift: 18 * mount, run, back: t > 0.64 };
+            break; }
+          case 'leap': {   // กระโดดโค้งไปลงทับศัตรู แล้วกระโดดกลับ
+            if (t < 0.5) { const k = ease(t / 0.5); go(k * 0.8); P.dy -= S(k * PI) * 42; if (t < 0.08) { P.sx *= 1.12; P.sy *= 0.88; } }
+            else if (t < 0.68) { go(0.8); if (t < 0.6) { P.sx *= 1.25; P.sy *= 0.76; } }
+            else { const k = ease((t - 0.68) / 0.32); go(0.8 * (1 - k)); P.dy -= S(k * PI) * 18; }
+            break; }
+          case 'hop': {   // กระโดดขาเดียวสามจังหวะไปหาศัตรู
+            if (t < 0.55) { const k = t / 0.55; go(k * 0.7); P.dy -= Math.abs(S(k * PI * 3)) * 14; P.rot = 0.12 * (side === 'p' ? 1 : -1); }
+            else if (t < 0.65) { go(0.7); P.sx *= 1.15; P.sy *= 0.85; }
+            else go(0.7 * (1 - ease((t - 0.65) / 0.35)));
+            break; }
+          case 'kick': {   // เอนตัวง้าง แล้วเตะเสยไปข้างหน้า
+            const sd = side === 'p' ? 1 : -1;
+            if (t < 0.25) P.rot = -0.3 * sd * (t / 0.25);
+            else if (t < 0.45) { const k = (t - 0.25) / 0.2; P.rot = sd * (-0.3 + 0.75 * k); go(0.1 * k); }
+            else { const k = ease((t - 0.45) / 0.55); P.rot = 0.45 * sd * (1 - k); go(0.1 * (1 - k)); }
+            break; }
+          case 'eat': P.dy = S(t * PI * 10) * 1.5; P.sy *= 1 - 0.05 * Math.abs(S(t * PI * 10)); P.sx *= 1 + 0.03 * Math.abs(S(t * PI * 10)); break;   // เคี้ยว/กอดแน่น
+          case 'fan': P.rot = S(t * PI * 9) * 0.16 * (1 - t); P.dy = -Math.abs(S(t * PI * 9)) * 2; break;   // โบกกระด้ง สะบัดหาง ชักว่าว
+          case 'talk': P.dx = S(t * PI * 3) * 2; P.sy *= 1 + 0.03 * S(t * PI * 14); P.rot = S(t * PI * 2) * 0.05; break;   // ยืนบรรยายหน้ากระดาน
+          case 'hammer': { const ph = (t * 5.5) % 1; if (t < 0.62) { P.dy = -S(ph * PI) * 5; P.rot = (0.15 - ph * 0.3) * (side === 'p' ? 1 : -1); } else { P.sy *= 1.05; P.dy = -2; } break; }   // ตอกหลัก แล้วยืดตัวยืนหยัด
+          case 'inface': {   // เดินเข้าไปว้ากใกล้หน้า ตัวสั่น แล้วถอยกลับ
+            const k = t < 0.25 ? ease(t / 0.25) : t < 0.75 ? 1 : 1 - ease((t - 0.75) / 0.25); go(0.55 * k);
+            if (t > 0.25 && t < 0.75) { P.dx += S(now / 18) * 2.5; P.sx *= 1.08; P.sy *= 1.08; }
             break; }
           case 'jump': case 'stomp': {
             const up = a.m === 'stomp' ? 44 : 34, k = Math.min(1, t / 0.7);

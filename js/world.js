@@ -23,7 +23,7 @@
   'use strict';
   const TS = 16, VW = 15, VH = 10;
   const WALK = '.:fTL_-x~><O2aeg+0dv1345=;{ฌต';   // ต้องตรงกับ WALK ใน tools/build_data.py
-  const COUNTER = 'c67,';              // คุยกับคนหลังเคาน์เตอร์ได้
+  const COUNTER = 'c67,ฉ';              // คุยกับคนหลังเคาน์เตอร์ได้
   G.world = { npcs: [], map: null, rows: null, moving: null, anim: 0, follow: null };
   const W = G.world;
 
