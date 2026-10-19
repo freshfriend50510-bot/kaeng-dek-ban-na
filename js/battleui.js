@@ -64,9 +64,8 @@
       await G.ui.say(`${mon.name} เรียนท่า ${mv.name} ได้แล้ว!`, null, { battle: true });
       return;
     }
-    await G.ui.say(`${mon.name} อยากเรียนท่า ${mv.name} แต่จำได้แค่ 4 ท่า จะลืมท่าไหน?`, null, { battle: true, auto: 1 });
     const opts = mon.moves.map((s) => G.DATA.moves[s.id].name).concat([`ไม่เรียน ${mv.name}`]);
-    const i = await G.ui.choose(opts, { cancel: false, cls: 'small' });
+    const i = await G.ui.ask(`${mon.name} อยากเรียนท่า ${mv.name} แต่จำได้แค่ 4 ท่า จะลืมท่าไหน?`, null, opts, { cancel: false, cls: 'small' }, { battle: true });
     if (i < 4) {
       const old = G.DATA.moves[mon.moves[i].id].name;
       mon.moves[i] = { id: mid, pp: mv.pp };

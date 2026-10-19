@@ -74,7 +74,8 @@
       let n = 0, done = false;
       const fast = opt.battle && G.settings.fast;   // ต่อสู้เร็ว ×2: พิมพ์เร็วขึ้นและรอสั้นลงครึ่งหนึ่ง
       const speed = G.settings.textSpeed * (fast ? 2 : 1), auto = opt.auto && fast ? Math.max(1, opt.auto / 2) : opt.auto;
-      const complete = () => { clearInterval(tick); n = chars.length; body.textContent = text; done = true; box.classList.add('done'); if (track) markSeen(key); if (auto) setTimeout(finish, auto); };
+      let held = false;
+      const complete = () => { clearInterval(tick); n = chars.length; body.textContent = text; done = true; box.classList.add('done'); if (track) markSeen(key); if (auto) setTimeout(finish, auto); if (opt.hold && !held) { held = true; resolve(() => pop(m)); } };   // hold = ค้างข้อความไว้ระหว่างเลือกตัวเลือก
       const tick = setInterval(() => {
         n += speed; body.textContent = chars.slice(0, n).join('');
         if (n >= chars.length) complete();
@@ -133,7 +134,12 @@
       push(m); draw();
     });
   };
-  G.ui.confirm = async (q, name) => { await G.ui.say(q, name, { auto: 1 }); return (await G.ui.choose(['ใช่', 'ไม่'], { cls: 'yesno' })) === 0; };
+  // ถามแล้วให้เลือก: ข้อความคำถามค้างอยู่บนจอจนกว่าจะเลือกเสร็จ (เดิมหายทันทีจนอ่านไม่ทัน)
+  G.ui.ask = async (q, name, options, copt = {}, sopt = {}) => {
+    const close = await G.ui.say(q, name, { ...sopt, hold: true });
+    try { return await G.ui.choose(options, copt); } finally { close(); }
+  };
+  G.ui.confirm = async (q, name) => (await G.ui.ask(q, name, ['ใช่', 'ไม่'], { cls: 'yesno' })) === 0;
 
   // ---------- หน้าต่างแสดงข้อมูล (ปิดด้วยปุ่มใดก็ได้) ----------
   G.ui.panel = function (html, cls) {
@@ -415,8 +421,7 @@
     const mv = G.DATA.moves[mid];
     if (m.moves.some((x) => x.id === mid)) { await G.ui.say(`${m.name} ใช้ท่า ${mv.name} อยู่แล้ว`); return false; }
     if (m.moves.length < 4) { m.moves.push({ id: mid, pp: mv.pp }); G.sfx('level'); await G.ui.say(`${m.name} เรียนท่า ${mv.name} ได้แล้ว!`); return true; }
-    await G.ui.say(`${m.name} อยากเรียนท่า ${mv.name} แต่จำได้แค่ 4 ท่า จะลืมท่าไหน?`, null, { auto: 1 });
-    const k = await G.ui.choose(m.moves.map((x) => G.DATA.moves[x.id].name).concat([`ไม่เรียน ${mv.name}`]), { cls: 'small', info: (j) => (m.moves[j] ? G.DATA.moves[m.moves[j].id].desc : '') });
+    const k = await G.ui.ask(`${m.name} อยากเรียนท่า ${mv.name} แต่จำได้แค่ 4 ท่า จะลืมท่าไหน?`, null, m.moves.map((x) => G.DATA.moves[x.id].name).concat([`ไม่เรียน ${mv.name}`]), { cls: 'small', info: (j) => (m.moves[j] ? G.DATA.moves[m.moves[j].id].desc : '') });
     if (k < 0 || k >= 4) { await G.ui.say(`${m.name} ไม่ได้เรียน ${mv.name}`); return false; }
     const old = G.DATA.moves[m.moves[k].id].name;
     m.moves[k] = { id: mid, pp: mv.pp }; G.sfx('level'); await G.ui.say(`ลืม ${old} แล้วเรียน ${mv.name} แทน!`);
@@ -486,8 +491,7 @@
     if (m.moves.some((s2) => s2.id === it.move)) { await G.ui.say(`${m.name} ใช้ท่า ${mv.name} เป็นอยู่แล้ว`); return; }
     if (m.moves.length < 4) { m.moves.push({ id: it.move, pp: mv.pp }); }
     else {
-      await G.ui.say(`${m.name} จำได้แค่ 4 ท่า จะลืมท่าไหน?`, null, { auto: 1 });
-      const k = await G.ui.choose(m.moves.map((s2) => G.DATA.moves[s2.id].name).concat(['ไม่เรียน']), { cls: 'small' });
+      const k = await G.ui.ask(`${m.name} จำได้แค่ 4 ท่า จะลืมท่าไหน?`, null, m.moves.map((s2) => G.DATA.moves[s2.id].name).concat(['ไม่เรียน']), { cls: 'small' });
       if (k < 0 || k >= 4) return;
       m.moves[k] = { id: it.move, pp: mv.pp };
     }

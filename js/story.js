@@ -33,9 +33,19 @@
   // จุดฟื้นล่าสุด (หมดแรงแล้วไปตื่นที่นี่)
   const restHere = () => { S().lastHeal = { map: S().map, x: S().x, y: S().y, dir: S().dir }; };
   const fullHeal = async (text, name) => { G.heal(); G.sfx('heal'); restHere(); await say(text || 'ทุกคนกลับมาแข็งแรงเต็มที่!', name); };
+  // ลุงสองแถว: ให้เลือกไปที่ไหนก็ได้ (เส้นทางของลุงคันนี้ + ทุกที่ที่เคยไปแล้ว)
+  const rideMenu = async (name, routes, greet) => {
+    const list = [...routes];
+    for (const [m, label, x, y, dir] of G.travelSpots()) if (m !== S().map && !list.some((r) => r[0] === m)) list.push([m, label, x, y, dir]);
+    if (!list.length) { await say('ตอนนี้ลุงยังไม่มีที่ให้ไปนะหลาน', name); return; }
+    const i = await G.ui.ask(greet, name, list.map((r) => r[1]).concat(['ยังไม่ไป']), { title: 'นั่งสองแถวไปไหนดี?', cls: 'small' });
+    if (i < 0 || i >= list.length) return;
+    const [m, label, x, y, dir] = list[i];
+    await ride(m, x, y, dir, `นั่งสองแถวไป${label}...`);
+  };
   const ride = async (to, x, y, dir, text) => {
     await G.fadeTo(() => { G.showToast(text); });
-    await G.wait(500);
+    await G.wait(1200);   // ให้อ่านป้ายบอกทางทัน
     await G.fadeTo(() => G.loadMap(to, x, y, dir));
     await SCRIPTS.enter(to);
   };
@@ -427,23 +437,19 @@
     async driver() {
       if (!F().gym1_done) { await say('ลุงวิ่งรถไป มข. ทุกวัน แต่ช่วงนี้แก๊งร้านราเมงคุมตลาด ไม่มีใครกล้านั่งรถลุงเลย', 'ลุงสองแถว'); return; }
       if (!F().festival_done) { await say('ได้ข่าวว่าหมู่บ้านเอ็งจะจุดบั้งไฟฉลอง กลับไปงานบุญก่อน แล้วค่อยมานั่งรถลุง ลุงรอได้', 'ลุงสองแถว'); return; }
-      if (!(await G.ui.confirm('ไป มข. ไหมหลาน? ลุงพาไปฟรี เด็กเก่งแบบนี้ไม่คิดตังค์', 'ลุงสองแถว'))) return;
-      await ride('kku', 5, 13, 'down', 'นั่งสองแถวไปมหาวิทยาลัยขอนแก่น...');
+      await rideMenu('ลุงสองแถว', [['kku', 'มหาวิทยาลัยขอนแก่น', 5, 13, 'down']], 'จะไปไหนหลาน? ลุงพาไปฟรี เด็กเก่งแบบนี้ไม่คิดตังค์');
     },
     async driver2() {
-      if (!(await G.ui.confirm('กลับตลาดนัดตำบลไหม? ลุงพาไปส่ง', 'ลุงสองแถว'))) return;
-      await ride('market', 21, 8, 'left', 'นั่งสองแถวกลับตลาดนัดตำบล...');
+      await rideMenu('ลุงสองแถว', [['market', 'ตลาดนัดตำบล', 21, 8, 'left']], 'จะไปไหนหลาน? ลุงพาไปส่ง');
     },
     // ---------- ด่านสุดท้าย: เมืองขอนแก่น ----------
     async line(n) { for (const l of n.lines || []) await say(l, n.name); },   // NPC/ประตู/วัตถุทั่วไป: พูดตาม lines
     async driver_city(n) {
       if (!F().gym3_done) { await say('ลุงวิ่งรถเข้าตัวเมืองขอนแก่น แต่ช่วงนี้รถเต็ม ไว้หลานจัดการเรื่องที่โรงพยาบาลเสร็จก่อนนะ', n.name); return; }
-      if (!(await G.ui.confirm('เข้าตัวเมืองขอนแก่นไหมหลาน? ช่วงนี้คนไปดูแข่งเกมกันเต็มรถเลย', n.name))) return;
-      await ride('city', 7, 17, 'down', 'นั่งสองแถวเข้าตัวเมืองขอนแก่น...');
+      await rideMenu(n.name, [['city', 'ตัวเมืองขอนแก่น', 7, 17, 'down']], 'จะไปไหนหลาน? ช่วงนี้คนเข้าเมืองไปดูแข่งเกมกันเต็มรถเลย');
     },
     async driver_city2(n) {
-      if (!(await G.ui.confirm('กลับตัวอำเภอไหม? ลุงพาไปส่งหน้าหอนาฬิกา', n.name))) return;
-      await ride('amphoe', 35, 16, 'down', 'นั่งสองแถวกลับตัวอำเภอ...');
+      await rideMenu(n.name, [['amphoe', 'ตัวอำเภอ (หอนาฬิกา)', 35, 16, 'down']], 'จะไปไหนหลาน? ลุงพาไปส่งได้ทุกที่ที่เคยไป');
     },
     async cstore_shop(n) { await say('สวัสดีค่ะ ยินดีต้อนรับ รับถุงไหมคะ', n.name); await G.ui.shop(['herb_big', 'saline', 'magic_rice', 'sangkaya', 'soda'], n.name); },
     async hotel_rest(n) {
