@@ -3046,10 +3046,6 @@
    "y": 16,
    "look": "driver",
    "script": "driver_city",
-   "hours": [
-    5,
-    22
-   ],
    "tag": [
     "สองแถวเข้าเมือง",
     "ตัวเมืองขอนแก่น"
@@ -3064,10 +3060,6 @@
    "y": 17,
    "look": "driver",
    "script": "driver_city2",
-   "hours": [
-    5,
-    22
-   ],
    "dir": "down"
   },
   {
@@ -3980,6 +3972,20 @@
    "lines": [
     "ถ้วย VALOLAND CHAMPIONS ตั้งกลางเวที แสงไฟส่องจนแสบตา"
    ]
+  },
+  {
+   "map": "city",
+   "x": 3,
+   "y": 17,
+   "script": "songthaew",
+   "label": "ดูรถสองแถว"
+  },
+  {
+   "map": "city",
+   "x": 4,
+   "y": 17,
+   "script": "songthaew",
+   "label": "ดูรถสองแถว"
   }
  ]
 }
