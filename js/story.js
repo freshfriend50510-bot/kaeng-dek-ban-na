@@ -666,6 +666,7 @@
         return;
       }
       await say(F().sausage_done ? '{happy}ลูกค้าห้อง 304 ฝากบอกว่า "อร่อยเหมือนเดิม" ขอบใจนะหลาน' : 'ส่งที่พนักงานโรงแรมนะ ฝากขึ้นห้อง 304', n.name);
+      await G.ui.shop(['naem', 'meatball'], n.name);
     },
     // ---------- เควสต์รอง: รูปทีมเก่า ----------
     async photo(n) {
@@ -686,11 +687,11 @@
         await say('ร้านนี้ลุงเปิดมายี่สิบปี มีเด็กสามคนมานั่งตั้งแต่ตัวเท่าเอ็ง คนหนึ่งเป็นโปร คนหนึ่งพากย์เกม อีกคนกลับไปขายราเมงบ้านนอก ฮ่าๆ', n.name);
         await say('รูปพวกมันที่ลุงแปะไว้ปลิวหายไปห้าใบ ไปตกทั่วเมืองเลย', n.name);
         if (await G.ui.confirm('ช่วยลุงตามหารูปเก่า 5 ใบไหม?', n.name)) await startQuest('s_photo');
-        else await G.ui.shop(['soda', 'mama_cup'], n.name);
+        else await G.ui.shop(['mama_cup', 'soda', 'gamer_drink', 'popcorn'], n.name);
         return;
       }
       await say('มาม่ากับน้ำแดงไหม หาของเหนื่อยๆ', n.name);
-      await G.ui.shop(['soda', 'mama_cup'], n.name);
+      await G.ui.shop(['mama_cup', 'soda', 'gamer_drink', 'popcorn'], n.name);
     },
     // ---------- กิมมิคในเมือง ----------
     async fountain() {
@@ -709,7 +710,8 @@
         : ['จอยักษ์ฉายไฮไลต์ FIEWXANDER ยิงหัวห้าคนติด', 'ตัวหนังสือวิ่ง: "พากย์โดย หยกJADE · เชียร์สด ณ สนามอีสปอร์ตขอนแก่น"'];
       for (const l of lines) await say(l);
     },
-    async vending() { await say('ตู้กดน้ำ แสงไฟเรืองๆ ตอนกลางคืน'); await G.ui.shop(['soda'], 'ตู้กดน้ำ'); },
+    async vending() { await say('ตู้กดน้ำ แสงไฟเรืองๆ ตอนกลางคืน'); await G.ui.shop(['soda', 'gamer_drink'], 'ตู้กดน้ำ'); },
+    async meatball(n) { await say('ลูกชิ้นทอดไม้ละห้าบาท จิ้มแจ่วเผ็ดๆ ซื้อเยอะลดให้!', n.name); await G.ui.shop(['meatball', 'rice_pork', 'soda'], n.name); },
     // มินิเกม: ทายลูกศรให้ทัน (ตู้เกมอาเขต) / ยิงลูกโป่งตามสี (ซุ้มถนนคนเดิน)
     async arcade() {
       if (!(await G.ui.confirm('ตู้เกม "สายฟ้าแลบ" เหรียญละ 10 บาท กดปุ่มตามลูกศรให้ถูกสามรอบ เล่นไหม?'))) return;
@@ -740,7 +742,7 @@
       else if (ok >= 4) { await say('{happy}เก่งมาก! เอาตุ๊กตาไปปลอบใจ... เอ้ย ไข่ปิ้ง!', n.name); await give('egg_ping', 1); }
       else await say(`ยิงโดน ${ok}/5 นัด ลองใหม่นะ!`, n.name);
     },
-    async cstore_shop(n) { await say('สวัสดีค่ะ ยินดีต้อนรับ รับถุงไหมคะ', n.name); await G.ui.shop(['herb_big', 'saline', 'magic_rice', 'sangkaya', 'soda'], n.name); },
+    async cstore_shop(n) { await say('สวัสดีค่ะ ยินดีต้อนรับ รับถุงไหมคะ', n.name); await G.ui.shop(['sandwich', 'gamer_drink', 'soda', 'herb_big', 'saline', 'holy_water', 'magic_rice', 'rice_pork', 'coupon', 'sangkaya'], n.name); },
     async hotel_rest(n) {
       if (F().sausage_asked && !F().sausage_done) {
         await say('ไส้กรอกสิบไม้ส่งห้อง 304 เหรอคะ ห้องคุณม่อนน่ะค่ะ เขาสั่งทุกคืนเลย เดี๋ยวพี่เอาขึ้นไปให้นะคะ', n.name);
@@ -750,7 +752,10 @@
       await fullHeal('นอนหลับบนเตียงนุ่มๆ ทุกคนแข็งแรงเต็มที่!', n.name);
       if (await G.ui.confirm('จะบันทึกเกมไหม?')) { if (await G.ui.saveMenu()) await say('บันทึกเกมแล้ว'); }
     },
-    async arena_merch(n) { await say('เสื้อทีมกับพวงกุญแจ FIEWXANDER ขายดีที่สุด เหลือไม่กี่ชิ้นแล้ว!', n.name); await G.ui.shop(['herb_big', 'holy_water'], n.name); },
+    async arena_merch(n) {
+      await say(F().mon_done ? '{happy}ของที่ระลึกหมดเกลี้ยงตั้งแต่ข่าวว่าแก๊งเด็กบ้านนาชนะ FIEWXANDER! เหลือล็อตสุดท้ายนี่แหละ' : 'ของที่ระลึก FIEWXANDER ขายดีที่สุด เสื้อทีม หมวก ผ้าเชียร์ แท่งไฟ ป้ายไฟ ใส่เชียร์แล้วแรงขึ้นจริงนะ!', n.name);
+      await G.ui.shop(['team_jersey', 'team_cap', 'omen_keychain', 'cheer_towel', 'lightstick', 'led_sign', 'popcorn', 'gamer_drink'], n.name);
+    },
     async arena_drink(n) {
       await say('{happy}อ้าว! น้องๆ จากโรงอาหารวิศวะ! อิงอิงมาเปิดซุ้มที่สนามช่วงแข่ง ทีมเฟี้ยวซานเดอร์สั่งทุกวันเลย', n.name);
       await G.ui.shop(['mango_shake', 'melon_shake', 'thaitea_shake', 'ovaltine_shake'], n.name);

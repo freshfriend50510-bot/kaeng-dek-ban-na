@@ -627,6 +627,19 @@
       case 'yantra': R(K, 2, 2, 12, 12); R('#f4f4ec', 3, 3, 10, 10); g.strokeStyle = '#c5482b'; g.lineWidth = 1; g.strokeRect(4.5, 4.5, 7, 7); R('#c5482b', 7, 6, 2, 4); R('#c5482b', 6, 7, 4, 1); break;
       case 'gloves': R(K, 4, 3, 9, 11); R('#d9a04a', 5, 4, 7, 9); R('#a8742a', 5, 11, 7, 2); R(K, 7, 4, 1, 4); R(K, 9, 4, 1, 4); R('#d9a04a', 2, 7, 3, 3); break;
       case 'goggles': R(K, 1, 5, 14, 7); R('#f2d24b', 2, 6, 12, 5); O('#5fb8e0', 5, 8.5, 2.5, 2); O('#5fb8e0', 11, 8.5, 2.5, 2); R('#18203f', 7, 8, 2, 1); break;
+      // ของที่ระลึกสนามอีสปอร์ต และของกินในเมือง
+      case 'team_jersey': R(K, 2, 3, 12, 11); R('#1d1d24', 3, 4, 10, 9); R('#7a2ad0', 1, 4, 3, 5); R('#7a2ad0', 12, 4, 3, 5); R('#e8ecf0', 6, 4, 4, 2); R('#b04ae8', 7, 8, 2, 2); break;
+      case 'team_cap': O(K, 8, 9, 6.5, 4.5); O('#1d1d24', 8, 9, 5.5, 3.5); R(K, 2, 10, 13, 3); R('#7a2ad0', 3, 11, 11, 1); R('#e8ecf0', 7, 7, 3, 2); break;
+      case 'omen_keychain': O(K, 8, 4, 2.5, 2.5); O('#c9a45a', 8, 4, 1.5, 1.5); R('#c9a45a', 7.5, 6, 1, 2); O(K, 8, 11, 5, 4.5); O('#1d2340', 8, 11, 4, 3.5); R('#5fe0f0', 6, 10, 1, 1); R('#5fe0f0', 9, 10, 1, 1); break;
+      case 'cheer_towel': R(K, 1, 4, 14, 8); R('#7a2ad0', 2, 5, 12, 6); R('#f4f4ec', 3, 7, 10, 2); R('#ff4fb0', 2, 5, 2, 6); R('#ff4fb0', 12, 5, 2, 6); break;
+      case 'lightstick': R(K, 6, 9, 4, 6); R('#3a3f48', 7, 10, 2, 4); O(K, 8, 5, 4, 4.5); O('#5fe0f0', 8, 5, 3, 3.5); O('#ffffff', 7, 4, 1, 1); break;
+      case 'led_sign': R(K, 1, 3, 14, 10); R('#0c0d14', 2, 4, 12, 8); R('#ff4fb0', 3, 6, 2, 4); R('#5fe0f0', 6, 6, 2, 4); R('#f2d24b', 9, 6, 2, 4); R('#b06aff', 12, 6, 1, 4); break;
+      case 'popcorn': R(K, 3, 7, 10, 8); R('#d9455a', 4, 8, 8, 6); R('#f4f4ec', 6, 8, 1, 6); R('#f4f4ec', 9, 8, 1, 6); O('#f2d24b', 5, 6, 2, 2); O('#fff2c0', 8, 5, 2.5, 2); O('#f2d24b', 11, 6, 2, 2); break;
+      case 'gamer_drink': R(K, 5, 2, 6, 13); R('#2a2a33', 6, 3, 4, 11); R('#4fe07a', 6, 5, 4, 2); R('#4fe07a', 7, 8, 2, 4); R('#b8bcc4', 6, 2, 4, 1); break;
+      case 'meatball': R('#8a6440', 7, 1, 1, 14); for (const yy of [4, 8, 12]) { O(K, 7.5, yy, 3, 2.5); O('#b0703a', 7.5, yy, 2.2, 1.8); } break;
+      case 'naem': R('#8a6440', 2, 13, 12, 1); for (const xx of [4, 8, 12]) { O(K, xx, 9, 2.4, 3.6); O('#c5482b', xx, 9, 1.6, 2.8); R('#f4f4ec', xx - 1, 8, 1, 1); } break;
+      case 'sandwich': g.fillStyle = K; g.beginPath(); g.moveTo(2, 13); g.lineTo(14, 13); g.lineTo(8, 3); g.fill(); g.fillStyle = '#e8c88a'; g.beginPath(); g.moveTo(3.5, 12); g.lineTo(12.5, 12); g.lineTo(8, 4.5); g.fill(); R('#6cc04a', 4, 10, 8, 1); R('#f2a0b0', 5, 9, 6, 1); break;
+      case 'mama_cup': R(K, 3, 4, 10, 11); R('#f4f4ec', 4, 5, 8, 9); R('#d9455a', 4, 8, 8, 3); R('#f2d24b', 6, 9, 4, 1); R('#c9c0b0', 4, 4, 8, 1); break;
       default: {   // ท่าลับ: ม้วนคัมภีร์สีตามธาตุ
         const it = G.DATA && G.DATA.items[key];
         const col = { wind: '#4f9a5a', electric: '#f2d24b', earth: '#b06a3e', water: '#3a7fb0', normal: '#8a8270' }[it && it.for] || '#8a8270';
