@@ -118,6 +118,8 @@
     prof: { hair: 'neat', H: C.hairGray, S: C.skinFair, C: '#f4f4ec', P: '#3b3b3b', extra: ['glasses'], patch: ['tie'], a: '#8a2a2a' },
     coop: { hair: 'cap', B: '#3f7f4a', H: C.hairBlack, S: C.skinMid, C: '#3f7f4a', P: '#3b3b3b', extra: ['grin'] },
     mkowner: { hair: 'buzz', H: C.hairGray, S: C.skinTan, C: '#c5482b', P: '#3b3b3b', extra: ['grin'], patch: ['apron'], A: '#f4f4ec' },
+    // หยก: แคสเตอร์ผู้จัดการทีม สาวสวยผมยาวน้ำตาลเข้ม แจ็กเก็ตทีมสีขาว
+    yok: { hair: 'long', H: '#4a2e24', S: C.skinFair, C: '#f4f4f4', P: '#2a2a33', extra: ['grin'], patch: ['narrow'], Q: '#f2a0b0' },
     ingying: { hair: 'tied', H: C.hairBrown, S: C.skinMid, C: '#f2a0c0', P: '#4a3b5a', extra: ['grin'], patch: ['apron'], A: '#e86a9a' },
     // คนวิศวะ: เสื้อช็อปตามสาขา (ดู SHOP) + ตราที่อก
     // พี่เฟรนด์: หนุ่มหล่อวิศวะเครื่องกล ผมทรงทูบล็อกปัดข้าง คิ้วเข้ม ตาคม ยิ้มมุมปาก เสื้อช็อปดำพับแขน ตราเฟืองทองที่อกและหลัง สร้อยเฟือง

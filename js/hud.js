@@ -6,7 +6,7 @@
   const STATUS = { par: 'ชา', slp: 'หลับ', psn: 'ท้องเสีย' };
 
   // สีของแต่ละช่องบนแผนที่ย่อ
-  const MAPCOL = { d: '#e8d4a0', v: '#7a9a4a', y: '#8a8070', U: '#f0f0ea', '[': '#3a8ac0', ']': '#e8e8e0', 1: '#4fb05a', 3: '#3a8ad8', 4: '#e8c034', 5: '#d9455a', '=': '#9a5ad0', '.': '#9caf55', f: '#9caf55', ':': '#c47a4a', '#': '#3f6b34', P: '#24402a', w: '#4f8fb0', T: '#6e9b3a',
+  const MAPCOL = { '(': '#2a3360', ')': '#7a2ad0', '*': '#ff4fb0', ',': '#d9455a', ';': '#b9b0a2', '|': '#6b4a2f', '{': '#1b1828', '}': '#a82a3a', '`': '#2a6ad8', d: '#e8d4a0', v: '#7a9a4a', y: '#8a8070', U: '#f0f0ea', '[': '#3a8ac0', ']': '#e8e8e0', 1: '#4fb05a', 3: '#3a8ad8', 4: '#e8c034', 5: '#d9455a', '=': '#9a5ad0', '.': '#9caf55', f: '#9caf55', ':': '#c47a4a', '#': '#3f6b34', P: '#24402a', w: '#4f8fb0', T: '#6e9b3a',
     R: '#b08a4a', r: '#9a3a2a', A: '#a63a2a', M: '#b5402a', K: '#3a2a24', H: '#6b5040', h: '#d8d0c0', m: '#f2efe4', n: '#2b3f8a',
     D: '#2a1d18', S: '#8a6a4a', o: '#d9b25a', b: '#8a8a8a', '^': '#c5482b', I: '#5a3a22', L: '#a0784e', F: '#8a6a4a',
     a: '#55555e', '+': '#9a9aa2', e: '#cbbfa8', g: '#5f8a3a', J: '#3a6a3a', N: '#8f949e', C: '#e6dcc8', q: '#7d8794', Q: '#6b7480',
@@ -52,7 +52,8 @@
     const id = G.state.map, img = mapImage(id, 2);
     if (mini.width !== img.width || mini.height !== img.height) {
       mini.width = img.width; mini.height = img.height;
-      mini.style.width = `calc(var(--px) * ${img.width * 0.75})`; mini.style.height = `calc(var(--px) * ${img.height * 0.75})`;
+      const k = Math.min(0.75, 72 / img.width, 54 / img.height);   // แมพใหญ่ (ตัวเมือง) ย่อลงไม่ให้มินิแมพบังจอ
+      mini.style.width = `calc(var(--px) * ${img.width * k})`; mini.style.height = `calc(var(--px) * ${img.height * k})`;
     }
     mctx.drawImage(img, 0, 0);
     for (const n of G.world.npcs) { mctx.fillStyle = n.trainer && !G.state.flags[n.trainer.flag] ? '#d9455a' : '#f6eed8'; mctx.fillRect(n.x * 2, n.y * 2, 2, 2); }
@@ -88,6 +89,7 @@
       kku: [['บึงสีฐาน', 38, 26], ['ลานจอดรถ', 22.5, 2], ['หญ้ารก', 16, 30], ['สะพานลำน้ำพอง', 44, 13.5], ['รถสองแถวกลับตลาด', 6, 11.5], ['ลานเฟือง', 12.5, 12.5]],
       phong: [['ลำน้ำพอง', 3.5, 9], ['เกาะทราย', 2.5, 1.6], ['ท่าน้ำ', 5, 19], ['ศาลาริมน้ำ', 20.5, 13.6], ['ศาลนางตะเคียน', 24.5, 9.2], ['นาริมพอง', 34, 1.8], ['พงอ้อ', 14, 1.8]],
       amphoe: [['หอนาฬิกา', 20.5, 12.4], ['ตลาดเช้า (ตี 5-9 โมง)', 9, 16.6], ['สวนสาธารณะ', 9, 22], ['วัดริมน้ำ', 13.5, 1.8], ['ซากเจดีย์', 2.5, 7]],
+      city: [['บึงแก่นนคร', 14, 2.2], ['ถนนมิตรภาพ', 30, 14.6], ['ถนนคนเดิน (ค่ำ)', 43.5, 39.2], ['สวนสาธารณะ', 55, 18.6], ['ป้ายสองแถว', 4, 18.8], ['ไปสนามบิน →', 58, 13.2]],
       hospital: [['เวชระเบียน', 15, 13], ['จุดคัดกรอง', 3, 8.6]], ward: [['ห้องยา', 20.5, 9.8], ['น้องจ๋า', 3.5, 10.6]] };
     for (const [t, ex, ey] of EXTRA[id] || []) label(t, ex * sc, ey * sc);
     for (const w of G.DATA.world.warps.filter((w) => w.map === id && !G.DATA.world.maps[id].indoor)) {

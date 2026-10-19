@@ -425,6 +425,33 @@
       if (!(await G.ui.confirm('กลับตลาดนัดตำบลไหม? ลุงพาไปส่ง', 'ลุงสองแถว'))) return;
       await ride('market', 21, 8, 'left', 'นั่งสองแถวกลับตลาดนัดตำบล...');
     },
+    // ---------- ด่านสุดท้าย: เมืองขอนแก่น ----------
+    async line(n) { for (const l of n.lines || []) await say(l, n.name); },   // NPC/ประตู/วัตถุทั่วไป: พูดตาม lines
+    async driver_city(n) {
+      if (!F().gym3_done) { await say('ลุงวิ่งรถเข้าตัวเมืองขอนแก่น แต่ช่วงนี้รถเต็ม ไว้หลานจัดการเรื่องที่โรงพยาบาลเสร็จก่อนนะ', n.name); return; }
+      if (!(await G.ui.confirm('เข้าตัวเมืองขอนแก่นไหมหลาน? ช่วงนี้คนไปดูแข่งเกมกันเต็มรถเลย', n.name))) return;
+      await ride('city', 7, 17, 'down', 'นั่งสองแถวเข้าตัวเมืองขอนแก่น...');
+    },
+    async driver_city2(n) {
+      if (!(await G.ui.confirm('กลับตัวอำเภอไหม? ลุงพาไปส่งหน้าหอนาฬิกา', n.name))) return;
+      await ride('amphoe', 35, 16, 'down', 'นั่งสองแถวกลับตัวอำเภอ...');
+    },
+    async cstore_shop(n) { await say('สวัสดีค่ะ ยินดีต้อนรับ รับถุงไหมคะ', n.name); await G.ui.shop(['herb_big', 'saline', 'magic_rice', 'sangkaya', 'soda'], n.name); },
+    async hotel_rest(n) {
+      await say('ยินดีต้อนรับโรงแรมนักแข่งค่ะ น้องๆ เป็นแขกของทีมใช่ไหม พักฟรีได้เลยค่ะ', n.name);
+      await fullHeal('นอนหลับบนเตียงนุ่มๆ ทุกคนแข็งแรงเต็มที่!', n.name);
+      if (await G.ui.confirm('จะบันทึกเกมไหม?')) { if (await G.ui.saveMenu()) await say('บันทึกเกมแล้ว'); }
+    },
+    async netcafe_uncle(n) {
+      await say('ร้านนี้ลุงเปิดมายี่สิบปี เด็กสามคนนั้นมานั่งตั้งแต่ตัวเท่าเอ็ง', n.name);
+      await say('คนหนึ่งเป็นโปร คนหนึ่งพากย์เกม อีกคนกลับไปขายราเมงบ้านนอก ฮ่าๆ', n.name);
+      await G.ui.shop(['soda', 'rice_pork'], n.name);
+    },
+    async arena_merch(n) { await say('เสื้อทีมกับพวงกุญแจ FIEWXANDER ขายดีที่สุด เหลือไม่กี่ชิ้นแล้ว!', n.name); await G.ui.shop(['herb_big', 'holy_water'], n.name); },
+    async arena_drink(n) {
+      await say('{happy}อ้าว! น้องๆ จากโรงอาหารวิศวะ! อิงอิงมาเปิดซุ้มที่สนามช่วงแข่ง ทีมเฟี้ยวซานเดอร์สั่งทุกวันเลย', n.name);
+      await G.ui.shop(['mango_shake', 'melon_shake', 'thaitea_shake', 'ovaltine_shake'], n.name);
+    },
     async songthaew() { await say('รถสองแถวสีฟ้าของลุง คุยกับลุงคนขับเพื่อนั่งรถ'); },
     // ---------- มข. ----------
     async guard() { await say(F().gym2_done ? 'สะพานเปิดแล้ว ข้ามลำน้ำพองไปถึงตัวอำเภอ โรงพยาบาลอยู่ติดวงเวียนหอนาฬิกา' : 'เด็กประถมมาเที่ยวมหาลัยเหรอ ระวังพี่ว้ากหน้าโรงช็อปนะ เสียงดังจนนกตกต้นไม้', 'ยามสมพงษ์'); },
