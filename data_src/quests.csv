@@ -25,6 +25,16 @@ m_rx,main,ใบสั่งยา,pharm,,,h_rx,npc:pharm,,,,รับใบส�
 m_intern,main,อินเทิร์นเฝ้าประตู,intern,,,tr_intern,npc:intern,,,,ลงลิฟต์ เดินตามเส้นม่วงไปประตูหลัง เข้าคลินิกแล้วชนะน้องหมออินเทิร์น
 m_gym3,main,ตราหูฟัง,boom,,,gym3_done,npc:boom,,,,ท้าพี่บูมที่คลินิก (แนะนำ Lv 23 · ธาตุน้ำได้เปรียบ ธาตุสายฟ้าเสียเปรียบ)
 m_city,main,เข้าเมืองขอนแก่น,driver_city,,,city_arrived,npc:driver_city,,,,กลับตัวอำเภอ คุยกับลุงสองแถวริมถนนใต้หอนาฬิกา นั่งรถเข้าตัวเมืองขอนแก่น
+m_yok,main,พี่หยกแห่งบึงแก่นนคร,yok_bueng,,,yok_met,npc:yok_bueng,,,,ไปบึงแก่นนคร (ซ้ายบนของเมือง) คุยกับพี่หยกที่ศาลากลางน้ำ
+m_practice,main,ห้องซ้อมเคลียร์มุม,primmie_tr,,,practice3,npcs:primmie_tr;killua_tr;bus_tr,,,,เข้าสนามอีสปอร์ต ประตูซ้ายในล็อบบี้คือห้องซ้อม ชนะพริมมี่ คิลัว ซุปเปอร์บัส (Lv 27-28)
+m_joe,main,JOEKER ผู้เฝ้าแท่นสไปก์,joe_pro,,,practice_clear,npc:joe_pro,,,,ไปแท่นสไปก์สีเหลืองกลางห้องซ้อม ท้าพี่โจ (JOEKER) ที่ใช้ควันปิดตา
+m_mon,main,FIEWXANDER,mon_stage,,,mon_done,npc:mon_stage,,,,ประตูบนห้องซ้อมขึ้นเวทีใหญ่ ท้าชิงพี่ม่อน (แนะนำ Lv 30-32 · ทีมครบทุกธาตุ · มียาฟื้น 2 ครั้ง · พี่บูมในล็อบบี้รักษาฟรี)
+m_airport,main,ส่งพี่ม่อนไปแข่งโลก,mon_air,,,game_clear,npc:mon_air,,,,ไปสนามบินขอนแก่น (เดินตามถนนใหญ่ไปขวาสุดของเมือง) ส่งพี่ม่อนขึ้นเครื่อง
 s_worm,side,ไส้เดือนให้ลุงเปลี่ยน,plian,phong_arrived,worm_asked,worm_done,npc:worm1,worms_all,npc:plian,rod:1;money:150,หาไส้เดือนในพงอ้อริมพอง 3 ตัว ให้ลุงเปลี่ยนที่ท่าน้ำ
 s_card,side,ใบนัดของยายหอม,yaihom,h_card,card_asked,card_done,npc:card,card_found,npc:yaihom,herb_big:3;money:300,ยายหอมลืมใบนัดหมอไว้ที่ตลาดเช้า (เปิดตี 5 – 9 โมง) ไปหาแล้วเอามาคืน
 s_porridge,side,ข้าวต้มให้น้องจ๋า,joe3,rival3_done,porridge_asked,porridge_done,npc:porridge,porridge_got,npc:sister,sangkaya:3;money:300,ซื้อข้าวต้มหมูสับที่ตลาดเช้า (ตี 5 – 9 โมง) ไปให้น้องสาวโจ้ที่วอร์ดชั้น 2
+s_drone,side,โดรนตกบึง,yok_bueng,yok_met,drone_asked,drone_done,map:city:11:5,drone_got,npc:yok_bueng,team_jersey:1;money:500,โดรนถ่ายคลิปของพี่หยกตกบึงแก่นนคร ติดอยู่กอบัวข้างศาลา ใช้เบ็ดของลุงเปลี่ยนเกี่ยวขึ้นมา
+s_flower,side,ดอกไม้วันนั้น,namfon_city,city_arrived,flower_asked,flower_done,npc:yaihom_city,jasmine_got,npc:namfon_city,saline:3;money:600,ซื้อพวงมาลัยมะลิจากยายหอมที่ถนนคนเดิน (6 โมงเย็น – เที่ยงคืน) ไปให้พี่น้ำฝนที่ร้านสะดวกซื้อ แล้วบอกความจริงเรื่องดอกไม้วันนั้น
+s_sign,side,ลายเซ็นให้น้องจ๋า,joe_kid,yok_met,sign_asked,sign_done,npc:mon_net,sign_got,npc:joe_kid,khao_ji:2;money:800,ได้ข่าวว่าตอนกลางคืน (2 ทุ่ม – ตี 4) มีผู้ชายใส่ฮู้ดนั่งเครื่อง 07 ร้านเน็ต ไปขอลายเซ็นให้น้องจ๋า
+s_sausage,side,ไส้กรอกสิบไม้,c_street2,city_arrived,sausage_asked,sausage_done,npc:c_hotel,,,egg_ping:3;money:300,เอาไส้กรอกอีสาน 10 ไม้ไปฝากพนักงานโรงแรม ส่งให้ลูกค้าประจำห้อง 304
+s_photo,side,รูปทีมเก่า 5 ใบ,c_netuncle,city_arrived,photo_asked,photo_done,npcs:photo1;photo2;photo3;photo4;photo5,photo_all,npc:c_netuncle,khao_lam:1;money:500,รูปเก่าของสามเกลอร้านเน็ตปลิวหายไปทั่วเมือง หาให้ครบ 5 ใบแล้วเอามาคืนลุงเจ้าของร้าน

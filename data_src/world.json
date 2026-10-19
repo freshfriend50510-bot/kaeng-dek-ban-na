@@ -1112,7 +1112,15 @@
    "to": "arena_practice",
    "tx": 2,
    "ty": 22,
-   "label": "เข้าห้องซ้อม"
+   "label": "เข้าห้องซ้อม",
+   "need": [
+    "yok_met"
+   ],
+   "script": "line",
+   "lines": [
+    "ยาม: \"ห้องซ้อมเข้าได้เฉพาะผู้ท้าชิงครับ มีบัตรไหม?\"",
+    "ต้องไปขอบัตรผู้ท้าชิงจากพี่หยกที่บึงแก่นนครก่อน"
+   ]
   },
   {
    "map": "arena_lobby",
@@ -3069,13 +3077,8 @@
    "x": 14,
    "y": 5,
    "look": "yok",
-   "lines": [
-    "{happy}หวัดดีจ้า มาเที่ยวเมืองเหรอ พี่ชื่อหยก พากย์เกมอยู่ที่สนามโน่น",
-    "ศาลากลางน้ำตรงนี้ พี่กับเพื่อนสองคนมานั่งเล่นหลังเลิกเรียนทุกวันเลย",
-    "เดี๋ยวพี่ต้องไปตัดคลิปต่อ ไว้เจอกันที่สนามนะ"
-   ],
    "dir": "down",
-   "script": "line"
+   "script": "yok"
   },
   {
    "id": "c_jogger",
@@ -3263,11 +3266,7 @@
     17,
     24
    ],
-   "lines": [
-    "ไส้กรอกอีสานเปรี้ยวกำลังดี กินกับกะหล่ำ ขิง พริก",
-    "นักแข่งจากสนามแวะมาซื้อทุกคืน คนผมขาวนั่นกินทีละสิบไม้"
-   ],
-   "script": "line"
+   "script": "sausage_uncle"
   },
   {
    "id": "lvshop_city",
@@ -3401,6 +3400,437 @@
    "lines": [
     "เที่ยวบินไปแข่งรายการโลก ออกพรุ่งนี้เช้าค่ะ",
     "ทีมนักแข่งจะมาเช็กอินพร้อมกันที่เคาน์เตอร์นี้"
+   ],
+   "dir": "down",
+   "script": "line"
+  },
+  {
+   "id": "mon_net",
+   "name": "ผู้ชายใส่ฮู้ด",
+   "map": "netcafe",
+   "x": 13,
+   "y": 6,
+   "look": "mon",
+   "dir": "up",
+   "script": "mon_net",
+   "hours": [
+    20,
+    4
+   ],
+   "hideIf": "mon_done"
+  },
+  {
+   "id": "ossie_net",
+   "name": "พี่ออสซี่",
+   "map": "netcafe",
+   "x": 5,
+   "y": 6,
+   "look": "ossie",
+   "script": "ossie_city",
+   "showIf": "yok_met",
+   "hideIf": "mon_done",
+   "dir": "down"
+  },
+  {
+   "id": "joe_kid",
+   "name": "โจ้ แก๊งบ้านเหนือ",
+   "map": "arena_lobby",
+   "x": 7,
+   "y": 6,
+   "look": "rival",
+   "script": "joe_kid",
+   "showIf": "yok_met",
+   "dir": "down"
+  },
+  {
+   "id": "jah_lobby",
+   "name": "น้องจ๋า",
+   "map": "arena_lobby",
+   "x": 8,
+   "y": 6,
+   "look": "sister",
+   "showIf": "yok_met",
+   "lines": [
+    "{happy}หนูหายป่วยแล้ว! พี่โจ้พามาดูพี่ม่อนแข่ง",
+    "ถ้าได้ลายเซ็นพี่ม่อนนะ หนูจะเอาไปแปะหัวเตียงเลย"
+   ],
+   "dir": "down",
+   "script": "line"
+  },
+  {
+   "id": "friend_lobby",
+   "name": "พี่เฟรนด์",
+   "map": "arena_lobby",
+   "x": 20,
+   "y": 9,
+   "look": "friend",
+   "script": "friend_city",
+   "showIf": "yok_met",
+   "dir": "down"
+  },
+  {
+   "id": "boom_lobby",
+   "name": "พี่บูม",
+   "map": "arena_lobby",
+   "x": 24,
+   "y": 12,
+   "look": "boom",
+   "script": "boom_city",
+   "showIf": "yok_met",
+   "tag": [
+    "หมอประจำทีม",
+    "รักษาฟรี"
+   ],
+   "dir": "down"
+  },
+  {
+   "id": "john_lobby",
+   "name": "จอนโอเซ่น",
+   "map": "arena_lobby",
+   "x": 13,
+   "y": 9,
+   "look": "john",
+   "script": "john_city",
+   "dir": "down"
+  },
+  {
+   "id": "namfon_city",
+   "name": "พี่น้ำฝน",
+   "map": "cstore",
+   "x": 4,
+   "y": 5,
+   "look": "namfon",
+   "script": "namfon",
+   "dir": "down"
+  },
+  {
+   "id": "yaihom_city",
+   "name": "ยายหอม",
+   "map": "city",
+   "x": 46,
+   "y": 30,
+   "look": "yaihom",
+   "dir": "right",
+   "script": "yaihom_city",
+   "hours": [
+    17,
+    24
+   ],
+   "tag": [
+    "พวงมาลัยยายหอม",
+    "มะลิ · ดาวเรือง"
+   ]
+  },
+  {
+   "id": "c_balloon",
+   "name": "ลุงซุ้มยิงลูกโป่ง",
+   "map": "city",
+   "x": 41,
+   "y": 32,
+   "look": "coop",
+   "dir": "left",
+   "script": "balloon",
+   "hours": [
+    17,
+    24
+   ],
+   "tag": [
+    "ซุ้มยิงลูกโป่ง",
+    "ยิงครบ 5 ลูก ได้แว่นเล็ง"
+   ]
+  },
+  {
+   "id": "photo1",
+   "name": "รูปถ่ายเก่า",
+   "map": "city",
+   "x": 23,
+   "y": 2,
+   "look": "item",
+   "script": "photo",
+   "flag": "photo1",
+   "showIf": "photo_asked",
+   "hideIf": "photo1",
+   "dir": "down"
+  },
+  {
+   "id": "photo2",
+   "name": "รูปถ่ายเก่า",
+   "map": "netcafe",
+   "x": 18,
+   "y": 7,
+   "look": "item",
+   "script": "photo",
+   "flag": "photo2",
+   "showIf": "photo_asked",
+   "hideIf": "photo2",
+   "dir": "down"
+  },
+  {
+   "id": "photo3",
+   "name": "รูปถ่ายเก่า",
+   "map": "hotel",
+   "x": 15,
+   "y": 9,
+   "look": "item",
+   "script": "photo",
+   "flag": "photo3",
+   "showIf": "photo_asked",
+   "hideIf": "photo3",
+   "dir": "down"
+  },
+  {
+   "id": "photo4",
+   "name": "รูปถ่ายเก่า",
+   "map": "city",
+   "x": 44,
+   "y": 35,
+   "look": "item",
+   "script": "photo",
+   "flag": "photo4",
+   "showIf": "photo_asked",
+   "hideIf": "photo4",
+   "dir": "down"
+  },
+  {
+   "id": "photo5",
+   "name": "รูปถ่ายเก่า",
+   "map": "city",
+   "x": 58,
+   "y": 20,
+   "look": "item",
+   "script": "photo",
+   "flag": "photo5",
+   "showIf": "photo_asked",
+   "hideIf": "photo5",
+   "dir": "down"
+  },
+  {
+   "id": "primmie_tr",
+   "name": "พริมมี่",
+   "map": "arena_practice",
+   "x": 6,
+   "y": 6,
+   "look": "primmie",
+   "dir": "down",
+   "script": "trainer",
+   "trainer": {
+    "name": "พริมมี่",
+    "team": [
+     [
+      "phoenixjung",
+      27
+     ],
+     [
+      "jettjung",
+      28
+     ]
+    ],
+    "money": 900,
+    "sight": 3,
+    "flag": "tr_primmie",
+    "intro": "ไซต์ A เป็นของพี่! ถ้าผ่านพี่ไม่ได้ ก็อย่าหวังเจอม่อน",
+    "lose": "{happy}โอเค ยอม! เล็งดีกว่าที่คิดอีก",
+    "after": "practice_check"
+   }
+  },
+  {
+   "id": "killua_tr",
+   "name": "คิลัว",
+   "map": "arena_practice",
+   "x": 17,
+   "y": 7,
+   "look": "killua",
+   "dir": "down",
+   "script": "trainer",
+   "trainer": {
+    "name": "คิลัว",
+    "team": [
+     [
+      "sovanoi",
+      27
+     ],
+     [
+      "breachy",
+      28
+     ]
+    ],
+    "money": 900,
+    "sight": 3,
+    "flag": "tr_killua",
+    "intro": "...สแกนเจอแล้ว ทางกลางพี่เฝ้าเอง",
+    "lose": "ข้อมูลพี่ไม่พอ... น้องเก่งจริง",
+    "after": "practice_check"
+   }
+  },
+  {
+   "id": "bus_tr",
+   "name": "ซุปเปอร์บัส",
+   "map": "arena_practice",
+   "x": 26,
+   "y": 5,
+   "look": "bus",
+   "dir": "down",
+   "script": "trainer",
+   "trainer": {
+    "name": "ซุปเปอร์บัส",
+    "team": [
+     [
+      "killjoy",
+      28
+     ],
+     [
+      "chamberlung",
+      28
+     ]
+    ],
+    "money": 900,
+    "sight": 3,
+    "flag": "tr_bus",
+    "intro": "{happy}ไซต์ B ไม่มีใครผ่านได้! ...พี่พูดทุกนัดแหละ",
+    "lose": "{shock}เฮ้ย! ไม่จริงน่า! ...ไลฟ์อยู่ด้วย อายคนดูชะมัด",
+    "after": "practice_check"
+   }
+  },
+  {
+   "id": "joe_pro",
+   "name": "พี่โจ (JOEKER)",
+   "map": "arena_practice",
+   "x": 16,
+   "y": 20,
+   "look": "joe_pro",
+   "dir": "up",
+   "script": "joe_pro"
+  },
+  {
+   "id": "mon_stage",
+   "name": "พี่ม่อน (FIEWXANDER)",
+   "map": "arena_stage",
+   "x": 13,
+   "y": 6,
+   "look": "mon",
+   "script": "mon_final",
+   "hideIf": "mon_done",
+   "dir": "down"
+  },
+  {
+   "id": "yok_stage",
+   "name": "หยก",
+   "map": "arena_stage",
+   "x": 25,
+   "y": 5,
+   "look": "yok",
+   "dir": "left",
+   "showIf": "yok_met",
+   "lines": [
+    "{happy}หยกพากย์สดอยู่นะ! เชียร์ได้แต่ห้ามช่วยกันนะ ฮ่าๆ"
+   ],
+   "script": "line"
+  },
+  {
+   "id": "ossie_stage",
+   "name": "พี่ออสซี่",
+   "map": "arena_stage",
+   "x": 12,
+   "y": 12,
+   "look": "ossie",
+   "dir": "up",
+   "showIf": "yok_met",
+   "lines": [
+    "ไอ้ม่อนรออยู่บนเวที ข้ามาเชียร์พวกเอ็งนะ ไม่ใช่มัน!"
+   ],
+   "script": "line"
+  },
+  {
+   "id": "friend_stage",
+   "name": "พี่เฟรนด์",
+   "map": "arena_stage",
+   "x": 15,
+   "y": 12,
+   "look": "friend",
+   "dir": "up",
+   "showIf": "yok_met",
+   "lines": [
+    "ไม่ต้องออมมือพี่ม่อนนะ เขาไม่ชอบให้ใครออมมือ"
+   ],
+   "script": "line"
+  },
+  {
+   "id": "mon_air",
+   "name": "พี่ม่อน",
+   "map": "airport",
+   "x": 12,
+   "y": 3,
+   "look": "mon",
+   "script": "mon_air",
+   "showIf": "mon_done",
+   "dir": "down"
+  },
+  {
+   "id": "yok_air",
+   "name": "หยก",
+   "map": "airport",
+   "x": 14,
+   "y": 3,
+   "look": "yok",
+   "showIf": "mon_done",
+   "lines": [
+    "ตั๋วเครื่องบินพร้อม พาสปอร์ตพร้อม คนเดียวที่ไม่พร้อมคือม่อน ฮ่าๆ"
+   ],
+   "dir": "down",
+   "script": "line"
+  },
+  {
+   "id": "ossie_air",
+   "name": "พี่ออสซี่",
+   "map": "airport",
+   "x": 10,
+   "y": 5,
+   "look": "ossie",
+   "dir": "up",
+   "showIf": "mon_done",
+   "lines": [
+    "ข้าไม่ร้องไห้หรอก... ฝุ่นเข้าตา"
+   ],
+   "script": "line"
+  },
+  {
+   "id": "friend_air",
+   "name": "พี่เฟรนด์",
+   "map": "airport",
+   "x": 16,
+   "y": 5,
+   "look": "friend",
+   "dir": "up",
+   "showIf": "mon_done",
+   "lines": [
+    "พี่ม่อนต้องได้แชมป์แน่ พี่เชื่อ"
+   ],
+   "script": "line"
+  },
+  {
+   "id": "joe_air",
+   "name": "พี่โจ (JOEKER)",
+   "map": "airport",
+   "x": 11,
+   "y": 6,
+   "look": "joe_pro",
+   "dir": "up",
+   "showIf": "mon_done",
+   "lines": [
+    "ข้อมือพี่หายเมื่อไหร่ พี่จะตามไปยิงคู่กับมันอีก"
+   ],
+   "script": "line"
+  },
+  {
+   "id": "namfon_air",
+   "name": "พี่น้ำฝน",
+   "map": "airport",
+   "x": 17,
+   "y": 3,
+   "look": "namfon",
+   "showIf": "flower_done",
+   "lines": [
+    "{happy}...ดอกไม้วันนั้น พี่เก็บไว้ในสมุดตลอดเลยนะ"
    ],
    "dir": "down",
    "script": "line"
@@ -3882,29 +4312,21 @@
    "map": "city",
    "x": 40,
    "y": 9,
-   "script": "line",
-   "label": "ดูน้ำพุ",
-   "lines": [
-    "น้ำพุหน้าสนามพุ่งเป็นจังหวะเพลง แสงไฟเปลี่ยนสีม่วงฟ้า",
-    "มีเหรียญหลายเหรียญในอ่าง ใครสักคนอธิษฐานให้ทีมชนะ"
-   ]
+   "script": "fountain",
+   "label": "โยนเหรียญอธิษฐาน"
   },
   {
    "map": "city",
    "x": 51,
    "y": 9,
-   "script": "line",
-   "label": "ดูน้ำพุ",
-   "lines": [
-    "น้ำพุหน้าสนามพุ่งเป็นจังหวะเพลง แสงไฟเปลี่ยนสีม่วงฟ้า",
-    "มีเหรียญหลายเหรียญในอ่าง ใครสักคนอธิษฐานให้ทีมชนะ"
-   ]
+   "script": "fountain",
+   "label": "โยนเหรียญอธิษฐาน"
   },
   {
    "map": "city",
    "x": 45,
    "y": 4,
-   "script": "line",
+   "script": "led_screen",
    "label": "ดูจอ LED",
    "lines": [
     "จอยักษ์ฉายไฮไลต์ FIEWXANDER ยิงหัวห้าคนติด",
@@ -3986,6 +4408,69 @@
    "y": 17,
    "script": "songthaew",
    "label": "ดูรถสองแถว"
+  },
+  {
+   "map": "city",
+   "x": 10,
+   "y": 5,
+   "script": "drone_spot",
+   "label": "ดูกอบัว"
+  },
+  {
+   "map": "netcafe",
+   "x": 16,
+   "y": 2,
+   "script": "arcade",
+   "label": "เล่นตู้เกม"
+  },
+  {
+   "map": "netcafe",
+   "x": 17,
+   "y": 2,
+   "script": "arcade",
+   "label": "เล่นตู้เกม"
+  },
+  {
+   "map": "netcafe",
+   "x": 18,
+   "y": 2,
+   "script": "arcade",
+   "label": "เล่นตู้เกม"
+  },
+  {
+   "map": "netcafe",
+   "x": 19,
+   "y": 2,
+   "script": "arcade",
+   "label": "เล่นตู้เกม"
+  },
+  {
+   "map": "city",
+   "x": 48,
+   "y": 8,
+   "script": "vending",
+   "label": "กดน้ำ"
+  },
+  {
+   "map": "city",
+   "x": 49,
+   "y": 8,
+   "script": "vending",
+   "label": "กดน้ำ"
+  },
+  {
+   "map": "city",
+   "x": 21,
+   "y": 24,
+   "script": "vending",
+   "label": "กดน้ำ"
+  },
+  {
+   "map": "city",
+   "x": 21,
+   "y": 25,
+   "script": "vending",
+   "label": "กดน้ำ"
   }
  ]
 }

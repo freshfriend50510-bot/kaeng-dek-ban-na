@@ -563,7 +563,24 @@
   };
 
   // ---------- สมุดเควสต์ ----------
-  G.ui.questLog = function () {
+  // สมุดเควสต์: เลือกเควสต์ที่จะทำตอนนี้ (ลูกศรชี้ตาม) หรือเปิดดูทั้งหมด
+  G.ui.questLog = async function () {
+    const S = G.state, Q = G.DATA.quests;
+    for (;;) {
+      const act = Q.filter((q) => G.questState(q) === 'active');
+      const cur = (G.trackedQuest() || act.find((q) => q.kind === 'main') || {}).id;
+      const items = act.map((q) => ({ label: `${q.id === cur ? '➤ ' : ''}${q.kind === 'main' ? '★ ' : ''}${q.name}`, sub: (G.DATA.world.maps[G.questTarget(q).map] || {}).name || '' }));
+      items.push({ label: 'ดูเควสต์ทั้งหมด' });
+      const i = await G.ui.choose(items, { title: 'เลือกเควสต์ที่จะทำ (ลูกศรสีทองชี้ตาม) · ★ = เนื้อเรื่องหลัก', cls: 'party',
+        info: (k) => { const q = act[k]; if (!q) return 'ดูเควสต์ที่ทำเสร็จแล้วและที่ยังไม่ได้รับ'; return q.desc + (q.reward.length ? ` · รางวัล: ${q.reward.map(([a, v]) => (a === 'money' ? v + ' บาท' : G.DATA.items[a].name + ' ×' + v)).join(', ')}` : ''); } });
+      if (i < 0) return;
+      if (i >= act.length) { await questOverview(); continue; }
+      S.trackQuest = act[i].kind === 'main' ? null : act[i].id; G.sfx('tick');
+      G.showToast(`ติดตาม: ${act[i].name}`);
+      return;
+    }
+  };
+  const questOverview = function () {
     const Q = G.DATA.quests;
     const row = (q) => { const st = G.questState(q), mapName = st === 'active' ? (G.DATA.world.maps[G.questTarget(q).map] || {}).name : '';
       return `<div class="q-row q-${st}"><i>${st === 'done' ? '✓' : st === 'active' ? '▶' : '·'}</i><div><b>${esc(q.name)}</b>${st === 'active' ? `<small> · ${esc(mapName)}</small>` : ''}<br><small>${esc(q.desc)}</small>${q.reward.length && st !== 'done' ? `<br><small class="q-rw">รางวัล: ${q.reward.map(([k, v]) => (k === 'money' ? v + ' บาท' : G.DATA.items[k].name + ' ×' + v)).join(' · ')}</small>` : ''}</div></div>`; };

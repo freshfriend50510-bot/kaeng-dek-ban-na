@@ -28,8 +28,8 @@ ward,med_nurse,21,24,30,10
 ward,med_doc,21,24,30,10
 ward,wheelchair,21,24,30,25
 ward,nurseghost,21,25,10,55
-city,krasue,36,40,0,35
-city,takhian,35,39,30,20
-city,pusom,36,40,20,10
-city,nurseghost,36,40,10,25
-city,taehak,35,38,40,10
+city,krasue,26,29,0,35
+city,takhian,25,28,30,20
+city,pusom,26,29,20,10
+city,nurseghost,26,29,10,25
+city,taehak,25,28,40,10

@@ -6,6 +6,11 @@
   G.questTarget = function (q) {
     const t = q.mid && G.state.flags[q.mid] && q.target2 ? q.target2 : q.target;
     const [kind, a, b, c] = t.split(':');
+    if (kind === 'npcs') {   // หลายจุด (เช่น เก็บของ/เทรนเนอร์หลายคน): ชี้ไปอันแรกที่ยังไม่ได้
+      const F = G.state.flags, list = a.split(';').map((id) => G.DATA.world.npcs.find((k) => k.id === id));
+      const n = list.find((k) => !F[k.flag || (k.trainer && k.trainer.flag)]) || list[0];
+      return { map: n.map, x: n.x, y: n.y };
+    }
     if (kind === 'npc') { const n = G.DATA.world.npcs.find((k) => k.id === a); return { map: n.map, x: n.x, y: n.y }; }
     return { map: a, x: +b, y: +c };
   };
@@ -21,11 +26,18 @@
     for (const q of Q()) {
       if (q.kind !== 'side' || F[q.done]) continue;
       if (!F[q.start] && q.giver === npcId && (!q.after || F[q.after])) return '!';
-      if (F[q.start]) { const t = q.mid && F[q.mid] && q.target2 ? q.target2 : q.target; if (t === 'npc:' + npcId) return '?'; }
+      if (F[q.start]) { const t = q.mid && F[q.mid] && q.target2 ? q.target2 : q.target; if (t === 'npc:' + npcId || (t.startsWith('npcs:') && t.slice(5).split(';').includes(npcId))) return '?'; }
     }
     return null;
   };
+  // เควสต์ที่ผู้เล่นเลือกติดตาม (เลือกในสมุดเควสต์ หรือรับเควสต์รองใหม่) ลูกศรชี้ไปเควสต์นั้นก่อน
+  G.trackedQuest = function () {
+    const id = G.state.trackQuest, q = id && Q().find((k) => k.id === id);
+    return q && G.questState(q) === 'active' ? q : null;
+  };
   G.objective = function () {
+    const tq = G.trackedQuest();
+    if (tq && tq.kind === 'side') return { text: `[เควสต์รอง] ${tq.desc}`, ...G.questTarget(tq) };
     const q = Q().find((k) => k.kind === 'main' && !G.state.flags[k.done]);
     if (!q) {
       const side = Q().find((k) => G.questState(k) === 'active');
@@ -33,7 +45,7 @@
       const S = G.state;
       const engs = [...S.party, ...S.storage].filter((m) => G.isPerson(m)).length;
       const all = Object.values(G.DATA.engNames).reduce((a, l) => a + l.length, 0) + 1;
-      return { text: `ชวนน้องวิศวะ น้องพยาบาล น้องหมอเข้าแก๊ง (${engs}/${all} คน) · ดอนปู่ตาและยิม 4 มาในเวอร์ชันหน้า` };
+      return { text: `จบเกมแล้ว! ชวนน้องวิศวะ น้องพยาบาล น้องหมอเข้าแก๊ง (${engs}/${all} คน) · ดอนปู่ตามาในเวอร์ชันหน้า` };
     }
     return { text: q.desc, ...G.questTarget(q) };
   };
@@ -173,7 +185,7 @@
       <li><b>ธาตุ</b> น้ำ › ดิน › สายฟ้า › ลม › น้ำ · ตีถูกธาตุแรง 2 เท่า</li>
       <li><b>เดินทางเร็ว</b> เมนู (Enter) › เดินทาง นั่งสองแถวไปที่ที่เคยไปแล้ว · ตั้งค่า › ความเร็วการต่อสู้ ×2 · ท่าที่มี ▲×2 คือตีถูกธาตุ</li>
       <li><b>หนี</b> หนีผีป่าได้ง่าย (เลเวลไม่น้อยกว่าศัตรูหนีได้แน่นอน) · สู้กับคนอื่นหนีไม่ได้ · ข้อความ EXP/เลเวลอัปหลังชนะ <b>กด Z สองครั้งติด</b> เพื่อข้ามรวด</li>
-      <li><b>ปุ่มลัด</b> B กระเป๋า · T ทีม · M แผนที่ · Tab ซ่อน/แสดงแถบทีมและมินิแมพ · แตะการ์ดสมาชิกเพื่อดูข้อมูล</li>
+      <li><b>ปุ่มลัด</b> B กระเป๋า · T ทีม · M แผนที่ · Q สมุดเควสต์ (เลือกเควสต์ให้ลูกศรชี้) · Tab ซ่อน/แสดงแถบทีมและมินิแมพ · แตะการ์ดสมาชิกเพื่อดูข้อมูล</li>
       <li><b>เข้าตึก</b> เดินชนประตู · ออกทางพรมแดงข้างล่าง</li>
       <li><b>ทีม</b> คนแรกในทีมเดินตามและลงสู้ก่อน · เปลี่ยนที่เมนูทีม › ให้เดินตาม · จัดทีม/ฝากสมาชิกที่คลังแก๊ง (เถียงนาตาสี หรือคอมหอพัก)</li>
       <li><b>จัดท่า/เรียนท่า</b> ครูมวยบุญหลาย (หมู่บ้าน) หรืออาจารย์ทองพูน (ตึกเรียน มข.) จัดท่าฟรี ท่าที่ลืมไปเอากลับมาได้ · ยายเพ็ญข้าวจี่ (ตลาด) ขายของกินเพิ่มเลเวล</li>

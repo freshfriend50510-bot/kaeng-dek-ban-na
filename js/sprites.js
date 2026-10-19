@@ -120,6 +120,23 @@
     mkowner: { hair: 'buzz', H: C.hairGray, S: C.skinTan, C: '#c5482b', P: '#3b3b3b', extra: ['grin'], patch: ['apron'], A: '#f4f4ec' },
     // หยก: แคสเตอร์ผู้จัดการทีม สาวสวยผมยาวน้ำตาลเข้ม แจ็กเก็ตทีมสีขาว
     yok: { hair: 'long', H: '#4a2e24', S: C.skinFair, C: '#f4f4f4', P: '#2a2a33', extra: ['grin'], patch: ['narrow'], Q: '#f2a0b0' },
+    // เอเจนต์พาโรดี้เกม "วาโลแลนด์" (ทีมพี่ม่อนและลูกทีม) จับแค่จุดเด่น สีผม ทรง ชุด
+    agent_raze: { hair: 'bandana', B: '#f28c28', W: '#f4f4ec', H: '#3a2a20', S: C.skinTan, C: '#f2c43a', P: '#3b3b3b', extra: ['grin'] },
+    agent_neon: { hair: 'tied', H: '#3fa8ff', S: C.skinMid, C: '#f2d24b', P: '#1d1d24', extra: ['grin'] },
+    agent_sage: { hair: 'long', H: '#16121a', S: C.skinFair, C: '#eef4f2', P: '#2f8f86', extra: [], patch: ['narrow'], Q: '#f2a0b0' },
+    agent_reyna: { hair: 'long', H: '#7a2ad0', S: C.skinTan, C: '#3a1a50', P: '#1d1d24', K: '#e05ad0', extra: [] },
+    agent_omen: { hair: 'bald', H: '#1d2340', S: '#1d2340', K: '#5fe0f0', M: '#1d2340', C: '#1d2340', P: '#14182a', extra: ['robe'] },
+    agent_jett: { hair: 'topknot', H: '#e8ecf0', S: C.skinFair, C: '#f4f4ec', P: '#2a3a6a', extra: [], patch: ['narrow'], Q: '#f2a0b0' },
+    agent_brim: { hair: 'cap', B: '#3f5a3a', H: '#4a3a30', S: C.skinTan, C: '#4f6b3a', P: '#2a2a2a', extra: [], patch: ['mustache'] },
+    agent_viper: { hair: 'long', H: '#16121a', S: C.skinFair, C: '#3fa04a', P: '#1d3a24', extra: [] },
+    agent_phoenix: { hair: 'spiky', H: '#2a1d18', S: C.skinTan, C: '#f4f4ec', P: '#f28c28', extra: ['grin'] },
+    agent_sova: { hair: 'cap', B: '#2f5fa0', H: '#e8ecf0', S: C.skinFair, C: '#3a6ab0', P: '#2a2a33', extra: [] },
+    agent_breach: { hair: 'short', H: '#e8712a', S: C.skinMid, C: '#5f6873', P: '#3a3f48', extra: [], patch: ['mustache'] },
+    agent_killjoy: { hair: 'cap', B: '#f2d24b', H: '#3a2a20', S: C.skinMid, C: '#f2d24b', P: '#3a5a3a', extra: ['glasses'] },
+    agent_chamber: { hair: 'neat', H: '#2a2018', S: C.skinFair, C: '#1d1d24', P: '#1d1d24', extra: ['glasses'], patch: ['tie'], a: '#c9a45a' },
+    // ตัวละครด่านสุดท้าย
+    joe_pro: { hair: 'short', H: '#7a2a2a', S: C.skinMid, C: '#1d1d24', P: '#2a2a33', extra: ['grin'], patch: ['brows'] },
+    namfon: { hair: 'tied', H: '#2a1d18', S: C.skinFair, C: '#f4f4f4', P: '#f4f4f4', extra: [], patch: ['nursecap', 'narrow'], Q: '#f2a0b0', W: '#f4f4f4', R: '#d9455a' },
     ingying: { hair: 'tied', H: C.hairBrown, S: C.skinMid, C: '#f2a0c0', P: '#4a3b5a', extra: ['grin'], patch: ['apron'], A: '#e86a9a' },
     // คนวิศวะ: เสื้อช็อปตามสาขา (ดู SHOP) + ตราที่อก
     // พี่เฟรนด์: หนุ่มหล่อวิศวะเครื่องกล ผมทรงทูบล็อกปัดข้าง คิ้วเข้ม ตาคม ยิ้มมุมปาก เสื้อช็อปดำพับแขน ตราเฟืองทองที่อกและหลัง สร้อยเฟือง

@@ -55,13 +55,13 @@
   async function finishQuest(id) {
     const q = quest(id);
     if (F()[q.done]) return;
-    F()[q.done] = true; G.sfx('level');
+    F()[q.done] = true; G.sfx('level'); if (S().trackQuest === id) S().trackQuest = null;
     await say(`เควสต์ "${q.name}" สำเร็จ!`);
     for (const [k, v] of q.reward) {
       if (k === 'money') { S().money += v; G.sfx('buy'); await say(`ได้รับเงิน ${v} บาท`); } else await give(k, v);
     }
   }
-  const startQuest = async (id) => { const q = quest(id); F()[q.start] = true; G.sfx('alert'); await say(`รับเควสต์ "${q.name}" แล้ว (ดูได้ที่เมนู › สมุดเควสต์)`); };
+  const startQuest = async (id) => { const q = quest(id); F()[q.start] = true; S().trackQuest = id; G.sfx('alert'); await say(`รับเควสต์ "${q.name}" แล้ว ลูกศรจะชี้ไปเควสต์นี้ (เปลี่ยนเควสต์ได้ที่เมนู › สมุดเควสต์)`); };
 
   // จบด่าน: ให้ผู้เล่นเลือกเองว่าจะชวนเด็กบ้านนาคนไหนเข้าแก๊ง (เข้ามาที่เลเวล 10)
   const JOIN_LV = 10;
@@ -104,7 +104,7 @@
     const foes = team.map(([sp, lv]) => { const m = G.spawn(sp, lv, { taken }); taken.add(m.name); return m; });
     await say(tr.intro, tr.name);
     const r = await G.runBattle(foes, { kind: 'trainer', trainerName: tr.name, trainerLook: n.look, money: tr.money });
-    if (r === 'win') { F()[tr.flag] = true; await say(tr.lose, tr.name); G.refreshNpcs(); }
+    if (r === 'win') { F()[tr.flag] = true; await say(tr.lose, tr.name); G.refreshNpcs(); if (tr.after && SCRIPTS[tr.after]) await SCRIPTS[tr.after](n); }
     else await blackout();
   }
 
@@ -152,7 +152,7 @@
         const kid = S().party.find((m) => G.DATA.species[m.sp].kind === 'kid');
         await say('{shock}ว้าว... ตึกสูงเต็มไปหมด! นั่นป้ายไฟสนามอีสปอร์ตใช่ไหม', kid ? kid.name : S().name);
         await G.tip('tip_city', `<div class="choice-title">ตัวเมืองขอนแก่น · ด่านสุดท้าย</div><ul class="howto">
-          <li><b>สนามอีสปอร์ต</b>อยู่ฝั่งบนขวา ข้างในมีล็อบบี้ ห้องซ้อม และเวทีใหญ่</li>
+          <li>ไปหา<b>พี่หยก</b>ที่ศาลากลางน้ำบึงแก่นนคร (ซ้ายบน) แล้วไป<b>สนามอีสปอร์ต</b> (ขวาบน)</li><li>กด <b>Q</b> เปิดสมุดเควสต์ เลือกเควสต์ที่จะทำ ลูกศรจะชี้ตาม · เมืองนี้มีเควสต์รองหลายอัน ดูคนที่มี <b>!</b> เหนือหัว</li>
           <li><b>โรงแรมนักแข่ง</b>พักฟรีและบันทึกเกมได้ · <b>ร้านสะดวกซื้อ</b>ขายยาและของกินชวน · <b>ร้านเน็ต</b>เปิด 10 โมงถึงตี 2</li>
           <li><b>ถนนคนเดิน</b>เปิดตอนค่ำ มีครูสอนท่ากับยายเพ็ญข้าวจี่ · <b>สวนสาธารณะ</b>หญ้ารกมีผีออก · เดินตามถนนไปทางขวาสุดถึงสนามบิน</li></ul>`);
       }
@@ -443,6 +443,7 @@
       await rideMenu('ลุงสองแถว', [['market', 'ตลาดนัดตำบล', 21, 8, 'left']], 'จะไปไหนหลาน? ลุงพาไปส่ง');
     },
     // ---------- ด่านสุดท้าย: เมืองขอนแก่น ----------
+    async _quest() { await G.ui.questLog(); },
     async line(n) { for (const l of n.lines || []) await say(l, n.name); },   // NPC/ประตู/วัตถุทั่วไป: พูดตาม lines
     async driver_city(n) {
       if (!F().gym3_done) { await say('ลุงวิ่งรถเข้าตัวเมืองขอนแก่น แต่ช่วงนี้รถเต็ม ไว้หลานจัดการเรื่องที่โรงพยาบาลเสร็จก่อนนะ', n.name); return; }
@@ -451,16 +452,303 @@
     async driver_city2(n) {
       await rideMenu(n.name, [['amphoe', 'ตัวอำเภอ (หอนาฬิกา)', 35, 16, 'down']], 'จะไปไหนหลาน? ลุงพาไปส่งได้ทุกที่ที่เคยไป');
     },
+    // ================= ด่านสุดท้าย: เนื้อเรื่องในเมือง =================
+    // ---------- หยก (เควสต์หลัก + เควสต์รองโดรน) ----------
+    async yok(n) {
+      if (!F().yok_met) {
+        await say('{shock}อ้าว! เด็กพวกนี้... หน้าคุ้นๆ นะ', n.name);
+        await say('ใช่แล้ว! รูปในเคสมือถือม่อนไง แก๊งเด็กบ้านนา! พี่ชื่อหยก เป็นคนพากย์เกม แล้วก็เป็นผู้จัดการทีมให้ม่อน', n.name);
+        await say('ม่อน... พี่ม่อนไง FIEWXANDER! เด็กหมู่บ้านเดียวกับพวกเอ็ง ตอนนี้เป็นโปรเพลเยอร์เกมวาโลแลนด์อันดับหนึ่งของประเทศ', n.name);
+        const ter = S().party.find((m) => m.sp === 'ter');
+        if (ter) await say('{shock}พี่ม่อน!? คนที่ชอบทำหน้าโหดใส่ผมตลอดน่ะเหรอ!', ter.name);
+        await say('ฮ่าๆ ใช่ คนนั้นแหละ พรุ่งนี้ม่อนต้องบินไปแข่งรายการโลก คืนนี้เลยมีศึก "ท้าชิง" ใครชนะลูกทีมในห้องซ้อมได้ ขึ้นเวทีสู้ม่อนได้เลย', n.name);
+        await say('{happy}พี่ว่าม่อนอยากเจอพวกเอ็งที่สุด ...แต่มันไม่ยอมพูดหรอก ปากแข็ง เอานี่ไป บัตรผู้ท้าชิง', n.name);
+        await give('challenger_pass', 1); F().yok_met = true; G.refreshNpcs();
+        await say('สนามอยู่ฝั่งขวาบนของเมือง ประตูซ้ายในล็อบบี้คือห้องซ้อม เพื่อนๆ พี่ม่อนรออยู่ มีหลายคนที่พวกเอ็งรู้จักด้วยนะ', n.name);
+        await say('อ้อ ถ้าว่างๆ ช่วยพี่หน่อย โดรนถ่ายคลิปพี่ตกบึงตรงนี้เมื่อปีก่อน ตอนนี้ยังเห็นไฟกะพริบอยู่ใต้กอบัวข้างศาลาเลย', n.name);
+        if (await G.ui.confirm('ช่วยพี่หยกหาโดรนไหม? (ไปทำทีหลังก็ได้)', n.name)) await startQuest('s_drone');
+        return;
+      }
+      if (F().drone_got && !F().drone_done) {
+        await say('{happy}โดรนพี่! ยังเปิดติดด้วย... เดี๋ยวนะ ในเมมโมรียังมีคลิปตอนสามคนนั่งเล่นที่ศาลานี้อยู่เลย', n.name);
+        await say('ม่อน ออส แล้วก็พี่ สมัยยังไม่มีใครรู้จักใคร... ขอบใจนะ เอาเสื้อทีมไปเป็นที่ระลึก', n.name);
+        S().bag.drone = 0; await finishQuest('s_drone'); return;
+      }
+      if (!F().drone_asked) { if (await G.ui.confirm('ช่วยพี่หาโดรนที่ตกบึงหน่อยไหม? ติดอยู่ใต้กอบัวข้างศาลา', n.name)) await startQuest('s_drone'); return; }
+      if (F().mon_done) { await say('{happy}พากย์จนเสียงแหบเลย! พรุ่งนี้เช้าเจอกันที่สนามบินนะ ไปส่งม่อนด้วยกัน', n.name); return; }
+      await say(F().practice_clear ? 'ผ่านห้องซ้อมแล้วเหรอ! ขึ้นเวทีได้เลย พี่จะไปรอพากย์' : 'สนามอยู่ฝั่งขวาบน ประตูซ้ายในล็อบบี้คือห้องซ้อม สู้ๆ นะ!', n.name);
+    },
+    async drone_spot() {
+      if (F().drone_got || F().drone_done) { await say('กอบัวไหวเบาๆ ไม่มีอะไรแล้ว'); return; }
+      if (!F().drone_asked) { await say('ใต้กอบัวมีไฟสีแดงกะพริบ... อะไรน่ะ?'); return; }
+      if (!S().bag.rod) { await say('โดรนติดอยู่ใต้กอบัวไกลเกินมือเอื้อม ถ้ามีเบ็ดของลุงเปลี่ยนที่ริมพองคงเกี่ยวขึ้นมาได้'); return; }
+      await say('หย่อนเบ็ดเกี่ยวใบพัดโดรน... ดึง... ดึง...!');
+      G.sfx('buy'); await say('{happy}ได้โดรนขึ้นมาแล้ว! ไฟยังกะพริบอยู่เลย');
+      F().drone_got = true; await give('drone', 1);
+    },
+    // ---------- ห้องซ้อม: ลูกทีมพี่ม่อน 3 คน แล้วพี่โจ ----------
+    async practice_check() {
+      const left = ['tr_primmie', 'tr_killua', 'tr_bus'].filter((f) => !F()[f]).length;
+      if (left) { await say(`เหลือลูกทีมพี่ม่อนอีก ${left} คน`); return; }
+      if (F().practice3) return;
+      F().practice3 = true; G.sfx('alert');
+      await say('{shock}เสียงประกาศ: "ผู้ท้าชิงผ่านสามไซต์แล้ว! JOEKER โปรดไปที่แท่นสไปก์"');
+    },
+    async joe_pro(n) {
+      if (F().practice_clear) { await say('ขึ้นเวทีไปเลย ประตูบนสุดของห้องนี้ ม่อนรออยู่', n.name); return; }
+      if (!F().practice3) { await say('พี่ชื่อโจ เป็น IGL ทีมม่อน ผ่านพริมมี่ คิลัว บัสให้ได้ก่อนนะ แล้วค่อยมาหาพี่ที่แท่นสไปก์', n.name); return; }
+      await say('{happy}มาจนได้! พี่ชื่อโจ ชื่อในเกม JOEKER เป็นคนวางแผนให้ม่อน... แล้วก็เป็นพี่ชายของโจ้ที่พวกเอ็งสู้ด้วยสามรอบนั่นแหละ', n.name);
+      await say('ขอบใจที่ดูแลน้องจ๋าตอนพี่ไม่อยู่นะ แต่ในเกม พี่ไม่ออมมือ ควันพี่หนาที่สุดในประเทศ!', n.name);
+      const team = [G.makeMon('brimlung', 28, { ivs: 20 }), G.makeMon('vaipa', 28, { ivs: 20 }), G.makeMon('ohmen', 29, { ivs: 22 })];
+      const r = await G.runBattle(team, { kind: 'master', trainerName: 'พี่โจ (JOEKER)', trainerLook: 'joe_pro', ai: 2, money: 1500, bg: 'arena' });
+      if (r !== 'win') { await say('เกือบแล้วๆ กลับไปพักแล้วมาใหม่นะ', n.name); await blackout(); return; }
+      F().practice_clear = true; G.sfx('level');
+      await say('{sad}...แพ้เด็กประถม แผนพี่ไม่พลาด แต่ข้อมือพี่มันไม่ไหวแล้วล่ะ', n.name);
+      await say('ความลับนะ หมอบูมบอกว่าข้อมือพี่ต้องพักยาว รายการโลกพรุ่งนี้พี่ไปไม่ได้ ม่อนยังไม่รู้', n.name);
+      await say('ช่วยพี่อย่างนึง ชนะม่อนให้ได้ ให้มันเห็นว่ามันมีคนหนุนหลังเยอะแค่ไหน มันจะได้ไปคนเดียวได้', n.name);
+      await say('ประตูบนสุดของห้องนี้ขึ้นเวทีใหญ่ ไปเลย!', n.name);
+      G.refreshNpcs();
+    },
+    // ---------- ศึกสุดท้าย: FIEWXANDER ----------
+    async mon_final(n) {
+      if (F().mon_done) return;
+      const ter = S().party.find((m) => m.sp === 'ter');
+      await say('{happy}แฟนๆ ทั้งสนามคะ! ศึกท้าชิงคืนนี้ ผู้ท้าชิงคือ... แก๊งเด็กบ้านนาจากหมู่บ้านโนนสะอาด!', 'หยก (พากย์)');
+      await say('...มาจนได้นะ ไอ้พวกตัวเล็ก', n.name);
+      await say('{happy}บี! แอม! เติ้ล! โตขึ้นเยอะเลย กินข้าวกันยัง', n.name);
+      if (ter) {
+        await say('{angry}...แล้วก็ เต๋อ', n.name);
+        await say('{shock}ผมทำอะไรผิดครับ!?', ter.name);
+        await say('งานบั้งไฟปีนั้น ข้ายืนถือดอกไม้รอน้ำฝนทั้งคืน แล้วเอ็งเต้นเซิ้งกับน้ำฝนแทนข้า! แถมเอาดอกไม้ข้าไปให้อีก!', n.name);
+        await say('{shock}ตอนนั้นผมเจ็ดขวบเองนะพี่!', ter.name);
+        await say('{angry}เจ็ดขวบก็แย่งได้!', n.name);
+        await say('ฮ่าๆๆ ผู้ชมคะ FIEWXANDER มีปมกับเด็กเจ็ดขวบค่ะ!', 'หยก (พากย์)');
+      }
+      if (F().drone_done) await say('ม่อน! พี่ได้โดรนคืนแล้วนะ เด็กพวกนี้หาให้! ...แค่บอกเฉยๆ', 'หยก (พากย์)');
+      await say('ไอ้ม่อน! แกจะแพ้เด็กที่ข้าแพ้มาแล้วเหรอวะ!', 'พี่ออสซี่ (อัฒจันทร์)');
+      await say('พี่ม่อน ไม่ต้องออมมือนะครับ! ...เดี๋ยว พี่เชียร์ใครเนี่ย', 'พี่เฟรนด์ (อัฒจันทร์)');
+      if (F().sign_done) await say('{happy}พี่ม่อนสู้ๆ! พี่แก๊งบ้านนาก็สู้ๆ! หนูเชียร์ทั้งสองฝั่ง!', 'น้องจ๋า (อัฒจันทร์)');
+      await say('พรุ่งนี้ข้าต้องบินไปแข่งโลก ก่อนไปขอดูหน่อย ว่าแก๊งที่ข้าตั้งชื่อให้มันเก่งขึ้นแค่ไหน', n.name);
+      await say('ไม่ต้องออมมือนะ ข้าไม่ออมแน่ เอซนี่แหละคือคำทักทาย!', n.name);
+      const team = [G.makeMon('raysie', 27, { ivs: 18 }), G.makeMon('neeon', 27, { ivs: 18 }), G.makeMon('sagejae', 28, { ivs: 18 }),
+        G.makeMon('renuna', 28, { ivs: 20 }), G.makeMon('ohmen', 29, { ivs: 20 }), G.makeMon('jettjung', 31, { ivs: 24 })];
+      let teoSaid = false, lastSaid = false;
+      const onSend = async (b) => {
+        if (!teoSaid && b.me.sp === 'ter') { teoSaid = true; await G.ui.say('พี่ม่อน: "เต๋อ!!! คราวนี้ไม่มีน้ำฝนมาช่วยเอ็งแล้ว!"', null, { battle: true, auto: 1200 }); }
+      };
+      const onFoeSend = async (b) => {
+        if (!lastSaid && b.foe.sp === 'jettjung') { lastSaid = true; await G.ui.say('หยก (พากย์): "เหลือตัวสุดท้าย เจ๊ดจัง ตัวเมนของ FIEWXANDER! คลัตช์ค่ะคุณผู้ชม!"', null, { battle: true, auto: 1400 }); }
+      };
+      const r = await G.runBattle(team, { kind: 'master', trainerName: 'FIEWXANDER', trainerLook: 'mon', ai: 2, money: 3000, bg: 'arena', potions: 2, onSend, onFoeSend });
+      if (r !== 'win') { await say('{happy}ยังไม่ถึงเวลาหรอก ไปพักก่อน แล้วมาใหม่ ข้ารอ', n.name); await blackout(); return; }
+      F().mon_done = true; G.sfx('level');
+      await say('{shock}ไม่อยากจะเชื่อค่ะ! แก๊งเด็กบ้านนา ชนะ FIEWXANDER!!!', 'หยก (พากย์)');
+      await say('{sad}...แพ้แล้ว ฮ่า แพ้เด็กบ้านนา', n.name);
+      await say('{happy}ดีแล้ว ทีนี้ข้าไปแข่งได้สบายใจ หมู่บ้านมีแก๊งที่เก่งที่สุดคอยดูแลแล้ว', n.name);
+      await say('ออสกับโจรู้ใช่ไหมว่าข้าดีใจแค่ไหน... อย่าบอกใครนะ', n.name);
+      await give('tm_blade_storm', 1);
+      await say('ท่าลับ พายุมีดบิน ของเจ๊ดจัง สอนเพื่อนธาตุลมได้ทุกคน', n.name);
+      await say('พรุ่งนี้เช้าข้าบินจากสนามบินขอนแก่น เดินตามถนนใหญ่ไปขวาสุดของเมืองนะ ...มาส่งด้วยล่ะ ไม่มาก็ไม่เป็นไร (มานะ)', n.name);
+      await G.fadeTo(() => G.refreshNpcs());
+    },
+    // ---------- ฉากจบ: สนามบิน ----------
+    async mon_air(n) {
+      if (F().game_clear) { await say('ไปแล้วนะ! ดูถ่ายทอดสดด้วยล่ะ', n.name); return; }
+      await say('มากันจริงๆ ด้วย... ทั้งแก๊ง ทั้งออส ทั้งเฟรนด์ ทั้งหยก', n.name);
+      await say('ม่อน... ข้อมือพี่ไปไม่ไหวนะ รายการนี้แกต้องไปคนเดียว', 'พี่โจ (JOEKER)');
+      await say('{shock}...โจ แกบอกข้าตอนนี้เนี่ยนะ!', n.name);
+      await say('{happy}ไปเถอะ คราวนี้แกมีคนหนุนหลังเยอะกว่าพี่คนเดียวแล้ว', 'พี่โจ (JOEKER)');
+      if (F().flower_done) {
+        await say('ม่อน! รอเดี๋ยว!', 'พี่น้ำฝน');
+        await say('{shock}น้ำฝน...?', n.name);
+        await say('น้องเต๋อบอกพี่แล้ว ดอกไม้วันงานบั้งไฟ... เป็นของม่อนใช่ไหม', 'พี่น้ำฝน');
+        await say('{sad}...อืม ข้า เอ่อ ผม... ใช่', n.name);
+        await say('{happy}พี่เก็บไว้ในสมุดตลอดเลย ...กลับมาแล้วไปกินไส้กรอกที่ถนนคนเดินกันนะ', 'พี่น้ำฝน');
+        await say('ไม่ต้องดู! เด็กๆ หันไปทางอื่น! ไม่ต้องดู!', 'หยก');
+        await say('ลมพัดผมม่อนเปิดขึ้น... เห็นตาพี่ม่อนเป็นครั้งแรก ยิ้มกว้างที่สุดเท่าที่เคยเห็น');
+      }
+      if (F().sign_done) await say('{happy}พี่ม่อน! ลายเซ็นหนูแปะหัวเตียงแล้วนะ! ได้แชมป์มานะ!', 'น้องจ๋า');
+      await say('ข้ามีอย่างนึงจะฝาก', n.name);
+      if (!has('jettjung')) {
+        await say('เจ๊ดจัง เอเจนต์ตัวเมนของข้า ไปแข่งรอบนี้ข้าต้องใช้ตัวใหม่ ฝากพวกเอ็งดูแลมันหน่อย', n.name);
+        if (await G.ui.confirm('รับเจ๊ดจังเข้าแก๊งไหม?')) {
+          const m = G.makeMon('jettjung', 30); recruit(m); G.sfx('level');
+          await say(`เจ๊ดจังเข้าแก๊งแล้ว!${S().party.includes(m) ? '' : ' (ทีมเต็ม ไปรออยู่ในคลังแก๊ง)'}`);
+        }
+      }
+      await say('{happy}ถ้าข้าได้แชมป์ จะตะโกนชื่อแก๊งเด็กบ้านนาบนเวทีโลก สัญญา!', n.name);
+      F().game_clear = true; G.sfx('level');
+      await G.fadeTo(() => G.refreshNpcs());
+      await G.ui.panel(`<div class="intro"><b>แก๊งเด็กบ้านนา</b><br><br>พี่ม่อนบินไปแข่งรายการโลก<br>หนึ่งเดือนต่อมา ทีวีในร้านชำป้าสมร...<br><br>"FIEWXANDER คว้าแชมป์โลก!"<br>"ขอบคุณ... แก๊งเด็กบ้านนา!"<br><br><small>ขอบคุณที่เล่นจนจบ · ตัวละคร: บี แอม เติ้ล เต๋อ พี่ออสซี่ พี่เฟรนด์ พี่บูม หยก พี่โจ พี่ม่อน และทุกคนในเมืองขอนแก่น<br>เล่นต่อได้: ชวนผีและน้องๆ ให้ครบ ทำเควสต์รองที่เหลือ · ดอนปู่ตามาในเวอร์ชันหน้า</small></div>`);
+    },
+    // ---------- คนในล็อบบี้ ----------
+    async friend_city(n) {
+      if (F().mon_done) { await say('พี่ม่อนแพ้แล้วยังยิ้มอยู่เลย ไม่เคยเห็นเขาดีใจขนาดนี้', n.name); return; }
+      await say('{happy}อ้าว น้องๆ! ตามมาถึงที่นี่เลยเหรอ', n.name);
+      await say('สมัยพี่ปีหนึ่งโดนว้ากจนร้องไห้ พี่ม่อนเดินเข้ามาทำหน้าโหดใส่พี่ว้าก แล้วหันมายื่นน้ำเย็นให้พี่... ตั้งแต่นั้นพี่ก็เรียกเขาว่าพี่', n.name);
+      if (inParty('ungying')) await say('...อุ๋งอิ๋งมาด้วยเหรอ ไม่เป็นไร วันนี้พี่อารมณ์ดี', n.name);
+      await say('ใต้เสื้อช็อปพี่ใส่เสื้อทีมเฟี้ยวซานเดอร์นะ อย่าบอกใคร', n.name);
+    },
+    async boom_city(n) {
+      await say('พี่มาเป็นหมอกายภาพให้ทีมม่อนช่วงแข่ง ม่อนเคยตอบพี่ว่า "บ้านนอกแต่ไม่แพ้" ...ประโยคนั้นทำให้พี่คิดได้หลายอย่าง', n.name);
+      await fullHeal('พี่บูมตรวจทุกคน รักษาจนแข็งแรงเต็มที่!', n.name);
+    },
+    async john_city(n) {
+      if (F().mon_done) { await say('{happy}ม่อนแพ้เด็กประถม! พี่ถ่ายคลิปไว้แล้ว จะเอาไปแซวทุกวัน', n.name); return; }
+      await say('{happy}หวัดดีน้องๆ พี่จอนโอเซ่น! ห้องซ้อมอยู่ประตูซ้ายสุด มีพริมมี่ คิลัว บัส เฝ้าอยู่สามไซต์', n.name);
+      await say('ทิปจากพี่: ทีมม่อนมีครบทุกธาตุ จัดทีมให้หลากหลาย แล้วก็... ถ้าเต๋อลงสนาม ม่อนจะใจร้อนจนพลาดบ่อยมาก ฮ่าๆ', n.name);
+    },
+    async ossie_city(n) {
+      await say('มาถึงร้านนี้จนได้... ข้ากับไอ้ม่อนนั่งเครื่อง 07 กับ 08 ตั้งแต่ ป.6 หยกนั่งดูข้างหลังแล้วด่าทุกตา', n.name);
+      await say('ข้าเคยฝันจะเป็นโปรด้วยกัน แต่ต้องกลับไปดูแลร้านราเมง เลยหันไปคุมตลาดแทน... ฮึ ตอนนั้นข้าโง่', n.name);
+      await say('{happy}ไอ้ม่อนรออยู่ที่สนาม ข้าจะไปนั่งเชียร์พวกเอ็งนะ ไม่ใช่มัน!', n.name);
+    },
+    // ---------- เควสต์รอง: ลายเซ็นให้น้องจ๋า ----------
+    async joe_kid(n) {
+      if (F().sign_got && !F().sign_done) {
+        await say('{shock}ลายเซ็นพี่ม่อนจริงๆ! "ถึงจ๋า หายไวๆ นะ" ...จ๋า! ดูนี่!', n.name);
+        await say('{happy}กรี๊ด! ขอบคุณค่ะพี่แก๊งบ้านนา!', 'น้องจ๋า');
+        await say('...ขอบใจนะ ไม่ใช่เพราะข้าแพ้พวกเอ็งสามรอบหรอกนะ แค่ขอบใจเฉยๆ', n.name);
+        S().bag.autograph = 0; await finishQuest('s_sign'); return;
+      }
+      if (F().sign_done) { await say('พี่โจเป็นพี่ชายข้านะ เท่ไหมล่ะ! ...อย่าบอกว่าข้าพูดแบบนี้', n.name); return; }
+      if (!F().sign_asked) {
+        await say('เฮ้ย แก๊งบ้านนา! ข้าพาจ๋ามาดูแข่ง จ๋าอยากได้ลายเซ็นพี่ม่อนมาก แต่คิวยาวถึงถนน', n.name);
+        await say('ได้ยินว่าตอนกลางคืนพี่ม่อนแอบไปนั่งร้านเน็ตหน้าตลาด ใส่ฮู้ดปิดหน้า... ข้าไม่กล้าเข้าไปขอ', n.name);
+        if (await G.ui.confirm('ไปขอลายเซ็นให้น้องจ๋าไหม?', n.name)) await startQuest('s_sign');
+        return;
+      }
+      await say('ร้านเน็ตหน้าตลาด ตอนกลางคืน 2 ทุ่มถึงตี 4 เครื่อง 07 นะ', n.name);
+    },
+    async mon_net(n) {
+      if (F().sign_asked && !F().sign_got) {
+        await say('...จำข้าได้ด้วยเหรอ ชู่ว อย่าเสียงดัง ข้าแอบมานั่งเครื่องเก่า คิดถึงที่นี่', 'ผู้ชายใส่ฮู้ด');
+        await say('ลายเซ็นให้น้องจ๋าเหรอ ...น้องโจ ได้ เอาไป', 'พี่ม่อน');
+        F().sign_got = true; await give('autograph', 1);
+        if (inParty('ter')) await say('{angry}...แล้วเอ็งก็ไม่ต้องมองข้าแบบนั้น เต๋อ', 'พี่ม่อน');
+        await say('อย่าบอกใครว่าเจอข้าที่นี่ เจอกันบนเวที', 'พี่ม่อน');
+        return;
+      }
+      await say(F().yok_met ? '...ไว้เจอกันบนเวทีนะ ไอ้ตัวเล็ก' : '...ใครน่ะ ไปๆ ข้ากำลังคิดอะไรอยู่', 'ผู้ชายใส่ฮู้ด');
+    },
+    // ---------- เควสต์รอง: ดอกไม้วันนั้น ----------
+    async namfon(n) {
+      if (F().flower_done) { await say('{happy}ขอบใจนะน้องเต๋อ... พี่จะไปส่งเขาที่สนามบิน', n.name); return; }
+      if (F().jasmine_got && S().bag.jasmine) {
+        const ter = S().party.find((m) => m.sp === 'ter');
+        await say('{shock}พวงมาลัยมะลิ... ให้พี่เหรอ', n.name);
+        await say('พี่น้ำฝนครับ ดอกไม้วันงานบั้งไฟที่ผมเอาไปให้... ที่จริงพี่ม่อนเป็นคนถือมารอทั้งคืน ผมแค่ไปคว้ามา', ter ? ter.name : S().name);
+        await say('{happy}...พี่รู้มานานแล้วล่ะ หยกเล่าให้ฟัง แต่อยากได้ยินจากปากใครสักคน ขอบใจนะ', n.name);
+        S().bag.jasmine = 0; await finishQuest('s_flower'); return;
+      }
+      if (!F().flower_asked) {
+        await say('{happy}อ้าว! น้องๆ บ้านโนนสะอาด! พี่ชื่อน้ำฝน เป็นพยาบาลประจำงานแข่ง มาซื้อน้ำตอนพักเวร', n.name);
+        if (inParty('ter')) await say('น้องเต๋อที่เต้นเซิ้งกับพี่ตอนเจ็ดขวบใช่ไหม! โตขึ้นเยอะเลย ...วันนั้นน้องเอาดอกไม้มาให้พี่ด้วย พี่ยังสงสัยว่าใครฝากมา', n.name);
+        else await say('ปีนั้นงานบั้งไฟ มีเด็กเอาดอกไม้มาให้พี่ บอกว่า "พี่ม่อนฝากมา" ...พี่ไม่แน่ใจว่าจริงไหม', n.name);
+        if (await G.ui.confirm('ช่วยบอกความจริงเรื่องดอกไม้วันนั้นไหม? (ไปซื้อพวงมาลัยจากยายหอมที่ถนนคนเดินมาด้วย)')) await startQuest('s_flower');
+        return;
+      }
+      await say('ไปไหนมาจ๊ะ หน้าตาจริงจังเชียว', n.name);
+    },
+    async yaihom_city(n) {
+      if (F().flower_asked && !F().jasmine_got) {
+        await say('{happy}อ้าว หลานๆ จากโรงพยาบาล! ยายขายพวงมาลัยหารายได้เสริม จะเอาไปให้ใครล่ะ', n.name);
+        await say('ให้พี่น้ำฝนเหรอ ยายให้ฟรีเลย หนุ่มแจ็กเก็ตดำที่ช่วยยายถือของทุกอาทิตย์ก็ชอบมาดูพวงมาลัยมะลินี่แหละ', n.name);
+        F().jasmine_got = true; await give('jasmine', 1); return;
+      }
+      await say('พวงมาลัยมะลิ ดาวเรือง ไหว้พระก็ได้ ให้คนพิเศษก็ดี', n.name);
+    },
+    // ---------- เควสต์รอง: ไส้กรอกสิบไม้ ----------
+    async sausage_uncle(n) {
+      if (!F().sausage_asked) {
+        await say('ไส้กรอกอีสานเปรี้ยวกำลังดี! หลานช่วยลุงหน่อย ลูกค้าประจำห้อง 304 โรงแรมนักแข่งสั่งสิบไม้ทุกคืน แต่ลุงทิ้งร้านไม่ได้', n.name);
+        if (await G.ui.confirm('ช่วยเอาไส้กรอกไปส่งโรงแรมไหม?', n.name)) { await startQuest('s_sausage'); await give('sausage', 1); }
+        return;
+      }
+      await say(F().sausage_done ? '{happy}ลูกค้าห้อง 304 ฝากบอกว่า "อร่อยเหมือนเดิม" ขอบใจนะหลาน' : 'ส่งที่พนักงานโรงแรมนะ ฝากขึ้นห้อง 304', n.name);
+    },
+    // ---------- เควสต์รอง: รูปทีมเก่า ----------
+    async photo(n) {
+      F()[n.flag] = true; G.refreshNpcs(); G.sfx('buy');
+      const got = [1, 2, 3, 4, 5].filter((i) => F()['photo' + i]).length;
+      S().bag.old_photo = got;
+      const cap = ['เด็กผมดำสามคนนั่งหน้าคอม ข้างหลังเขียนว่า "ม่อน ออส หยก ป.6"', 'หยกยืนเท้าเอว ชี้หน้าม่อนที่ทำหน้าเหวอ', 'ออสถือถ้วยรางวัลพลาสติก ม่อนยิ้มเห็นฟัน', 'สามคนนั่งศาลากลางน้ำบึงแก่นนคร กินลูกชิ้นไม้เดียวกัน', 'ม่อนอุ้มเด็กตัวเล็กสี่คนในงานบั้งไฟ... นี่มันแก๊งเราตอนเด็กนี่!'][got - 1];
+      await say(`เจอรูปถ่ายเก่า! (${got}/5) ${cap}`);
+      if (got >= 5) { F().photo_all = true; await say('ครบห้าใบแล้ว เอาไปคืนลุงเจ้าของร้านเน็ตกัน'); }
+    },
+    async netcafe_uncle(n) {
+      if (F().photo_all && !F().photo_done) {
+        await say('{happy}ครบเลย! รูปพวกนี้ลุงแปะไว้ข้างฝามายี่สิบปี ลมพัดปลิวไปหมดตอนเปิดประตู', n.name);
+        await say('ใบสุดท้ายนี่... ม่อนอุ้มพวกเอ็งตอนเด็กๆ ไว้ ...มันรักพวกเอ็งมากนะ ปากแข็งเฉยๆ', n.name);
+        S().bag.old_photo = 0; await finishQuest('s_photo'); return;
+      }
+      if (!F().photo_asked) {
+        await say('ร้านนี้ลุงเปิดมายี่สิบปี มีเด็กสามคนมานั่งตั้งแต่ตัวเท่าเอ็ง คนหนึ่งเป็นโปร คนหนึ่งพากย์เกม อีกคนกลับไปขายราเมงบ้านนอก ฮ่าๆ', n.name);
+        await say('รูปพวกมันที่ลุงแปะไว้ปลิวหายไปห้าใบ ไปตกทั่วเมืองเลย', n.name);
+        if (await G.ui.confirm('ช่วยลุงตามหารูปเก่า 5 ใบไหม?', n.name)) await startQuest('s_photo');
+        else await G.ui.shop(['soda', 'mama_cup'], n.name);
+        return;
+      }
+      await say('มาม่ากับน้ำแดงไหม หาของเหนื่อยๆ', n.name);
+      await G.ui.shop(['soda', 'mama_cup'], n.name);
+    },
+    // ---------- กิมมิคในเมือง ----------
+    async fountain() {
+      if (S().money < 10) { await say('น้ำพุพุ่งเป็นจังหวะเพลง ไฟเปลี่ยนสีม่วงฟ้า (ต้องมีเงิน 10 บาทถึงจะโยนเหรียญได้)'); return; }
+      if (!(await G.ui.confirm('โยนเหรียญ 10 บาทอธิษฐานไหม?'))) return;
+      S().money -= 10; G.sfx('tick');
+      const r = G.rng();
+      if (r < 0.25) await fullHeal('{happy}น้ำพุพ่นละอองเย็นๆ ทุกคนหายเหนื่อย!');
+      else if (r < 0.45) { await say('{happy}เหรียญเด้งกลับมาพร้อมเหรียญคนอื่น!'); S().money += 50; await say('ได้เงิน 50 บาท'); }
+      else if (r < 0.6) { await say('{happy}มีของลอยมาติดขอบอ่าง!'); await give(['soda', 'mama_cup', 'herb_big'][Math.floor(G.rng() * 3)], 1); }
+      else if (r < 0.62) { await say('{shock}เหรียญกระดอนไปโดนหัวยาม! ยามหันมามองแล้วหัวเราะ'); }
+      else await say(['อธิษฐานให้พี่ม่อนได้แชมป์!', 'อธิษฐานให้ฝนตกที่ทุ่งนาทุกปี', 'อธิษฐานขอหมูกระทะ...', 'เหรียญจมลงไปเงียบๆ'][Math.floor(G.rng() * 4)]);
+    },
+    async led_screen() {
+      const lines = F().mon_done ? ['จอยักษ์ฉายคลิป "แก๊งเด็กบ้านนา ชนะ FIEWXANDER!" วนซ้ำ คนดูหน้าสนามปรบมือ'] : F().practice_clear ? ['ตัวหนังสือวิ่ง: "ผู้ท้าชิงผ่านห้องซ้อมแล้ว! คืนนี้ศึกท้าชิง FIEWXANDER"']
+        : ['จอยักษ์ฉายไฮไลต์ FIEWXANDER ยิงหัวห้าคนติด', 'ตัวหนังสือวิ่ง: "พากย์โดย หยกJADE · เชียร์สด ณ สนามอีสปอร์ตขอนแก่น"'];
+      for (const l of lines) await say(l);
+    },
+    async vending() { await say('ตู้กดน้ำ แสงไฟเรืองๆ ตอนกลางคืน'); await G.ui.shop(['soda'], 'ตู้กดน้ำ'); },
+    // มินิเกม: ทายลูกศรให้ทัน (ตู้เกมอาเขต) / ยิงลูกโป่งตามสี (ซุ้มถนนคนเดิน)
+    async arcade() {
+      if (!(await G.ui.confirm('ตู้เกม "สายฟ้าแลบ" เหรียญละ 10 บาท กดปุ่มตามลูกศรให้ถูกสามรอบ เล่นไหม?'))) return;
+      if (S().money < 10) { await say('เงินไม่พอ'); return; }
+      S().money -= 10;
+      const A = ['↑', '→', '↓', '←'];
+      let ok = 0;
+      for (let r = 0; r < 3; r++) {
+        const t = Math.floor(G.rng() * 4), opts = A.map((a, i) => ({ a, i })).sort(() => G.rng() - 0.5);
+        const k = await G.ui.choose(opts.map((o) => o.a), { title: `รอบ ${r + 1}/3 · กด ${A[t]} !`, cls: 'small', cancel: false });
+        if (opts[k].i === t) { ok++; G.sfx('tick'); } else G.sfx('bump');
+      }
+      if (ok === 3) { await say('{happy}PERFECT! ตู้เกมคายรางวัลออกมา'); await give(G.rng() < 0.3 ? 'khao_ji' : 'mama_cup', 1); }
+      else await say(`ได้ ${ok}/3 ...เกือบแล้ว!`);
+    },
+    async balloon(n) {
+      if (!(await G.ui.confirm('ยิงลูกโป่ง 5 นัด 30 บาท ยิงตามสีที่ลุงบอก ถูกครบได้รางวัลใหญ่!', n.name))) return;
+      if (S().money < 30) { await say('เงินไม่พอจ้า', n.name); return; }
+      S().money -= 30;
+      const C = ['แดง', 'เหลือง', 'ฟ้า', 'เขียว', 'ชมพู'];
+      let ok = 0;
+      for (let r = 0; r < 5; r++) {
+        const pick = C.slice().sort(() => G.rng() - 0.5).slice(0, 4), t = pick[Math.floor(G.rng() * 4)];
+        const k = await G.ui.choose(pick.map((c) => `ลูกโป่ง${c}`), { title: `นัดที่ ${r + 1}/5 · ยิงลูกโป่ง${t}!`, cls: 'small', cancel: false });
+        if (pick[k] === t) { ok++; G.sfx('hit'); } else G.sfx('bump');
+      }
+      if (ok === 5 && !F().balloon_prize) { F().balloon_prize = true; await say('{happy}แม่นเหมือนนักแข่งเลย! เอาแว่นเล็งไปเลย', n.name); await give('aim_glasses', 1); }
+      else if (ok >= 4) { await say('{happy}เก่งมาก! เอาตุ๊กตาไปปลอบใจ... เอ้ย ไข่ปิ้ง!', n.name); await give('egg_ping', 1); }
+      else await say(`ยิงโดน ${ok}/5 นัด ลองใหม่นะ!`, n.name);
+    },
     async cstore_shop(n) { await say('สวัสดีค่ะ ยินดีต้อนรับ รับถุงไหมคะ', n.name); await G.ui.shop(['herb_big', 'saline', 'magic_rice', 'sangkaya', 'soda'], n.name); },
     async hotel_rest(n) {
+      if (F().sausage_asked && !F().sausage_done) {
+        await say('ไส้กรอกสิบไม้ส่งห้อง 304 เหรอคะ ห้องคุณม่อนน่ะค่ะ เขาสั่งทุกคืนเลย เดี๋ยวพี่เอาขึ้นไปให้นะคะ', n.name);
+        S().bag.sausage = 0; await finishQuest('s_sausage');
+      }
       await say('ยินดีต้อนรับโรงแรมนักแข่งค่ะ น้องๆ เป็นแขกของทีมใช่ไหม พักฟรีได้เลยค่ะ', n.name);
       await fullHeal('นอนหลับบนเตียงนุ่มๆ ทุกคนแข็งแรงเต็มที่!', n.name);
       if (await G.ui.confirm('จะบันทึกเกมไหม?')) { if (await G.ui.saveMenu()) await say('บันทึกเกมแล้ว'); }
-    },
-    async netcafe_uncle(n) {
-      await say('ร้านนี้ลุงเปิดมายี่สิบปี เด็กสามคนนั้นมานั่งตั้งแต่ตัวเท่าเอ็ง', n.name);
-      await say('คนหนึ่งเป็นโปร คนหนึ่งพากย์เกม อีกคนกลับไปขายราเมงบ้านนอก ฮ่าๆ', n.name);
-      await G.ui.shop(['soda', 'rice_pork'], n.name);
     },
     async arena_merch(n) { await say('เสื้อทีมกับพวงกุญแจ FIEWXANDER ขายดีที่สุด เหลือไม่กี่ชิ้นแล้ว!', n.name); await G.ui.shop(['herb_big', 'holy_water'], n.name); },
     async arena_drink(n) {
@@ -745,7 +1033,7 @@
     async boom(n) {
       if (F().gym3_done) {
         await say(F().sister_healed ? 'น้องจ๋าหายดีแล้ว ไข้ลดตั้งแต่เมื่อคืน... ขอบใจที่ทำให้พี่จำได้ว่าตัวเองมาจากไหน' : 'พี่จะขึ้นไปตรวจน้องจ๋าเดี๋ยวนี้แหละ', n.name);
-        await say('เรื่องผีหนีป่า ลองไปถามเฒ่าจ้ำที่หมู่บ้านน้อง ตราหูฟังจะทำให้เข้าดอนปู่ตาได้', n.name);
+        await say('ม่อน เพื่อนพี่กำลังแข่งเกมที่ตัวเมือง เขาเป็นเด็กหมู่บ้านน้องนะ นั่งสองแถวที่ตัวอำเภอเข้าไปดูสิ', n.name);
         return;
       }
       await G.ui.sayAll(['...อะไรเนี่ย เด็กบ้านนอกหลุดเข้ามาในคลินิกได้ยังไง', 'อินเทิร์นภูมิใจปล่อยเข้ามาเหรอ เดี๋ยวพี่ต้องคุยกับเขาหน่อย',
@@ -782,7 +1070,7 @@
           G.sfx('level'); await say(`น้องภูมิใจเข้าแก๊งแล้ว!${S().party.includes(m) ? '' : ' (ทีมเต็ม ไปรออยู่ในคลังแก๊ง)'}`);
         }
       }
-      await G.ui.panel(`<div class="intro"><b>จบบทที่ 3!</b><br><br>แก๊งของ ${S().name} ชนะพี่บูมที่คลินิกหลังโรงพยาบาลอำเภอ<br>ได้ตราหูฟังเป็นตราที่สาม และช่วยให้น้องจ๋าหายป่วย<br><br>ผีสางหนีออกจากป่า... ที่ดอนปู่ตาเกิดอะไรขึ้นกันแน่?<br><br><small>เล่นต่อเพื่อชวนผีใหม่ น้องพยาบาล และน้องหมอ · ตกปลาหานาคน้อย · ดอนปู่ตาและยิม 4 พี่ต้นน้ำมาในเวอร์ชันหน้า</small></div>`);
+      await G.ui.panel(`<div class="intro"><b>จบบทที่ 3!</b><br><br>แก๊งของ ${S().name} ชนะพี่บูมที่คลินิกหลังโรงพยาบาลอำเภอ<br>ได้ตราหูฟังเป็นตราที่สาม และช่วยให้น้องจ๋าหายป่วย<br><br>ได้ข่าวว่าในตัวเมืองขอนแก่น มีโปรเพลเยอร์จากหมู่บ้านเรากำลังจะแข่ง...<br><br><small>บทสุดท้าย: นั่งสองแถวที่ตัวอำเภอเข้าตัวเมืองขอนแก่น</small></div>`);
     },
     async tutor(n) {
       await say(n.id === 'kru_kku' ? 'อาจารย์สอนวิชาต่อสู้เชิงวิศวกรรม จัดท่าใหม่ได้ฟรี ท่าพิเศษคิดค่าเรียนนิดหน่อย' : 'มาๆ ครูมวยบุญหลายสอนท่าให้ จัดท่าใหม่ฟรี ท่าพิเศษเก็บค่าครูนิดหน่อย ฮึบ!', n.name);

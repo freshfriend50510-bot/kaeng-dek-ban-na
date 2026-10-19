@@ -47,6 +47,7 @@
           else { V.php = b.me.hp; V.faint.p = 0; V.pSprite = G.monLook(b.me); }
           render(b); G.sfx('send'); await wait(250);
           if (e.side === 'p' && V.onSend) await V.onSend(b);
+          if (e.side === 'f' && V.onFoeSend) await V.onFoeSend(b);
           break;
         case 'level': ups.set(b.P[e.idx].name, e.lv); if (b.P[e.idx] === b.me) { V.php = b.me.hp; V.pSprite = G.monLook(b.me); render(b); } G.sfx('level'); break;
         case 'learn': await summary(); await learnMove(b.P[e.idx], e.move); break;   // สรุปเลเวลก่อนถามเรียนท่า
@@ -124,7 +125,7 @@
     const b = new G.Battle(S.party, foes, opt);
     Object.assign(V, { active: true, b, php: b.me.hp, fhp: b.foe.hp, faint: { p: 0, f: 0 }, shake: null, lunge: null, fx: null, wobble: 0,
       pSprite: null, fSprite: opt.kind === 'wild' ? G.monLook(b.foe) : (opt.trainerLook || G.monLook(b.foe)),
-      intro: 0, bg: opt.bg || G.world.def.bg || G.state.map, onSend: opt.onSend });
+      intro: 0, bg: opt.bg || G.world.def.bg || G.state.map, onSend: opt.onSend, onFoeSend: opt.onFoeSend });
     V.layer = document.createElement('div'); V.layer.className = 'battle-layer';
     document.querySelector('#ui').appendChild(V.layer);
     G.markSeen(b.foe.sp);

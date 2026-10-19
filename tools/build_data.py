@@ -155,10 +155,11 @@ def validate(d):
             if not t: continue
             kind, _, rest = t.partition(":")
             if kind == "npc" and rest not in ids: errs.append(f"quests.csv {q['id']}: ไม่มี npc '{rest}'")
+            elif kind == "npcs" and any(r not in ids for r in rest.split(";")): errs.append(f"quests.csv {q['id']}: มี npc ใน '{rest}' ที่ไม่มีจริง")
             elif kind == "map":
                 m, x, y = rest.split(":")
                 if (at(m, int(x), int(y)) or "#") not in WALK: errs.append(f"quests.csv {q['id']}: เป้าหมาย {rest} เดินไม่ถึง")
-            elif kind not in ("npc", "map"): errs.append(f"quests.csv {q['id']}: เป้าหมาย '{t}' ต้องขึ้นต้น npc: หรือ map:")
+            elif kind not in ("npc", "npcs", "map"): errs.append(f"quests.csv {q['id']}: เป้าหมาย '{t}' ต้องขึ้นต้น npc: หรือ map:")
         for k, v in q["reward"]:
             if k != "money" and k not in d["items"]: errs.append(f"quests.csv {q['id']}: ไม่มีไอเท็มรางวัล '{k}'")
         if q["giver"] and q["giver"] not in ids: errs.append(f"quests.csv {q['id']}: ไม่มี npc ผู้ให้เควสต์ '{q['giver']}'")

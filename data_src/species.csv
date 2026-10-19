@@ -31,3 +31,16 @@ wheelchair,รถเข็นผีสิง,normal,50,65,50,30,45,95,130,90,gho
 med_nurse,น้องพยาบาลฝึกหัด,water,60,35,55,65,70,55,110,85,med,,med_nurse,1:inject;1:bandage;12:night_round;18:foam_burst,ชุดขาวหมวกพยาบาล เรียนหนักฝึกงานหนัก แต่ยิ้มให้คนไข้ทุกคน
 med_doc,น้องนักศึกษาแพทย์,earth,65,60,70,45,60,50,110,85,med,,med_doc,1:tackle;1:case_present;12:anatomy_strike;18:mud_therapy,เสื้อกาวน์สั้นหูฟังคล้องคอ อ่านหนังสือทั้งคืนจนตาโหล
 boom,พี่บูม,earth,75,75,75,60,70,55,0,170,master,,boom,1:mud_therapy;1:herbal_pot;1:numb_shot;1:pulse_check,หมอหนุ่มหล่อสไตล์เกาหลีแห่งโรงพยาบาลอำเภอ เก่งแต่ชอบดูถูกเด็กบ้านนอก ทั้งที่ตัวเองก็มาจากบ้านนา
+raysie,เรซซี่,earth,70,80,60,85,55,75,0,160,master,,agent_raze,1:paint_shells;1:boom_bot;1:showstopper;1:stim_beacon,เอเจนต์สาวสายระเบิด ผ้าโพกหัวส้ม หัวเราะดังลั่น (พาโรดี้เกมวาโลแลนด์)
+neeon,นีอ้อน,electric,60,85,55,85,55,100,0,160,master,,agent_neon,1:high_gear;1:relay_bolt;1:overdrive;1:updraft,เอเจนต์สาวผมฟ้ามัดแกละ วิ่งเร็วที่สุดในทีม
+sagejae,เซจเจ้,water,80,50,75,80,85,60,0,160,master,,agent_sage,1:healing_orb;1:ice_barrier;1:slow_orb;1:toxic_screen,เอเจนต์สาวผมยาว หมอประจำทีม ใจเย็นที่สุด
+renuna,เรนูนา,normal,70,90,60,75,60,80,0,160,master,,agent_reyna,1:leer_eye;1:empress;1:hot_hands;1:headshot,เอเจนต์สาวผมม่วงตาเรือง ยิ่งล้มศัตรูยิ่งแรง
+ohmen,โอ้เมน,wind,75,70,65,85,65,70,0,160,master,,agent_omen,1:dark_cover;1:shadow_hand;1:blade_storm;1:updraft,ผีคลุมผ้าดำไม่มีหน้า สายควันมืด (เข้ากับธีมผีบ้านเรา)
+jettjung,เจ๊ดจัง,wind,72,95,60,70,60,110,0,180,master,,agent_jett,1:tail_dash;1:cloudburst;1:blade_storm;1:operator,เอเจนต์สาวผมขาวมัดจุก ตัวเมนของพี่ม่อน คล่องแคล่วที่สุดในเกม
+brimlung,ลุงบริม,earth,85,75,75,75,70,50,0,150,master,,agent_brim,1:incendiary;1:stim_beacon;1:fault_line;1:dark_cover,ลุงหนวดเคราหมวกแก๊ป สั่งดาวเทียมได้ เอเจนต์คู่ใจพี่โจ
+vaipa,ไวป้า,water,70,60,70,90,75,65,0,150,master,,agent_viper,1:toxic_screen;1:snake_bite;1:slow_orb;1:ice_barrier,ป้าผมดำชุดเขียว ปล่อยม่านพิษคุมพื้นที่
+phoenixjung,ฟินิกซ์จัง,normal,70,85,60,85,55,85,0,150,master,,agent_phoenix,1:hot_hands;1:headshot;1:healing_orb;1:tail_dash,หนุ่มเท่สายไฟ มีมือร้อนเป็นเอกลักษณ์
+sovanoi,โซว่าน้อย,electric,65,80,60,80,60,80,0,150,master,,agent_sova,1:shock_dart;1:relay_bolt;1:leer_eye;1:overdrive,นายพรานหนุ่มผมขาวหมวกฮู้ด ยิงลูกศรสแกนแม่นที่สุด
+breachy,บรีชชี่,earth,80,85,70,60,60,60,0,150,master,,agent_breach,1:fault_line;1:boom_bot;1:leer_eye;1:showstopper,หนุ่มแขนเหล็กผมส้ม ทุบพื้นสะเทือนทั้งสนาม
+killjoy,คิลจ๋อย,electric,65,55,70,90,70,65,0,150,master,,agent_killjoy,1:turret_fire;1:shock_dart;1:ice_barrier;1:overdrive,สาวแว่นหมวกไหมพรม ตั้งป้อมปืนเก่ง
+chamberlung,แชมเบอร์ลุง,normal,70,90,65,65,60,70,0,150,master,,agent_chamber,1:tour_de_force;1:headshot;1:ice_barrier;1:operator,สุภาพบุรุษชุดสูทแว่นทอง ยิงสไนเปอร์หรูหรา

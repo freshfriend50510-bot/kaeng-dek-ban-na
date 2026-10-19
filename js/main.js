@@ -111,6 +111,7 @@
     const fix = () => { fixes++; };
     const num = (v, lo, hi, d) => { const n = Math.floor(Number(v)); if (!Number.isFinite(n)) { fix(); return d; } if (n < lo || n > hi) fix(); return Math.min(hi, Math.max(lo, n)); };
     s.flags = s.flags && typeof s.flags === 'object' ? s.flags : (fix(), {});
+    s.trackQuest = typeof s.trackQuest === 'string' && (G.DATA.quests || []).some((q) => q.id === s.trackQuest) ? s.trackQuest : null;   // เควสต์ที่เลือกติดตาม
     if (!s.visited || typeof s.visited !== 'object') {   // เซฟเก่าก่อนมีเดินทางเร็ว: เดาจากความคืบหน้า
       const f = s.flags;
       s.visited = { village: 1, [s.map]: 1, market: f.boss1_done ? 1 : 0, kku: f.kku_arrived ? 1 : 0, phong: f.phong_arrived ? 1 : 0, amphoe: f.h_card || f.rival3_done ? 1 : 0 };
@@ -192,16 +193,17 @@
 
   // ---------- ปุ่ม ----------
   const KEYMAP = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
-    KeyZ: 'ok', Space: 'ok', KeyX: 'back', Escape: 'back', Backspace: 'back', Enter: 'menu', KeyM: 'map', KeyB: 'bag', KeyT: 'team', Tab: 'hud' };
+    KeyZ: 'ok', Space: 'ok', KeyX: 'back', Escape: 'back', Backspace: 'back', Enter: 'menu', KeyM: 'map', KeyB: 'bag', KeyT: 'team', KeyQ: 'quest', Tab: 'hud' };
   const held = {};
   G.press = function (k) {
     G.unlockAudio();
-    if (G.ui.active()) { if (['map', 'bag', 'team', 'hud'].includes(k)) k = 'back'; G.ui.key(k === 'menu' ? 'ok' : k); return; }
+    if (G.ui.active()) { if (['map', 'bag', 'team', 'hud', 'quest'].includes(k)) k = 'back'; G.ui.key(k === 'menu' ? 'ok' : k); return; }
     if (G.scene !== 'world' || G.busy || G.world.moving || fading) return;
     if (k === 'ok') G.world.interact();
     else if (k === 'menu') G.runScript('_menu');
     else if (k === 'map') G.runScript('_map');
     else if (k === 'bag') G.runScript('_bag');
+    else if (k === 'quest' && G.state.flags.intro_done) G.runScript('_quest');
     else if (k === 'team' && G.state.party.length) G.runScript('_team');
     else if (k === 'hud') { G.settings.hud = G.settings.hud === false; G.saveSettings(); }
   };
