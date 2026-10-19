@@ -66,5 +66,16 @@ ok(sick2.hp === 10 + Math.floor(sick2.stats.hp / 4), 'ท้องเสีย�
 // 8) น้องหมอพยาบาล: ชื่อเฉพาะคน ชวนด้วยขนมปังสังขยาได้เต็ม
 const nurse = G.spawn('med_nurse', 20);
 ok(/^eng:med_nurse:\d$/.test(nurse.look) && G.isPerson(nurse), 'น้องพยาบาลต้องได้หน้าตาเฉพาะคน');
+// 9) กิมมิคตามชื่อท่า: ตีหลายครั้ง ดูดพลัง เจ็บตัวเอง พักชาร์จ หลบ ฝนกลางสนาม ทุกท่ามีกิมมิค
+ok(Object.keys(G.DATA.moves).every((id) => G.GIM[id] && G.gimmickText(id)), 'ทุกท่าต้องมีกิมมิคและคำอธิบาย: ' + Object.keys(G.DATA.moves).filter((id) => !G.GIM[id] || !G.gimmickText(id)).join(','));
+const gm = (moveId, setup) => { G.rng = G.makeRng(9); const a = G.makeMon('ter', 40, { ivs: 15 }); a.moves = [{ id: moveId, pp: 20 }]; const f = G.makeMon('pob', 40, { ivs: 15 }); f.moves = [{ id: 'tongue', pp: 30 }];
+  const bb = new G.Battle([a], [f], { kind: 'wild' }); if (setup) setup(bb, a, f); return { bb, a, f, ev: bb.turnAction({ type: 'move', idx: 0 }) }; };
+let r9 = gm('blade_storm'); ok(r9.ev.some((e) => e.t === 'msg' && /โดนไป [2-5] ครั้ง/.test(e.text)), 'พายุมีดบินต้องตีหลายครั้ง');
+r9 = gm('raw_bite', (bb, a) => { a.hp = 10; }); ok(r9.a.hp > 10 && r9.ev.some((e) => e.t === 'msg' && e.text.includes('ดูดพลัง')), 'งับของดิบต้องดูดพลัง');
+r9 = gm('buffalo_charge'); ok(r9.a.hp < r9.a.stats.hp && r9.ev.some((e) => e.t === 'msg' && e.text.includes('เจ็บตัวเอง')), 'ควายชนต้องเจ็บตัวเอง');
+r9 = gm('showstopper'); ok(r9.bb.pv.recharge || r9.bb.over, 'บั้งไฟต้องพักชาร์จ'); if (!r9.bb.over) { const e2 = r9.bb.turnAction({ type: 'move', idx: 0 }); ok(e2.some((e) => e.t === 'msg' && e.text.includes('พักชาร์จ')), 'เทิร์นหลังบั้งไฟต้องพัก'); }
+r9 = gm('wind_step'); ok(r9.bb.pv.dodge === false || r9.ev.some((e) => e.t === 'msg' && e.text.includes('หลบ')), 'ก้าวหลบสายลมต้องหลบได้');
+r9 = gm('rain_call'); ok(r9.bb.rain > 0, 'ร้องเรียกฝนต้องมีฝนกลางสนาม');
+r9 = gm('treasure_guard'); ok(r9.bb.bonusMoney > 0, 'หวงสมบัติต้องได้เหรียญ');
 console.log(fails ? `ไม่ผ่าน ${fails} ข้อ` : 'ผ่านทุกข้อ');
 process.exit(fails ? 1 : 0);

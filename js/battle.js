@@ -5,7 +5,70 @@
   const STAT_NAME = { atk: 'พลังโจมตี', def: 'พลังป้องกัน', spa: 'พลังพิเศษ', spd: 'ป้องกันพิเศษ', spe: 'ความเร็ว', acc: 'ความแม่น' };
   const STRUGGLE = { id: 'struggle', name: 'ดิ้นสุดแรง', type: 'normal', cat: 'phys', power: 50, acc: 0, pp: 1, priority: 0, effect: '', chance: 0, typeless: true };
 
-  function freshVol() { return { st: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, acc: 0 }, cnf: 0, turns: 0 }; }
+  function freshVol() { return { st: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, acc: 0 }, cnf: 0, turns: 0, recharge: false, flinch: false, dodge: false, focus: false, regen: 0, burn: 0, last: null, chain: 0 }; }
+
+  // ---------- กิมมิคประจำท่า (ตามชื่อท่า) ----------
+  // hits [ต่ำ,สูง] + per = ตีหลายครั้ง (พลังต่อครั้ง), recoil = เจ็บตัวเองตามดาเมจ, drain = ดูดพลัง, crit = โอกาสคริ, sure = ไม่พลาด,
+  // sureIf = ไม่พลาดเมื่อ (night/person), crash = พลาดแล้วเจ็บตัว, boost = [เงื่อนไข, คูณ, ข้อความ], flinch = ศัตรูสะดุ้งเสียเทิร์น (ต้องตีก่อน),
+  // recharge = เทิร์นหน้าต้องพัก, rain = เรียกฝนกลางสนาม 5 เทิร์น (ท่าน้ำแรงขึ้น), also = [ผล, โอกาส, เงื่อนไข] ผลเสริม, cure = หายอาการผิดปกติ,
+  // regen = ฟื้นทีละนิดทุกเทิร์น, dodge = หลบท่าโจมตีครั้งต่อไป, focus = ท่าโจมตีครั้งต่อไปคริแน่, breakDef = ทำลายบัฟป้องกัน, haze = ลมพัดบัฟศัตรูหาย,
+  // chain = ใช้ซ้ำติดกันแรงขึ้น, money = ได้เงินเพิ่มหลังจบ, scan = บอกพลังที่เหลือของศัตรู, burn = ไฟติดพื้นเผาศัตรูทุกเทิร์น, heal8 = ฟื้นนิดหน่อย
+  const GIM = {
+    tackle: { boost: ['foeFull', 1.5, 'เปิดฉากพุ่งชนเต็มแรง!'] }, silly_face: { also: ['cnf', 30], txt: 'ศัตรูอาจขำจนมึน' }, mud_throw: { also: ['foe_acc-1', 30], txt: 'โคลนอาจเข้าตา' },
+    pound_ground: { also: ['cnf', 20], txt: 'ศัตรูอาจหูอื้อจนมึน' }, field_slam: { crash: true, flinch: 20 }, push_glasses: { focus: true }, battery_shot: { boost: ['rain', 1.5, 'น้ำนำไฟฟ้า!'] },
+    lecture: { sureIf: 'person', txt: 'นักศึกษาหนีไม่พ้น' }, plasma: { boost: ['foePar', 2, 'ไฟฟ้าวิ่งครบวงจร!'] }, belly_bump: { boost: ['userDef', 1.5, 'พุงแน่นเด้งแรง!'] },
+    sweet_smile: { also: ['heal8', 100], txt: 'ยิ้มแล้วตัวเองสดชื่นขึ้น' }, bamboo_squirt: { hits: [2, 2], per: 0.6 }, sticky_rice: { cure: true }, pond_dive: { boost: ['rain', 1.5, 'กระโดดลงน้ำฝนตูมใหญ่!'], crash: true },
+    dash: { boost: ['first', 1.3, 'วิ่งเต็มสปีด!'] }, tongue: { also: ['cnf', 20], txt: 'ศัตรูอาจหัวร้อนจนมึน' }, dust_kick: { also: ['foe_acc-1', 30], txt: 'ฝุ่นเข้าตา' }, spin: { hits: [1, 2] },
+    whirlwind: { haze: true }, splash_spook: { also: ['cnf', 20], boost: ['night', 1.5, 'หลอกตอนมืดได้ผลกว่า!'] }, koi_hop: { hits: [2, 3], per: 0.7 }, raw_bite: { drain: 0.5, flinch: 20 },
+    basket_flap: { also: ['foe_acc-1', 20], txt: 'ลมพัดฝุ่นเข้าตา' }, flicker: { boost: ['night', 1.5, 'แสงวูบในความมืด!'] }, wail: { also: ['foe_spa-1', 100], txt: 'ขนลุกจนพลังพิเศษลด' },
+    spook: { sureIf: 'night' }, beg_merit: { money: 5, txt: 'ได้เหรียญทำบุญติดมือ' }, mud_spout: { also: ['foe_spe-1', 30], txt: 'โคลนติดตัวจนช้า' }, belly_flop: { recoil: 0.25, flinch: 30 },
+    rain_call: { rain: true }, gape: { boost: ['rain', 1.5, 'อ้าปากรับน้ำฝน!'] }, wind_blade: { crit: 0.3 }, bamboo_sword: { crit: 0.25 }, samurai_stare: { also: ['foe_spe-1', 100], txt: 'ศัตรูตัวแข็งจนช้าลง' },
+    wind_step: { dodge: true }, buffalo_charge: { recoil: 0.25, flinch: 20 }, radio_wave: { also: ['foe_spd-1', 20], txt: 'คลื่นรบกวน' }, monsoon_splash: { rain: true, boost: ['rain', 1.3, 'ฝนห่าใหญ่!'] },
+    kite_storm: { boost: ['first', 1.3, 'ลมส่งว่าวพุ่ง!'] }, wrench_throw: { crit: 0.25 }, tighten_bolt: { also: ['self_spd+1', 100] }, grease: { also: ['foe_def-1', 50], txt: 'ลื่นจนเสียหลัก' },
+    piston_ram: { chain: true, recoil: 0.15 }, pour_concrete: { also: ['foe_spe-1', 100], txt: 'ปูนติดเท้าแน่นอน' }, level_check: { focus: true }, brick_smash: { breakDef: true },
+    live_wire: { boost: ['rain', 1.5, 'สายไฟโดนน้ำ!'] }, multimeter: { scan: true }, short_circuit: { recoil: 0.12 }, blackout: { also: ['foe_spe-1', 100, 'night'], txt: 'กลางคืนศัตรูช้าลงด้วย' },
+    acid_splash: { also: ['foe_def-1', 20], txt: 'กัดกร่อนเกราะ' }, fumes: { also: ['foe_acc-1', 30], txt: 'แสบตา' }, titrate: { also: ['self_acc+1', 100] }, foam_burst: { hits: [2, 3], per: 0.45 },
+    pm_dust: { also: ['psn', 20], txt: 'ฝุ่นเข้าปอดจนท้องเสีย' }, plant_tree: { regen: 4 }, clean_wind: { cure: true, txt: 'ลมพัดอาการป่วยของตัวเองหาย' }, stopwatch: { also: ['self_acc+1', 100] },
+    conveyor_rush: { hits: [1, 2] }, kpi_pressure: { also: ['foe_spe-1', 100], txt: 'กดดันจนช้า' }, lean_strike: { sure: true, crit: 0.2 }, cheer_faculty: { also: ['self_spa+1', 100] },
+    wak_shout: { also: ['foe_def-1', 50], txt: 'ศัตรูเสียขวัญ' }, mermaid_song: { boost: ['night', 1.3, 'เพลงยามค่ำคืน'] }, river_splash: { boost: ['rain', 1.5, 'สาดน้ำกลางฝน!'] },
+    takhian_leaf: { hits: [2, 3], per: 0.5 }, nang_gaze: { also: ['cnf', 20], txt: 'ค้อนจนศัตรูงง' }, dike_stance: { regen: 3 }, hoe_swing: { crit: 0.25 }, glow_flash: { also: ['par', 30, 'night'], txt: 'กลางคืนอาจทำให้ชา' },
+    ghost_light: { boost: ['night', 1.5, 'แสงผีกลางคืน!'] }, naga_wave: { boost: ['rain', 1.3, 'คลื่นนาคาในสายฝน!'], also: ['foe_spe-1', 20] }, naga_coil: { drain: 0.25 }, mask_dance: { also: ['self_atk+1', 100] },
+    wood_sword: { crit: 0.3 }, treasure_guard: { money: 8, txt: 'แอบหยิบเหรียญจากไห' }, stone_drop: { crash: true, flinch: 20 }, saline_drip: { regen: 3 },
+    night_round: { boost: ['foeSlp', 2, 'ตรวจวอร์ดเจอคนหลับ!'], boost2: ['night', 1.3, 'กะดึก!'] }, take_meds: { cure: true, txt: 'ถามไปถามมาตัวเองก็กินยาด้วย' }, wheel_ram: { recoil: 0.12 },
+    squeak_wheel: { also: ['cnf', 20], txt: 'หูอื้อจนมึน' }, wrong_ward: { also: ['foe_spe-1', 100], txt: 'หลงทางจนช้า' }, bandage: { cure: true }, inject: { sure: true }, case_present: { sureIf: 'person', txt: 'นักศึกษาหลับแน่นอน' },
+    anatomy_strike: { crit: 0.35 }, mud_therapy: { drain: 0.3 }, herbal_pot: { regen: 2 }, numb_shot: { also: ['foe_spe-1', 100], txt: 'ชาจนช้า' }, pulse_check: { scan: true, focus: true },
+    looking_down: { also: ['foe_spa-1', 100], txt: 'ศัตรูหมดความมั่นใจ' },
+    updraft: { dodge: true }, tail_dash: { boost: ['fresh', 1.5, 'แดชเปิดตัว!'] }, cloudburst: { dodge: true }, blade_storm: { hits: [2, 5], per: 0.4 }, dark_cover: { dodge: true },
+    shadow_hand: { boost: ['night', 1.5, 'มือเงาแรงขึ้นในความมืด!'] }, paint_shells: { hits: [2, 3], per: 0.5 }, boom_bot: { also: ['foe_def-1', 30], flinch: 30 }, showstopper: { recharge: true },
+    fault_line: { breakDef: true }, stim_beacon: { also: ['self_spe+1', 100] }, high_gear: { boost: ['fresh', 1.5, 'ออกตัวเต็มเกียร์!'] }, relay_bolt: { hits: [1, 3], per: 0.6 }, overdrive: { recharge: true },
+    turret_fire: { hits: [2, 4], per: 0.4 }, shock_dart: { sure: true, scan: true }, healing_orb: { cure: true }, ice_barrier: { also: ['self_spd+1', 100] }, slow_orb: { also: ['foe_spe-1', 100] },
+    toxic_screen: { also: ['foe_spa-1', 20] }, snake_bite: { drain: 0.25 }, empress: { also: ['self_spe+1', 100] }, leer_eye: { also: ['foe_def-1', 100] }, headshot: { sure: true, crit: 0.5 },
+    operator: { recharge: true, crit: 0.3 }, hot_hands: { also: ['foe_def-1', 20], txt: 'ไฟลวกเกราะ' }, tour_de_force: { sure: true, crit: 0.3 }, incendiary: { burn: 3 },
+  };
+  G.GIM = GIM;
+  const COND_TH = { foeFull: 'ศัตรูพลังเต็ม', rain: 'ฝนตก', foePar: 'ศัตรูอัมพาต', userDef: 'ป้องกันตัวเองขึ้นอยู่', first: 'ได้ตีก่อน', night: 'กลางคืน', foeSlp: 'ศัตรูหลับ', fresh: 'เทิร์นแรกที่ลงสนาม' };
+  // คำอธิบายกิมมิคสั้นๆ (แสดงในเมนูท่า)
+  G.gimmickText = function (id) {
+    const g = GIM[id]; if (!g) return '';
+    const t = [];
+    if (g.hits) t.push(g.hits[0] === g.hits[1] ? `ตี ${g.hits[0]} ครั้ง` : `ตี ${g.hits[0]}-${g.hits[1]} ครั้ง`);
+    if (g.boost) t.push(`${COND_TH[g.boost[0]]} แรง ×${g.boost[1]}`);
+    if (g.boost2) t.push(`${COND_TH[g.boost2[0]]} แรง ×${g.boost2[1]}`);
+    if (g.recoil) t.push('เจ็บตัวเองด้วย'); if (g.drain) t.push('ดูดพลังมาฟื้นตัวเอง'); if (g.crit) t.push(`ติดคริง่าย (${Math.round(g.crit * 100)}%)`);
+    if (g.sure) t.push('ไม่มีพลาด'); if (g.sureIf) t.push(g.sureIf === 'night' ? 'กลางคืนไม่มีพลาด' : 'ใช้กับนักศึกษาไม่มีพลาด'); if (g.crash) t.push('พลาดแล้วเจ็บตัว');
+    if (g.flinch) t.push(`ตีก่อนอาจทำให้ศัตรูสะดุ้งเสียเทิร์น (${g.flinch}%)`); if (g.recharge) t.push('เทิร์นหน้าต้องพักชาร์จ'); if (g.rain) t.push('เรียกฝนกลางสนาม 5 เทิร์น ท่าน้ำแรงขึ้น');
+    if (g.cure) t.push('หายอาการผิดปกติ'); if (g.regen) t.push(`ฟื้นพลังทีละนิด ${g.regen} เทิร์น`); if (g.dodge) t.push('หลบท่าโจมตีครั้งต่อไป'); if (g.focus) t.push('ท่าโจมตีครั้งต่อไปคริแน่นอน');
+    if (g.breakDef) t.push('ทำลายบัฟป้องกันศัตรู'); if (g.haze) t.push('ลมพัดบัฟศัตรูหายหมด'); if (g.chain) t.push('ใช้ติดกันแรงขึ้นเรื่อยๆ'); if (g.money) t.push('ได้เงินเพิ่มหลังจบ');
+    if (g.scan) t.push('อ่านพลังที่เหลือของศัตรู'); if (g.burn) t.push(`ไฟเผาพื้นศัตรู ${g.burn} เทิร์น`);
+    if (g.txt) t.push(g.txt);
+    else if (g.also) {
+      const [e, ch, cond] = g.also, m = /^(self|foe)_(\w+)([+-]\d)$/.exec(e);
+      const STN = { atk: 'พลังโจมตี', def: 'พลังป้องกัน', spa: 'พลังพิเศษ', spd: 'ป้องกันพิเศษ', spe: 'ความเร็ว', acc: 'ความแม่น' };
+      const d = m ? `${STN[m[2]]}${m[1] === 'self' ? 'ตัวเอง' : 'ศัตรู'}${m[3][0] === '+' ? 'ขึ้น' : 'ลด'}` : { cnf: 'ศัตรูมึนหัว', par: 'ศัตรูอัมพาต', psn: 'ศัตรูท้องเสีย', slp: 'ศัตรูหลับ', heal8: 'ฟื้นพลังนิดหน่อย' }[e] || e;
+      t.push(`${cond ? COND_TH[cond] + ' ' : ''}${d}${ch < 100 ? ` (${ch}%)` : ''}`);
+    }
+    return t.join(' · ');
+  };
 
   class Battle {
     // opt: { kind:'wild'|'trainer'|'boss'|'master', trainerName, ai:0|1|2, rng, canRun }
@@ -142,6 +205,8 @@
       const name = this.label(side), tname = this.label(tside);
       uv.turns++;
       if (user.hp <= 0) return;
+      if (uv.recharge) { uv.recharge = false; ev.push({ t: 'msg', text: `${name} ต้องพักชาร์จพลัง!` }); return; }
+      if (uv.flinch) { uv.flinch = false; ev.push({ t: 'msg', text: `${name} สะดุ้งจนขยับไม่ทัน!` }); return; }
       if (user.status === 'slp') {
         if (user.slp > 0) { user.slp--; ev.push({ t: 'msg', text: `${name} หลับปุ๋ยอยู่...` }); return; }
         user.status = null; ev.push({ t: 'msg', text: `${name} ตื่นแล้ว!` }); ev.push({ t: 'status', side, status: null });
@@ -171,10 +236,20 @@
       }
       ev.push({ t: 'msg', text: `${name} ใช้ท่า ${mv.name}!` });
       ev.push({ t: 'anim', side, type: mv.type, cat: mv.cat, id: mv.id });
+      const g = GIM[mv.id] || {};
+      uv.chain = uv.last === mv.id ? Math.min(2, uv.chain + 1) : 0; uv.last = mv.id;
+      // หลบ (ก้าวหลบสายลม ควันมืด ม่านเมฆ)
+      if (tv.dodge && mv.cat !== 'status') { tv.dodge = false; ev.push({ t: 'msg', text: `${tname} หลบได้ทันอย่างกับสายลม!` }); return; }
       // ความแม่น
-      if (mv.acc > 0) {
+      const night = G.isNight ? G.isNight() : false;
+      const sure = g.sure || (g.sureIf === 'night' && night) || (g.sureIf === 'person' && G.isPerson && G.isPerson(tgt));
+      if (mv.acc > 0 && !sure) {
         const hit = mv.acc * G.accFactor(uv.st.acc);
-        if (r() * 100 >= hit) { ev.push({ t: 'msg', text: 'แต่พลาดเป้า!' }); return; }
+        if (r() * 100 >= hit) {
+          ev.push({ t: 'msg', text: 'แต่พลาดเป้า!' });
+          if (g.crash) { user.hp = Math.max(0, user.hp - Math.max(1, Math.floor(user.stats.hp / 8))); ev.push({ t: 'msg', text: `${name} พลาดแล้วล้มเจ็บตัวเอง!` }); ev.push({ t: 'hp', side, hp: user.hp }); }
+          return;
+        }
       }
       if (mv.cat !== 'status') {
         let other = 1;
@@ -183,18 +258,36 @@
         if (ab === 'analyze' && movedSecond) other *= 1.3;
         other *= G.heldMult(user, tgt, mv);
         const easy = !G.settings || G.settings.easy !== false;
-        const crit = r() < (side === 'p' && easy ? 0.25 : 1 / 16);   // ฝั่งเราติดคริ 25% ในโหมดเก็บเวลเร็ว
+        // เงื่อนไขเพิ่มพลังตามชื่อท่า
+        const cond = (c) => ({ foeFull: tgt.hp >= tgt.stats.hp, rain: this.rain > 0 || (G.raining ? G.raining() : false), foePar: tgt.status === 'par', userDef: uv.st.def > 0,
+          first: !movedSecond, night, foeSlp: tgt.status === 'slp', fresh: uv.turns <= 1 })[c];
+        for (const bz of [g.boost, g.boost2]) if (bz && cond(bz[0])) { other *= bz[1]; ev.push({ t: 'msg', text: bz[2] }); }
+        if (g.chain && uv.chain) { other *= 1 + 0.5 * uv.chain; ev.push({ t: 'msg', text: `ลูกสูบเร่งรอบ! แรงขึ้น ×${1 + 0.5 * uv.chain}` }); }
+        if (this.rain > 0 && mv.type === 'water') other *= 1.5;
         const phys = mv.cat === 'phys';
-        const { dmg, eff } = G.damage(user, tgt, mv, {
-          crit, rand: r.int(85, 100), other,
-          atkStage: phys ? uv.st.atk : uv.st.spa, defStage: phys ? tv.st.def : tv.st.spd,
-        });
-        tgt.hp = Math.max(0, tgt.hp - dmg);
-        ev.push({ t: 'hit', side: tside, eff });
-        ev.push({ t: 'hp', side: tside, hp: tgt.hp });
-        if (crit) { ev.push({ t: 'crit', side: tside }); ev.push({ t: 'msg', text: side === 'p' ? 'คริติคอล! ตีเข้าจุดสำคัญเต็มๆ!' : 'โดนจุดสำคัญ!' }); }
-        if (eff > 1) ev.push({ t: 'msg', text: 'ได้ผลดีมาก!' });
-        else if (eff < 1) ev.push({ t: 'msg', text: 'ไม่ค่อยได้ผล...' });
+        const n = g.hits ? r.int(g.hits[0], g.hits[1]) : 1, hm = n > 1 || g.hits ? { ...mv, power: Math.max(10, Math.round(mv.power * (g.per || 1))) } : mv;
+        let total = 0, k = 0;
+        for (; k < n && tgt.hp > 0; k++) {
+          let crit = r() < Math.max(side === 'p' && easy ? 0.25 : 1 / 16, g.crit || 0);   // ฝั่งเราติดคริ 25% ในโหมดเก็บเวลเร็ว
+          if (uv.focus) { crit = true; uv.focus = false; }
+          const { dmg, eff } = G.damage(user, tgt, hm, {
+            crit, rand: r.int(85, 100), other,
+            atkStage: phys ? uv.st.atk : uv.st.spa, defStage: phys ? tv.st.def : tv.st.spd,
+          });
+          tgt.hp = Math.max(0, tgt.hp - dmg); total += dmg;
+          ev.push({ t: 'hit', side: tside, eff });
+          ev.push({ t: 'hp', side: tside, hp: tgt.hp });
+          if (crit) { ev.push({ t: 'crit', side: tside }); ev.push({ t: 'msg', text: side === 'p' ? 'คริติคอล! ตีเข้าจุดสำคัญเต็มๆ!' : 'โดนจุดสำคัญ!' }); }
+          if (k === 0) { if (eff > 1) ev.push({ t: 'msg', text: 'ได้ผลดีมาก!' }); else if (eff < 1) ev.push({ t: 'msg', text: 'ไม่ค่อยได้ผล...' }); }
+        }
+        if (n > 1) ev.push({ t: 'msg', text: `โดนไป ${k} ครั้ง!` });
+        if (g.drain && total > 0 && user.hp < user.stats.hp) { user.hp = Math.min(user.stats.hp, user.hp + Math.max(1, Math.floor(total * g.drain))); ev.push({ t: 'hp', side, hp: user.hp }); ev.push({ t: 'msg', text: `${name} ดูดพลังมาฟื้นตัวเอง!` }); }
+        if (g.recoil && total > 0) { user.hp = Math.max(0, user.hp - Math.max(1, Math.floor(total * g.recoil))); ev.push({ t: 'hp', side, hp: user.hp }); ev.push({ t: 'msg', text: `${name} เจ็บตัวเองจากแรงกระแทก!` }); }
+        if (g.flinch && !movedSecond && tgt.hp > 0 && r.chance(g.flinch)) tv.flinch = true;
+        if (g.breakDef && (tv.st.def > 0 || tv.st.spd > 0)) { tv.st.def = Math.min(0, tv.st.def); tv.st.spd = Math.min(0, tv.st.spd); ev.push({ t: 'msg', text: `บัฟป้องกันของ ${tname} พังทลาย!` }); }
+        if (g.haze && Object.values(tv.st).some((v) => v > 0)) { for (const kk in tv.st) tv.st[kk] = Math.min(0, tv.st[kk]); ev.push({ t: 'msg', text: `ลมพัดบัฟของ ${tname} หายเกลี้ยง!` }); }
+        if (g.burn && tgt.hp > 0) { tv.burn = g.burn; ev.push({ t: 'msg', text: `ไฟลุกท่วมพื้นรอบตัว ${tname}!` }); }
+        if (g.recharge) uv.recharge = true;
         if (mv === STRUGGLE) {
           user.hp = Math.max(0, user.hp - Math.max(1, Math.floor(user.stats.hp / 4)));
           ev.push({ t: 'hp', side, hp: user.hp });
@@ -203,6 +296,20 @@
       } else {
         this.applyEffect(mv.effect, side, ev, false);
       }
+      this.gimmickAfter(g, side, ev, night);
+    }
+    // ผลเสริมของกิมมิคที่ใช้ได้ทั้งท่าโจมตีและท่าสถานะ
+    gimmickAfter(g, side, ev, night) {
+      const user = side === 'p' ? this.me : this.foe, tgt = side === 'p' ? this.foe : this.me, uv = side === 'p' ? this.pv : this.fv;
+      const name = this.label(side), tname = this.label(side === 'p' ? 'f' : 'p');
+      if (g.also) { const [e, ch, cond] = g.also; if ((!cond || (cond === 'night' && night)) && (e.startsWith('self_') || e === 'heal8' || tgt.hp > 0) && this.rng.chance(ch)) this.applyEffect(e, side, ev, true); }
+      if (g.cure && (user.status || uv.cnf)) { user.status = null; uv.cnf = 0; ev.push({ t: 'status', side, status: null }); ev.push({ t: 'msg', text: `${name} หายจากอาการผิดปกติ!` }); }
+      if (g.regen) { uv.regen = g.regen; ev.push({ t: 'msg', text: `${name} จะฟื้นพลังทีละนิดไปอีก ${g.regen} เทิร์น` }); }
+      if (g.dodge) { uv.dodge = true; ev.push({ t: 'msg', text: `${name} ตั้งท่าพร้อมหลบ!` }); }
+      if (g.focus) { uv.focus = true; ev.push({ t: 'msg', text: `${name} เล็งจุดอ่อนไว้แล้ว ท่าต่อไปคริแน่!` }); }
+      if (g.rain) { this.rain = 5; ev.push({ t: 'msg', text: 'ฝนตกลงมากลางสนาม! ท่าธาตุน้ำแรงขึ้น' }); }
+      if (g.money && side === 'p') { const amt = g.money * user.lv; this.bonusMoney = (this.bonusMoney || 0) + amt; ev.push({ t: 'msg', text: `เก็บเหรียญได้ ${amt} บาท!` }); }
+      if (g.scan && tgt.hp > 0) ev.push({ t: 'msg', text: `อ่านค่าได้: ${tname} เหลือพลัง ${tgt.hp}/${tgt.stats.hp}` });
     }
 
     applyEffect(eff, side, ev, secondary) {
@@ -222,6 +329,12 @@
       const user = side === 'p' ? this.me : this.foe, tgt = side === 'p' ? this.foe : this.me;
       const tv = side === 'p' ? this.fv : this.pv;
       const tname = this.label(tside);
+      if (eff === 'heal8') {
+        if (user.hp >= user.stats.hp) return;
+        user.hp = Math.min(user.stats.hp, user.hp + Math.max(1, Math.floor(user.stats.hp / 8)));
+        ev.push({ t: 'hp', side, hp: user.hp }); ev.push({ t: 'msg', text: `${this.label(side)} สดชื่นขึ้นนิดหน่อย` });
+        return;
+      }
       if (eff === 'heal50' || eff === 'heal50cure') {
         const cure = eff === 'heal50cure' && user.status;
         if (user.hp >= user.stats.hp && !cure) { ev.push({ t: 'msg', text: 'แต่พลังเต็มอยู่แล้ว!' }); return; }
@@ -245,8 +358,11 @@
 
     endOfTurn(ev) {
       for (const side of ['p', 'f']) {
-        const m = side === 'p' ? this.me : this.foe;
+        const m = side === 'p' ? this.me : this.foe, v = side === 'p' ? this.pv : this.fv;
+        v.flinch = false;
         if (m.hp <= 0) continue;
+        if (v.regen > 0) { v.regen--; if (m.hp < m.stats.hp) { m.hp = Math.min(m.stats.hp, m.hp + Math.max(1, Math.floor(m.stats.hp / 16))); ev.push({ t: 'msg', text: `${this.label(side)} ฟื้นพลังทีละนิด` }); ev.push({ t: 'hp', side, hp: m.hp }); } }
+        if (v.burn > 0) { v.burn--; m.hp = Math.max(0, m.hp - Math.max(1, Math.floor(m.stats.hp / 12))); ev.push({ t: 'msg', text: `${this.label(side)} โดนไฟเผาพื้นร้อนจนเจ็บ!` }); ev.push({ t: 'hp', side, hp: m.hp }); if (m.hp <= 0) continue; }
         if (m.status === 'psn') {
           m.hp = Math.max(0, m.hp - Math.max(1, Math.floor(m.stats.hp / 8)));
           ev.push({ t: 'msg', text: `${this.label(side)} ปวดท้อง!` }); ev.push({ t: 'hp', side, hp: m.hp });
@@ -256,6 +372,7 @@
           ev.push({ t: 'msg', text: `${this.label(side)} แอบกินขนมฟื้นแรง` }); ev.push({ t: 'hp', side, hp: m.hp });
         }
       }
+      if (this.rain > 0 && --this.rain === 0) ev.push({ t: 'msg', text: 'ฝนกลางสนามหยุดแล้ว' });
     }
 
     // คืน true ถ้าการต่อสู้หยุดรอ (จบ หรือรอผู้เล่นเลือกตัวใหม่)

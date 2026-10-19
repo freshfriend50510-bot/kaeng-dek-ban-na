@@ -471,7 +471,7 @@
     const mv = G.DATA.moves[mid];
     if (m.moves.some((x) => x.id === mid)) { await G.ui.say(`${m.name} ใช้ท่า ${mv.name} อยู่แล้ว`); return false; }
     if (m.moves.length < 4) { m.moves.push({ id: mid, pp: mv.pp }); G.sfx('level'); await G.ui.say(`${m.name} เรียนท่า ${mv.name} ได้แล้ว!`); return true; }
-    const k = await G.ui.ask(`${m.name} อยากเรียนท่า ${mv.name} แต่จำได้แค่ 4 ท่า จะลืมท่าไหน?`, null, m.moves.map((x) => G.DATA.moves[x.id].name).concat([`ไม่เรียน ${mv.name}`]), { cls: 'small', info: (j) => (m.moves[j] ? G.DATA.moves[m.moves[j].id].desc : '') });
+    const k = await G.ui.ask(`${m.name} อยากเรียนท่า ${mv.name} แต่จำได้แค่ 4 ท่า จะลืมท่าไหน?`, null, m.moves.map((x) => G.DATA.moves[x.id].name).concat([`ไม่เรียน ${mv.name}`]), { cls: 'small', info: (j) => (m.moves[j] ? G.DATA.moves[m.moves[j].id].desc + (G.gimmickText(m.moves[j].id) ? ' · ' + G.gimmickText(m.moves[j].id) : '') : '') });
     if (k < 0 || k >= 4) { await G.ui.say(`${m.name} ไม่ได้เรียน ${mv.name}`); return false; }
     const old = G.DATA.moves[m.moves[k].id].name;
     m.moves[k] = { id: mid, pp: mv.pp }; G.sfx('level'); await G.ui.say(`ลืม ${old} แล้วเรียน ${mv.name} แทน!`);
@@ -488,7 +488,7 @@
     for (const x of m.moves) ids.add(x.id);
     return [...ids].filter((id) => G.DATA.moves[id]);
   };
-  const moveInfo = (id) => { const mv = G.DATA.moves[id]; return `${G.TYPE_TH[mv.type]} · ${mv.cat === 'status' ? 'ท่าสถานะ' : 'พลัง ' + mv.power} · ${mv.desc}`; };
+  const moveInfo = (id) => { const mv = G.DATA.moves[id], gm = G.gimmickText(id); return `${G.TYPE_TH[mv.type]} · ${mv.cat === 'status' ? 'ท่าสถานะ' : 'พลัง ' + mv.power} · ${mv.desc}${gm ? ' · ' + gm : ''}`; };
   G.ui.arrangeMoves = async function (m) {
     for (;;) {
       const items = m.moves.map((x) => ({ icon: `type:${G.DATA.moves[x.id].type}`, label: G.DATA.moves[x.id].name, sub: `${x.pp}/${G.DATA.moves[x.id].pp}` }));

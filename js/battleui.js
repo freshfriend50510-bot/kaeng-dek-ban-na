@@ -85,7 +85,7 @@
           return { icon: `type:${mv.type}`, label: mv.name + (e > 1 ? ' ▲×2' : e < 1 ? ' ▼×½' : ''), sub: `${G.TYPE_TH[mv.type]} ${s.pp}/${mv.pp}`, disabled: s.pp <= 0 }; }),
           { grid: true, cls: 'bmoves', info: (k) => { const s = m.moves[k]; if (!s) return ''; const mv = G.DATA.moves[s.id];
             const eff = mv.cat === 'status' ? '' : ` · ต่อ${b.foe.name}: ${{ 2: 'ได้ผลดีมาก', 1: 'ปกติ', 0.5: 'ไม่ค่อยได้ผล' }[G.typeEff(mv.type, G.DATA.species[b.foe.sp].type)]}`;
-            return `${mv.desc}${mv.power ? ' · พลัง ' + mv.power : ''}${eff}`; } });
+            const gm = G.gimmickText(mv.id); return `${mv.desc}${mv.power ? ' · พลัง ' + mv.power : ''}${eff}${gm ? ' · ' + gm : ''}`; } });
         if (i >= 0) return { type: 'move', idx: i };
       } else if (top === 1) {
         const id = await G.ui.bagMenu({ inBattle: true, filter: (it) => ['heal', 'cure', 'recruit', 'healall'].includes(it.kind) });
@@ -152,6 +152,7 @@
     const result = b.over;
     S.fought = S.fought || {};
     b.F.forEach((m, i) => { if (i <= b.fi) S.fought[m.sp] = 1; });   // สมุดบันทึก: เคยสู้แล้ว
+    if (b.bonusMoney && result !== 'lose') { S.money += b.bonusMoney; await G.ui.say(`เหรียญที่เก็บได้ระหว่างสู้ ${b.bonusMoney} บาท`, null, { battle: true, auto: 700 }); }
     if (result === 'win' && opt.kind !== 'wild' && opt.money) {
       S.money += opt.money;
       await G.ui.say(`ได้เงินรางวัล ${opt.money} บาท`, null, { battle: true, auto: 700 });
