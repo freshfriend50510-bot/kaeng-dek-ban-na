@@ -24,6 +24,7 @@ m_samlee,main,ห้องยาชั้น 2,samlee,,,tr_samlee,npc:samlee,,,,
 m_rx,main,ใบสั่งยา,pharm,,,h_rx,npc:pharm,,,,รับใบสั่งยาจากพี่เภสัชที่เคาน์เตอร์ห้องยา
 m_intern,main,อินเทิร์นเฝ้าประตู,intern,,,tr_intern,npc:intern,,,,ลงลิฟต์ เดินตามเส้นม่วงไปประตูหลัง เข้าคลินิกแล้วชนะน้องหมออินเทิร์น
 m_gym3,main,ตราหูฟัง,boom,,,gym3_done,npc:boom,,,,ท้าพี่บูมที่คลินิก (แนะนำ Lv 23 · ธาตุน้ำได้เปรียบ ธาตุสายฟ้าเสียเปรียบ)
+m_city,main,เข้าเมืองขอนแก่น,driver_city,,,city_arrived,npc:driver_city,,,,กลับตัวอำเภอ คุยกับลุงสองแถวริมถนนใต้หอนาฬิกา นั่งรถเข้าตัวเมืองขอนแก่น
 s_worm,side,ไส้เดือนให้ลุงเปลี่ยน,plian,phong_arrived,worm_asked,worm_done,npc:worm1,worms_all,npc:plian,rod:1;money:150,หาไส้เดือนในพงอ้อริมพอง 3 ตัว ให้ลุงเปลี่ยนที่ท่าน้ำ
 s_card,side,ใบนัดของยายหอม,yaihom,h_card,card_asked,card_done,npc:card,card_found,npc:yaihom,herb_big:3;money:300,ยายหอมลืมใบนัดหมอไว้ที่ตลาดเช้า (เปิดตี 5 – 9 โมง) ไปหาแล้วเอามาคืน
 s_porridge,side,ข้าวต้มให้น้องจ๋า,joe3,rival3_done,porridge_asked,porridge_done,npc:porridge,porridge_got,npc:sister,sangkaya:3;money:300,ซื้อข้าวต้มหมูสับที่ตลาดเช้า (ตี 5 – 9 โมง) ไปให้น้องสาวโจ้ที่วอร์ดชั้น 2
