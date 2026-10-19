@@ -451,6 +451,18 @@
           <li>อยากชวนเข้าแก๊ง: ตีจนหลอดพลังผีเหลือน้อยๆ แล้วเลือก <b>กระเป๋า</b> › ข้าวเหนียวปั้น</li>
           <li>ถ้าผีหลับหรือชาอยู่ ชวนง่ายขึ้นมาก · สู้ไม่ไหวเลือก <b>หนี</b> ได้</li></ul>`);
       }
+      // ผีอ่อนกว่ามาก (และเคยชวนแล้ว): ไล่ไปได้เลยไม่ต้องเข้าฉากสู้ ทั้งแก๊งได้ EXP แบบ Let's Go
+      const lead = S().party.find((m) => m.hp > 0);
+      if (G.settings.quickWild !== false && lead && G.state.dex[sp] === 2 && lead.lv >= lv + 8 && !G.DATA.species[sp].kind.match(/eng|med/)) {
+        const foe = G.DATA.species[sp].name;
+        const i = await G.ui.ask(`${foe} Lv${lv} โผล่มา... แต่ดูกลัว${lead.name}จนตัวสั่น`, '', [`ไล่ไปเลย (ได้ EXP)`, 'สู้ตามปกติ'], { cls: 'small' });
+        if (i === 0) {
+          const easy = G.settings.easy !== false, gain = G.expGain({ sp, lv }, false) * (easy ? 3 : 1);
+          G.sfx('hit'); await say(`${lead.name}ทำหน้าดุใส่ ${foe}หนีหายไปในพงหญ้า! ทั้งแก๊งได้ EXP`);
+          for (const m of S().party) if (m.hp > 0 && (m === lead || easy)) await G.ui.giveExp(m, m === lead ? gain : Math.floor(gain / 2), true);
+          return;
+        }
+      }
       const r = await G.runBattle([G.spawn(sp, lv, { taken: takenNames() })], { kind: 'wild' });
       if (r === 'lose') await blackout();
     },

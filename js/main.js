@@ -6,6 +6,7 @@
   G.settings = { textSpeed: 2, sound: true, music: true, guide: true, hud: true, easy: true, autosave: true, ambient: true, calm: false, skipRead: true, fast: false, colorText: true };
   try { Object.assign(G.settings, JSON.parse(localStorage.getItem(SAVE_KEY + '_settings') || '{}')); } catch (e) { /* ไม่มีที่เก็บ */ }
   G.saveSettings = () => { try { localStorage.setItem(SAVE_KEY + '_settings', JSON.stringify(G.settings)); } catch (e) { /* */ } };
+  setTimeout(() => G.applyTextSize && G.applyTextSize(), 0);
   G.wait = (ms) => new Promise((r) => setTimeout(r, ms));
   G.scene = 'title';
 
@@ -193,11 +194,11 @@
 
   // ---------- ปุ่ม ----------
   const KEYMAP = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
-    KeyZ: 'ok', Space: 'ok', KeyX: 'back', Escape: 'back', Backspace: 'back', Enter: 'menu', KeyM: 'map', KeyB: 'bag', KeyT: 'team', KeyQ: 'quest', Tab: 'hud' };
+    KeyZ: 'ok', Space: 'ok', KeyX: 'back', Escape: 'back', Backspace: 'back', Enter: 'menu', KeyM: 'map', KeyB: 'bag', KeyT: 'team', KeyQ: 'quest', Tab: 'hud', KeyL: 'log' };
   const held = {};
   G.press = function (k) {
     G.unlockAudio();
-    if (G.ui.active()) { if (['map', 'bag', 'team', 'hud', 'quest'].includes(k)) k = 'back'; G.ui.key(k === 'menu' ? 'ok' : k); return; }
+    if (G.ui.active()) { if (['map', 'bag', 'team', 'hud', 'quest', 'log'].includes(k)) k = 'back'; G.ui.key(k === 'menu' ? 'ok' : k); return; }
     if (G.scene !== 'world' || G.busy || G.world.moving || fading) return;
     if (k === 'ok') G.world.interact();
     else if (k === 'menu') G.runScript('_menu');
@@ -205,9 +206,12 @@
     else if (k === 'bag') G.runScript('_bag');
     else if (k === 'quest' && G.state.flags.intro_done) G.runScript('_quest');
     else if (k === 'team' && G.state.party.length) G.runScript('_team');
+    else if (k === 'log') G.runScript('_log');
     else if (k === 'hud') { G.settings.hud = G.settings.hud === false; G.saveSettings(); }
   };
   G.SCRIPTS._menu = () => G.ui.mainMenu();
+  G.SCRIPTS._log = () => G.ui.showLog();
+  G.applyTextSize = () => document.documentElement.style.setProperty('--fs', [1, 1.15, 1.3][G.settings.textSize || 0]);
   window.addEventListener('keydown', (e) => {
     const k = KEYMAP[e.code]; if (!k) return;
     if (document.activeElement && document.activeElement.tagName === 'INPUT') { if (e.code === 'Enter') document.activeElement.blur(); return; }
@@ -217,6 +221,23 @@
     }
     held[k] = true;
   });
+  // จอยเกม (Xbox/PS): A=ตกลง B=ถอย X=กระเป๋า Y=ทีม Start=เมนู Select=แผนที่ LB=เควสต์ RB=ประวัติ D-pad/ก้านซ้าย=เดิน
+  const PAD = { 0: 'ok', 1: 'back', 2: 'bag', 3: 'team', 9: 'menu', 8: 'map', 4: 'quest', 5: 'log', 12: 'up', 13: 'down', 14: 'left', 15: 'right' };
+  const padPrev = {};
+  G.pollPad = function () {
+    const pads = navigator.getGamepads ? navigator.getGamepads() : [];
+    const now = {};
+    for (const p of pads) {
+      if (!p) continue;
+      for (const [b, k] of Object.entries(PAD)) if (p.buttons[b] && p.buttons[b].pressed) now[k] = true;
+      const [ax, ay] = [p.axes[0] || 0, p.axes[1] || 0];
+      if (ax < -0.5) now.left = true; if (ax > 0.5) now.right = true; if (ay < -0.5) now.up = true; if (ay > 0.5) now.down = true;
+    }
+    for (const k of new Set([...Object.keys(now), ...Object.keys(padPrev)])) {
+      if (now[k] && !padPrev[k]) { G.press(k); held[k] = true; padPrev[k] = true; }
+      else if (!now[k] && padPrev[k]) { held[k] = false; delete padPrev[k]; }
+    }
+  };
   window.addEventListener('keyup', (e) => { const k = KEYMAP[e.code]; if (k) held[k] = false; });
   window.addEventListener('blur', () => { for (const k in held) held[k] = false; });
   // ปุ่มบนจอสัมผัส
@@ -351,6 +372,7 @@
   let last = performance.now(), acc = 0;
   function frame(now) {
     const dt = Math.min(100, now - last); last = now; acc += dt;
+    if (G.pollPad) G.pollPad();
     while (acc >= 1000 / 60) {
       acc -= 1000 / 60;
       if (G.scene === 'world' && G.state) {
@@ -358,7 +380,7 @@
         G.state.playMs += 1000 / 60;
         if (!G.busy && !G.ui.active() && !G.world.moving && !fading) {
           const dir = ['up', 'down', 'left', 'right'].find((d) => held[d]);
-          if (dir) G.world.tryMove(dir, held.back);
+          if (dir) G.world.tryMove(dir, G.settings.autoRun !== false ? !held.back : held.back);   // วิ่งตลอด: กด X ค้าง = เดินช้า
         }
         G.world.update();
         if (G.state.rainLeft > 0) G.state.rainLeft = Math.max(0, G.state.rainLeft - 1 / 60);

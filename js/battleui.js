@@ -88,7 +88,7 @@
             const gm = G.gimmickText(mv.id); return `${mv.desc}${mv.power ? ' · พลัง ' + mv.power : ''}${eff}${gm ? ' · ' + gm : ''}`; } });
         if (i >= 0) return { type: 'move', idx: i };
       } else if (top === 1) {
-        const id = await G.ui.bagMenu({ inBattle: true, filter: (it) => ['heal', 'cure', 'recruit', 'healall'].includes(it.kind) });
+        const id = await G.ui.bagMenu({ inBattle: true, foe: b.isWild() ? b.foe : null, filter: (it) => ['heal', 'cure', 'recruit', 'healall'].includes(it.kind) });
         if (!id) continue;
         const it = G.DATA.items[id];
         if (it.kind === 'recruit') {

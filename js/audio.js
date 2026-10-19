@@ -3,15 +3,17 @@
   'use strict';
   let ac = null, master = null, seqTimer = null, current = null;
   const ensure = () => {
-    if (!ac) { const A = window.AudioContext || window.webkitAudioContext; if (!A) return null; ac = new A(); master = ac.createGain(); master.gain.value = 0.18; master.connect(ac.destination); }
+    if (!ac) { const A = window.AudioContext || window.webkitAudioContext; if (!A) return null; ac = new A(); master = ac.createGain(); master.gain.value = 0.18; master.connect(ac.destination); musicBus = ac.createGain(); sfxBus = ac.createGain(); musicBus.connect(master); sfxBus.connect(master); G.setVolume(); }
     if (ac.state === 'suspended') ac.resume();
     return ac;
   };
-  const note = (freq, t, dur, type = 'square', vol = 0.5) => {
+  let musicBus = null, sfxBus = null;   // แยกระดับเสียงเพลงกับเสียงประกอบ
+  G.setVolume = () => { if (!musicBus) return; musicBus.gain.value = (G.settings.volMusic ?? 100) / 100; sfxBus.gain.value = (G.settings.volSfx ?? 100) / 100; };
+  const note = (freq, t, dur, type = 'square', vol = 0.5, bus) => {
     const o = ac.createOscillator(), g = ac.createGain();
     o.type = type; o.frequency.setValueAtTime(freq, t);
     g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.02);
+    o.connect(g); g.connect(bus || sfxBus); o.start(t); o.stop(t + dur + 0.02);
   };
   const hz = (n) => 440 * Math.pow(2, (n - 69) / 12);
 
@@ -98,9 +100,9 @@
         const len = s.mel.length + s.gap, k = i % len, playing = k < s.mel.length;
         if (playing) {
           const m = s.mel[k];
-          if (m >= 0) note(hz(s.root + P[m]), nextT, step * 1.6, 'square', 0.13);
-          if (k % 8 === 0) for (const d of s.drone) note(hz(d), nextT, step * 8, 'sawtooth', 0.045);
-          if (k % 2 === 0) note(hz(s.root - 24 + (k % 4 === 0 ? 0 : 7)), nextT, step * 0.8, 'triangle', 0.16);
+          if (m >= 0) note(hz(s.root + P[m]), nextT, step * 1.6, 'square', 0.13, musicBus);
+          if (k % 8 === 0) for (const d of s.drone) note(hz(d), nextT, step * 8, 'sawtooth', 0.045, musicBus);
+          if (k % 2 === 0) note(hz(s.root - 24 + (k % 4 === 0 ? 0 : 7)), nextT, step * 0.8, 'triangle', 0.16, musicBus);
         }
         i++; nextT += step;
       }
@@ -121,7 +123,7 @@
     const o = ac.createOscillator(), g = ac.createGain();
     o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
     g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + dur * 0.2); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.02);
+    o.connect(g); g.connect(sfxBus); o.start(t); o.stop(t + dur + 0.02);
   };
   const AMB = {
     cricket: (t) => { for (let i = 0; i < 3; i++) sweep(4300, 4100, t + i * 0.07, 0.045, 'sine', 0.05); },
@@ -131,7 +133,7 @@
       const src = noise(), fl = ac.createBiquadFilter(), g = ac.createGain();
       fl.type = 'bandpass'; fl.frequency.setValueAtTime(380, t); fl.frequency.linearRampToValueAtTime(700, t + 1.2); fl.Q.value = 0.8;
       g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.09, t + 0.9); g.gain.linearRampToValueAtTime(0.0001, t + 2.4);
-      src.connect(fl); fl.connect(g); g.connect(master); src.start(t); src.stop(t + 2.5);
+      src.connect(fl); fl.connect(g); g.connect(sfxBus); src.start(t); src.stop(t + 2.5);
     },
   };
   const setRain = (on) => {
@@ -139,7 +141,7 @@
       rainSrc = noise(); rainSrc.loop = true;
       const fl = ac.createBiquadFilter(); fl.type = 'highpass'; fl.frequency.value = 1400;
       rainGain = ac.createGain(); rainGain.gain.setValueAtTime(0.0001, ac.currentTime); rainGain.gain.linearRampToValueAtTime(0.07, ac.currentTime + 1.5);
-      rainSrc.connect(fl); fl.connect(rainGain); rainGain.connect(master); rainSrc.start();
+      rainSrc.connect(fl); fl.connect(rainGain); rainGain.connect(sfxBus); rainSrc.start();
     } else if (!on && rainSrc) {
       const s = rainSrc; rainGain.gain.linearRampToValueAtTime(0.0001, ac.currentTime + 1); setTimeout(() => s.stop(), 1100); rainSrc = null;
     }

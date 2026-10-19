@@ -15,7 +15,7 @@ html, body { margin: 0; height: 100%; background: #10152b; color: var(--cream); 
 body { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 #screen { position: relative; width: 720px; height: 480px; overflow: hidden; background: #000; box-shadow: 0 0 0 calc(var(--u) * 1) #000, 0 0 0 calc(var(--u) * 3) var(--indigo); }
 #game { position: absolute; inset: 0; width: 100%; height: 100%; }   /* ความละเอียดตรงกับจอจริงแล้ว (main.js present) */
-#ui { position: absolute; inset: 0; pointer-events: none; font-size: calc(var(--u) * 7.2); line-height: 1.35; }
+#ui { position: absolute; inset: 0; pointer-events: none; font-size: calc(var(--u) * 7.2 * var(--fs, 1)); line-height: 1.35; }
 #ui > * { pointer-events: auto; }
 
 /* ---------- แผงผ้าคราม ขอบผ้าขาวม้า ---------- */
@@ -244,6 +244,7 @@ table.moves td, table.moves th { padding: calc(var(--u) * 0.5) calc(var(--u) * 2
 .bag-detail b { display: block; color: var(--gold); font-weight: normal; font-size: 1.1em; }
 .bag-detail p { margin: calc(var(--u) * 1.5) 0 0; text-align: left; } .bag-count { font-size: 0.85em; color: #c9cfe6; }
 .bag-src { color: var(--gold); font-size: 0.9em; }
+.bag-chance { color: #8fe06a; font-weight: bold; }
 .bag-sheet .hint { margin-top: calc(var(--u) * 1.5); font-size: 0.68em; color: #8f97b8; text-align: center; }
 .badge canvas { display: block; width: calc(var(--u) * 22) !important; height: calc(var(--u) * 22) !important; margin: 0 auto calc(var(--u) * 2); }
 .badge:not(.on) canvas { filter: grayscale(1) brightness(0.5); }
@@ -276,3 +277,9 @@ table.moves td, table.moves th { padding: calc(var(--u) * 0.5) calc(var(--u) * 2
 .k-psn { color: #d59aff; } .k-par { color: #ffe24a; } .k-slp { color: #8ab4ff; } .k-cnf { color: #ff9ad6; }
 .k-water { color: #6ec0ff; } .k-earth { color: #f0a870; } .k-electric { color: #ffe24a; } .k-wind { color: #7ee08a; } .k-normal { color: #e0d8c8; }
 [class^="k-"] { text-shadow: 0 1px 0 rgba(0,0,0,.45); }
+
+/* ประวัติบทสนทนา */
+.log-sheet { display: flex; flex-direction: column; }
+.log-list { flex: 1; min-height: 0; overflow-y: auto; font-size: 0.85em; padding-right: calc(var(--u) * 2); }
+.log-row { padding: calc(var(--u) * 1) 0; border-bottom: 1px solid rgba(246,238,216,.12); }
+.log-row b { color: var(--gold); margin-right: calc(var(--u) * 2); }
