@@ -77,5 +77,10 @@ r9 = gm('showstopper'); ok(r9.bb.pv.recharge || r9.bb.over, 'บั้งไฟ�
 r9 = gm('wind_step'); ok(r9.bb.pv.dodge === false || r9.ev.some((e) => e.t === 'msg' && e.text.includes('หลบ')), 'ก้าวหลบสายลมต้องหลบได้');
 r9 = gm('rain_call'); ok(r9.bb.rain > 0, 'ร้องเรียกฝนต้องมีฝนกลางสนาม');
 r9 = gm('treasure_guard'); ok(r9.bb.bonusMoney > 0, 'หวงสมบัติต้องได้เหรียญ');
+// 10) นิสัย ความสามารถ ของถือ
+const hot = G.makeMon('bee', 30, { ivs: 15, nature: 'hot' }), flat = G.makeMon('bee', 30, { ivs: 15 });
+ok(hot.stats.atk > flat.stats.atk && hot.stats.spa < flat.stats.spa && flat.nature === 'easy', 'นิสัยใจร้อนต้องโจมตีสูงขึ้น พิเศษลดลง');
+r9 = gm('mud_throw', (bb, a, f) => { f.sp = 'krasue'; }); ok(r9.f.hp === r9.f.stats.hp && r9.ev.some((e) => e.t === 'msg' && e.text.includes('ลอยตัว')), 'กระสือลอยตัวต้องไม่โดนท่าดิน');
+r9 = gm('buffalo_charge', (bb, a, f) => { a.lv = 100; G.refreshStats(a); f.held = 'prajiad'; }); ok(r9.f.hp === 1 && !r9.f.held, 'ผ้าประเจียดต้องรอด 1 HP แล้วหายไป');
 console.log(fails ? `ไม่ผ่าน ${fails} ข้อ` : 'ผ่านทุกข้อ');
 process.exit(fails ? 1 : 0);

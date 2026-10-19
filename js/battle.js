@@ -5,6 +5,7 @@
   const STAT_NAME = { atk: 'พลังโจมตี', def: 'พลังป้องกัน', spa: 'พลังพิเศษ', spd: 'ป้องกันพิเศษ', spe: 'ความเร็ว', acc: 'ความแม่น' };
   const STRUGGLE = { id: 'struggle', name: 'ดิ้นสุดแรง', type: 'normal', cat: 'phys', power: 50, acc: 0, pp: 1, priority: 0, effect: '', chance: 0, typeless: true };
 
+  const SOUND = ['wail', 'mermaid_song', 'pound_ground', 'wak_shout', 'squeak_wheel', 'radio_wave', 'cheer_faculty', 'lecture', 'case_present'];   // ท่าเสียง (นกร้องเพลง ×1.3)
   function freshVol() { return { st: { atk: 0, def: 0, spa: 0, spd: 0, spe: 0, acc: 0 }, cnf: 0, turns: 0, recharge: false, flinch: false, dodge: false, focus: false, regen: 0, burn: 0, last: null, chain: 0 }; }
 
   // ---------- กิมมิคประจำท่า (ตามชื่อท่า) ----------
@@ -83,6 +84,8 @@
       this.bossHealed = false;
       this.rageDone = false;
       this.potions = opt.potions || 0;   // ยาฟื้นที่มาสเตอร์ใช้ได้ (พี่บูม 2 ครั้ง)
+      this.weather = opt.weather !== undefined ? opt.weather : (G.fieldWeather ? G.fieldWeather() : null);   // sun แดดจ้า · fog หมอก · dust ฝุ่น PM
+      this.started = false;
       this.applyRage([]);
     }
     // opt.rage = { sp, st, text }: ศัตรูชนิดนี้ลงสนามมาพร้อมบัฟ (เช่น พี่เฟรนด์โมโหเพราะเห็นอุ๋งอิ๋งในแก๊ง)
@@ -107,6 +110,9 @@
       const m = side === 'p' ? this.me : this.foe, v = side === 'p' ? this.pv : this.fv;
       let s = m.stats.spe * G.stageFactor(v.st.spe);
       if (m.status === 'par') s *= 0.5;
+      const ab = this.sp(m).ability, it = m.held && G.DATA.items[m.held];
+      if (ab === 'slick' && (this.rain > 0 || (G.raining && G.raining()))) s *= 1.5;   // ตัวลื่นในฝน
+      if (it && it.for === 'spe') s *= it.value;   // ตะกรุดเร็ว
       return s;
     }
 
@@ -139,9 +145,11 @@
       return pool[Math.floor(r() * pool.length)].id;
     }
 
+    // เปิดฉาก: ความสามารถตอนลงสนาม (เรียกจาก battleui หลังแนะนำตัว หรือเทิร์นแรกอัตโนมัติ)
+    begin() { const ev = []; if (!this.started) { this.started = true; this.onEntry('p', ev); this.onEntry('f', ev); } return ev; }
     // action: {type:'move', idx} | {type:'item', id, target} | {type:'switch', idx} | {type:'run'}
     turnAction(action) {
-      const ev = [];
+      const ev = this.begin();
       if (this.over) return ev;
       this.turn++;
       let foeMove = this.chooseFoeMove();
@@ -252,7 +260,8 @@
         }
       }
       if (mv.cat !== 'status') {
-        let other = 1;
+        if (this.sp(tgt).ability === 'levitate' && mv.type === 'earth') { ev.push({ t: 'msg', text: `${tname} ลอยตัวอยู่ ท่าธาตุดินไม่โดนเลย!` }); this.gimmickAfter(g, side, ev, night); return; }
+        let other = this.abMult(user, tgt, mv) * this.weatherMult(mv);
         const ab = this.sp(user).ability;
         if (ab === 'rage' && mv.type === 'earth' && user.hp <= user.stats.hp / 3) other *= 1.5;
         if (ab === 'analyze' && movedSecond) other *= 1.3;
@@ -274,7 +283,9 @@
             crit, rand: r.int(85, 100), other,
             atkStage: phys ? uv.st.atk : uv.st.spa, defStage: phys ? tv.st.def : tv.st.spd,
           });
-          tgt.hp = Math.max(0, tgt.hp - dmg); total += dmg;
+          const sash = tgt.held && G.DATA.items[tgt.held] && G.DATA.items[tgt.held].for === 'sash' && tgt.hp >= tgt.stats.hp && dmg >= tgt.hp;
+          tgt.hp = Math.max(sash ? 1 : 0, tgt.hp - dmg); total += dmg;
+          if (sash) { ev.push({ t: 'msg', text: `${tname} ยึด${G.DATA.items[tgt.held].name}ไว้ รอดมาได้ด้วยพลังเฮือกสุดท้าย!` }); tgt.held = null; }
           ev.push({ t: 'hit', side: tside, eff });
           ev.push({ t: 'hp', side: tside, hp: tgt.hp });
           if (crit) { ev.push({ t: 'crit', side: tside }); ev.push({ t: 'msg', text: side === 'p' ? 'คริติคอล! ตีเข้าจุดสำคัญเต็มๆ!' : 'โดนจุดสำคัญ!' }); }
@@ -284,6 +295,7 @@
         if (g.drain && total > 0 && user.hp < user.stats.hp) { user.hp = Math.min(user.stats.hp, user.hp + Math.max(1, Math.floor(total * g.drain))); ev.push({ t: 'hp', side, hp: user.hp }); ev.push({ t: 'msg', text: `${name} ดูดพลังมาฟื้นตัวเอง!` }); }
         if (g.recoil && total > 0) { user.hp = Math.max(0, user.hp - Math.max(1, Math.floor(total * g.recoil))); ev.push({ t: 'hp', side, hp: user.hp }); ev.push({ t: 'msg', text: `${name} เจ็บตัวเองจากแรงกระแทก!` }); }
         if (g.flinch && !movedSecond && tgt.hp > 0 && r.chance(g.flinch)) tv.flinch = true;
+        this.afterHit(user, tgt, mv, side, total, ev);
         if (g.breakDef && (tv.st.def > 0 || tv.st.spd > 0)) { tv.st.def = Math.min(0, tv.st.def); tv.st.spd = Math.min(0, tv.st.spd); ev.push({ t: 'msg', text: `บัฟป้องกันของ ${tname} พังทลาย!` }); }
         if (g.haze && Object.values(tv.st).some((v) => v > 0)) { for (const kk in tv.st) tv.st[kk] = Math.min(0, tv.st[kk]); ev.push({ t: 'msg', text: `ลมพัดบัฟของ ${tname} หายเกลี้ยง!` }); }
         if (g.burn && tgt.hp > 0) { tv.burn = g.burn; ev.push({ t: 'msg', text: `ไฟลุกท่วมพื้นรอบตัว ${tname}!` }); }
@@ -362,6 +374,7 @@
         v.flinch = false;
         if (m.hp <= 0) continue;
         if (v.regen > 0) { v.regen--; if (m.hp < m.stats.hp) { m.hp = Math.min(m.stats.hp, m.hp + Math.max(1, Math.floor(m.stats.hp / 16))); ev.push({ t: 'msg', text: `${this.label(side)} ฟื้นพลังทีละนิด` }); ev.push({ t: 'hp', side, hp: m.hp }); } }
+        this.endAbility(side, m, v, ev); if (m.hp <= 0) continue;
         if (v.burn > 0) { v.burn--; m.hp = Math.max(0, m.hp - Math.max(1, Math.floor(m.stats.hp / 12))); ev.push({ t: 'msg', text: `${this.label(side)} โดนไฟเผาพื้นร้อนจนเจ็บ!` }); ev.push({ t: 'hp', side, hp: m.hp }); if (m.hp <= 0) continue; }
         if (m.status === 'psn') {
           m.hp = Math.max(0, m.hp - Math.max(1, Math.floor(m.stats.hp / 8)));
@@ -373,6 +386,56 @@
         }
       }
       if (this.rain > 0 && --this.rain === 0) ev.push({ t: 'msg', text: 'ฝนกลางสนามหยุดแล้ว' });
+    }
+
+    // ---------- ความสามารถติดตัว + ของถือ + สภาพอากาศ ----------
+    onEntry(side, ev) {
+      const m = side === 'p' ? this.me : this.foe, v = side === 'p' ? this.pv : this.fv;
+      if (!m || m.hp <= 0) return;
+      const ab = this.sp(m).ability;
+      if (ab === 'guardian') { v.st.def = Math.min(6, v.st.def + 1); ev.push({ t: 'msg', text: `${this.label(side)} ยืนเฝ้านา ป้องกันขึ้น!` }); }
+      if (ab === 'scary') { const ov = side === 'p' ? this.fv : this.pv; ov.st.atk = Math.max(-6, ov.st.atk - 1); ev.push({ t: 'msg', text: `${this.label(side)} ทำหน้าน่ากลัว โจมตีของ${this.label(side === 'p' ? 'f' : 'p')}ลดลง!` }); }
+    }
+    abMult(user, tgt, mv) {
+      const a = this.sp(user).ability, d = this.sp(tgt).ability;
+      let k = 1;
+      if (a === 'glider' && mv.type === 'wind') k *= 1.2;
+      if (a === 'songbird' && SOUND.includes(mv.id)) k *= 1.3;
+      if (a === 'torrent' && mv.type === 'water' && user.hp <= user.stats.hp / 3) k *= 1.5;
+      if (a === 'spark' && mv.type === 'electric' && G.isNight && G.isNight()) k *= 1.25;
+      if (d === 'thick' && mv.cat === 'phys') k *= 0.85;
+      if (d === 'tall' && mv.type === 'earth') k *= 0.5;
+      return k;
+    }
+    weatherMult(mv) {
+      const w = this.weather;
+      if (w === 'sun') return mv.type === 'earth' ? 1.2 : mv.type === 'water' ? 0.85 : 1;
+      if (w === 'dust') return mv.type === 'wind' ? 1.2 : 1;
+      if (w === 'fog') return mv.type === 'electric' ? 1.2 : 1;   // หมอกชื้นนำไฟฟ้า
+      return 1;
+    }
+    afterHit(user, tgt, mv, side, total, ev) {
+      const tside = side === 'p' ? 'f' : 'p';
+      if (total > 0 && mv.cat === 'phys' && user.hp > 0 && !user.status && this.sp(tgt).ability === 'static' && this.rng.chance(30)) {
+        user.status = 'par'; ev.push({ t: 'msg', text: `${this.label(side)} โดนไฟฟ้าสถิตจนตัวชา!` }); ev.push({ t: 'status', side, status: 'par' });
+      }
+      if (tgt.hp <= 0 && user.hp > 0 && user.hp < user.stats.hp && this.sp(user).ability === 'glutton') {
+        user.hp = Math.min(user.stats.hp, user.hp + Math.floor(user.stats.hp / 4)); ev.push({ t: 'msg', text: `${this.label(side)} กินจุ ฟื้นพลังหลังชนะ!` }); ev.push({ t: 'hp', side, hp: user.hp });
+      }
+      const it = tgt.held && G.DATA.items[tgt.held];
+      if (it && it.for === 'berry' && tgt.hp > 0 && tgt.hp <= tgt.stats.hp / 2) {
+        tgt.hp = Math.min(tgt.stats.hp, tgt.hp + Math.floor(tgt.stats.hp * it.value)); tgt.held = null;
+        ev.push({ t: 'msg', text: `${this.label(tside)} แกะ${it.name}กิน ฟื้นพลัง!` }); ev.push({ t: 'hp', side: tside, hp: tgt.hp });
+      }
+    }
+    endAbility(side, m, v, ev) {
+      const ab = this.sp(m).ability, it = m.held && G.DATA.items[m.held], nm = this.label(side);
+      const heal = (frac, text) => { if (m.hp >= m.stats.hp) return; m.hp = Math.min(m.stats.hp, m.hp + Math.max(1, Math.floor(m.stats.hp * frac))); ev.push({ t: 'msg', text }); ev.push({ t: 'hp', side, hp: m.hp }); };
+      if (ab === 'deeproot') heal(1 / 16, `${nm} หยั่งรากลึก ฟื้นพลัง`);
+      if (ab === 'firstaid' && m.hp < m.stats.hp / 2) heal(1 / 12, `${nm} ปฐมพยาบาลตัวเอง`);
+      if (ab === 'nurse' && m.status && this.rng.chance(30)) { m.status = null; ev.push({ t: 'msg', text: `${nm} ดูแลตัวเองจนหายป่วย!` }); ev.push({ t: 'status', side, status: null }); }
+      if (ab === 'dancer' && v.st.spe < 2) { v.st.spe++; ev.push({ t: 'msg', text: `${nm} เต้นจนเร็วขึ้น!` }); }
+      if (it && it.for === 'leftover') heal(1 / 16, `${nm} นับ${it.name} จิตใจสงบ ฟื้นพลัง`);
     }
 
     // คืน true ถ้าการต่อสู้หยุดรอ (จบ หรือรอผู้เล่นเลือกตัวใหม่)
@@ -394,6 +457,7 @@
         ev.push({ t: 'msg', text: `${this.opt.trainerName} ส่ง ${this.foe.name} ออกมา!` });
         ev.push({ t: 'send', side: 'f' });
         this.applyRage(ev);
+        this.onEntry('f', ev);
       }
       if (this.me.hp <= 0 && !this.me._fainted) {
         this.me._fainted = true;
@@ -417,7 +481,7 @@
         if (!m || m.hp <= 0) return;
         const fought = this.participants.has(idx);
         if (!fought && !easy) return;
-        const g = fought ? gain : Math.floor(gain / 2);   // คนที่ไม่ได้ลงสนามได้ครึ่งหนึ่ง
+        const g = Math.floor((fought ? gain : Math.floor(gain / 2)) * (this.sp(m).ability === 'diligent' ? 1.1 : 1));   // คนที่ไม่ได้ลงสนามได้ครึ่งหนึ่ง · ขยัน +10%
         m.exp += g;
         ev.push({ t: 'msg', text: `${m.name} ได้รับประสบการณ์ ${g}`, reward: true });
         while (m.lv < 100 && m.exp >= G.expFor(m.lv + 1)) {
@@ -448,6 +512,7 @@
       this.participants.add(idx);
       ev.push({ t: 'send', side: 'p' });
       ev.push({ t: 'msg', text: `ไปเลย ${this.me.name}!` });
+      this.onEntry('p', ev);
     }
 
     useItem(id, target, ev) {

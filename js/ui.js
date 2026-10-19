@@ -227,7 +227,18 @@
   const monRow = (m, extra) => ({ icon: G.monLook(m), label: `${m.name}  Lv${m.lv}`,
     sub: `${m.hp}/${m.stats.hp}${m.status ? ' · ' + STATUS[m.status] : ''}${m.held ? ' · ถือ' + G.DATA.items[m.held].name : ''}${extra || ''}` });
   // หน้าทีม: การ์ด 2 คอลัมน์ รูป เลเวล ธาตุ หลอด HP/EXP สถานะ ของถือ คืน index หรือ -1
-  const AB_SHORT = { rage: 'บ้าพลัง', analyze: 'วิเคราะห์', eater: 'อิ่มแล้วสู้', quick: 'ดีดเปิดเกม' };
+  // ความสามารถติดตัว: ชื่อสั้น + คำอธิบาย (ตรรกะอยู่ใน battle.js)
+  const AB_SHORT = { rage: 'บ้าพลัง', analyze: 'วิเคราะห์', eater: 'อิ่มแล้วสู้', quick: 'ดีดเปิดเกม', slick: 'ตัวลื่น', thick: 'หนังหนา', glutton: 'กินจุ', glider: 'ร่อนลม',
+    static: 'ไฟฟ้าสถิต', tall: 'สูงชะลูด', songbird: 'เสียงหวาน', deeproot: 'รากลึก', guardian: 'เฝ้านา', levitate: 'ลอยตัว', torrent: 'พลังนาค', dancer: 'จังหวะตาโขน',
+    treasure: 'เฝ้าทรัพย์', nurse: 'ดูแลตัวเอง', diligent: 'ขยัน', firstaid: 'ปฐมพยาบาล', scary: 'หน้าดุ' };
+  G.AB_DESC = { rage: 'เลือดเหลือ 1/3 ท่าดินแรง ×1.5', analyze: 'ลงมือทีหลังศัตรู แรงขึ้น ×1.3', eater: 'ฟื้นพลัง 1/16 ทุกเทิร์น', quick: 'เทิร์นแรกได้ลงมือก่อน',
+    slick: 'ฝนตก ความเร็ว ×1.5', thick: 'โดนท่ากายภาพเบาลง ×0.85', glutton: 'ชนะศัตรูแล้วฟื้นพลัง 1/4', glider: 'ท่าลม ×1.2', static: 'โดนตีกายภาพ 30% ทำให้คนตีชา',
+    tall: 'โดนท่าดินเบาลงครึ่งหนึ่ง', songbird: 'ท่าเสียง (ร้องโหยหวน เพลง ว้าก) ×1.3', deeproot: 'ฟื้นพลัง 1/16 ทุกเทิร์น', guardian: 'ลงสนามแล้วป้องกัน +1',
+    levitate: 'ไม่โดนท่าธาตุดินเลย', torrent: 'เลือดเหลือ 1/3 ท่าน้ำ ×1.5', dancer: 'จบเทิร์นความเร็ว +1 (สูงสุด +2)', treasure: 'อยู่ในทีม เงินรางวัล ×1.5',
+    nurse: 'จบเทิร์น 30% หายจากอาการผิดปกติ', diligent: 'ได้ EXP เพิ่ม 10%', firstaid: 'เลือดต่ำกว่าครึ่ง ฟื้นพลัง 1/12 ทุกเทิร์น', scary: 'ลงสนามแล้วโจมตีของศัตรู −1' };
+  G.AB_SHORT = AB_SHORT;
+  const NAT_TH = { atk: 'โจมตี', def: 'ป้องกัน', spa: 'พิเศษ', spd: 'ป้องกันพิเศษ', spe: 'ความเร็ว' };
+  G.natureText = (m) => { const n = G.NATURES[m.nature] || G.NATURES.easy; return n[1] ? `${n[0]} (+${NAT_TH[n[1]]} −${NAT_TH[n[2]]})` : n[0]; };
   G.ui.teamScreen = function (opt = {}) {
     const S = G.state;
     return new Promise((resolve) => {
@@ -251,7 +262,7 @@
         cards.forEach((c, i) => c.classList.toggle('sel', i === sel));
         const m = S.party[sel]; if (!m) return;
         const sp = G.DATA.species[m.sp];
-        info.textContent = `${sp.ability ? 'ความสามารถ: ' + AB_SHORT[sp.ability] + ' · ' : ''}โจมตี ${m.stats.atk} · ป้องกัน ${m.stats.def} · พิเศษ ${m.stats.spa} · ความเร็ว ${m.stats.spe} · EXP อีก ${G.expFor(m.lv + 1) - m.exp}`;
+        info.textContent = `${sp.ability ? 'ความสามารถ: ' + AB_SHORT[sp.ability] + ' (' + G.AB_DESC[sp.ability] + ') · ' : ''}นิสัย${G.natureText(m)} · โจมตี ${m.stats.atk} · ป้องกัน ${m.stats.def} · พิเศษ ${m.stats.spa} · ความเร็ว ${m.stats.spe} · EXP อีก ${G.expFor(m.lv + 1) - m.exp}`;
       };
       const pick = () => { if (opt.mustAlive && S.party[sel].hp <= 0) { G.sfx('bump'); return; } G.sfx('tick'); pop(m); resolve(sel); };
       const n = S.party.length;
@@ -349,15 +360,13 @@
 
   G.ui.monInfo = function (m) {
     const sp = G.DATA.species[m.sp];
-    const AB = { rage: 'บ้าพลัง — HP ต่ำกว่า 1/3 ท่าธาตุดินแรง ×1.5', analyze: 'วิเคราะห์ — ลงมือทีหลังศัตรู ท่าแรง ×1.3',
-      eater: 'อิ่มแล้วสู้ — ฟื้น HP 1/16 ทุกท้ายเทิร์น', quick: 'ดีดเปิดเกม — เทิร์นแรกลงมือก่อนเสมอ' };
     const moves = m.moves.map((s) => { const mv = G.DATA.moves[s.id];
       return `<tr><td>${esc(mv.name)}</td><td>${G.ui.typeTag(mv.type)}</td><td>${mv.power || '—'}</td><td>${s.pp}/${mv.pp}</td></tr>`; }).join('');
     const st = m.stats;
     return G.ui.panel(`
       <div class="info-head"><canvas class="info-sprite" width="16" height="16" data-sprite="${G.monLook(m)}"></canvas>
         <div><b>${esc(m.name)}</b> Lv${m.lv} ${G.ui.typeTag(sp.type)} ${G.ui.statusTag(m.status)} <small>${KIND_TH[sp.kind] || ''}${m.name !== sp.name && sp.kind !== 'eng' && sp.kind !== 'med' ? ' · ' + esc(sp.name) : ''}</small><br>
-        <small>${esc(sp.desc)}</small>${sp.ability ? `<br><small>ความสามารถ: ${esc(AB[sp.ability])}</small>` : ''}${m.held ? `<br><small>ถือ: ${esc(G.DATA.items[m.held].name)}</small>` : ''}</div></div>
+        <small>${esc(sp.desc)}</small>${sp.ability ? `<br><small>ความสามารถ: ${esc(AB_SHORT[sp.ability] + ' — ' + G.AB_DESC[sp.ability])}</small>` : ''}<br><small>นิสัย: ${esc(G.natureText(m))}</small>${m.held ? `<br><small>ถือ: ${esc(G.DATA.items[m.held].name)}</small>` : ''}</div></div>
       <div class="stats">HP ${m.hp}/${st.hp} · โจมตี ${st.atk} · ป้องกัน ${st.def} · พิเศษ ${st.spa} · ป้องกันพิเศษ ${st.spd} · ความเร็ว ${st.spe}</div>
       <table class="moves"><tr><th>ท่า</th><th>ธาตุ</th><th>พลัง</th><th>PP</th></tr>${moves}</table>`, 'mon-info');
   };

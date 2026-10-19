@@ -795,6 +795,10 @@
       for (const l of lines) await say(l);
     },
     async vending() { await say('ตู้กดน้ำ แสงไฟเรืองๆ ตอนกลางคืน'); await G.ui.shop(['soda', 'gamer_drink'], 'ตู้กดน้ำ'); },
+    async amulet(n) {   // แผงเครื่องราง: ของถือ (ของลงธาตุขายหลังได้ตรายิม 2)
+      await say(F().gym2_done ? 'ของดีทุกชิ้น ยายทำเองกับมือ ถือไว้ติดตัวสู้ผีสางได้สบาย' : 'ตะกรุด ผ้าประเจียด ลูกประคำ... ได้ตรายิมที่สองเมื่อไร ยายจะเอาของลงธาตุมาขายให้ด้วย', n.name);
+      await G.ui.shop(['kratib', 'takrut', 'prajiad', 'rosary'].concat(F().gym2_done ? ['termite_soil', 'new_battery', 'kite_string', 'pakhaoma'] : []), n.name);
+    },
     async meatball(n) { await say('ลูกชิ้นทอดไม้ละห้าบาท จิ้มแจ่วเผ็ดๆ ซื้อเยอะลดให้!', n.name); await G.ui.shop(['meatball', 'rice_pork', 'soda'], n.name); },
     // มินิเกม: ทายลูกศรให้ทัน (ตู้เกมอาเขต) / ยิงลูกโป่งตามสี (ซุ้มถนนคนเดิน)
     async arcade() {

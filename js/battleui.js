@@ -141,6 +141,9 @@
     await G.ui.say(`ไปเลย ${b.me.name}!`, null, { battle: true, auto: 500 });
     if (V.onSend) await V.onSend(b);
     if (b.rageDone && opt.rage && opt.rage.text) await G.ui.say(opt.rage.text, null, { battle: true, auto: 900 });
+    const WTH = { sun: '☀️ แดดจ้า: ท่าดินแรงขึ้น ท่าน้ำอ่อนลง', fog: '🌫️ หมอกลงหนา: ท่าสายฟ้าแรงขึ้น', dust: '😷 ฝุ่น PM ฟุ้ง: ท่าลมแรงขึ้น' };
+    if (WTH[b.weather]) await G.ui.say(WTH[b.weather], null, { battle: true, auto: 900 });
+    await play(b, b.begin());
     while (!b.over) {
       const act = await chooseAction(b);
       await play(b, b.turnAction(act));
@@ -154,8 +157,9 @@
     b.F.forEach((m, i) => { if (i <= b.fi) S.fought[m.sp] = 1; });   // สมุดบันทึก: เคยสู้แล้ว
     if (b.bonusMoney && result !== 'lose') { S.money += b.bonusMoney; await G.ui.say(`เหรียญที่เก็บได้ระหว่างสู้ ${b.bonusMoney} บาท`, null, { battle: true, auto: 700 }); }
     if (result === 'win' && opt.kind !== 'wild' && opt.money) {
-      S.money += opt.money;
-      await G.ui.say(`ได้เงินรางวัล ${opt.money} บาท`, null, { battle: true, auto: 700 });
+      const rich = S.party.some((m) => G.DATA.species[m.sp].ability === 'treasure'), got = Math.floor(opt.money * (rich ? 1.5 : 1));   // ปู่โสมเฝ้าทรัพย์ในทีม เงินรางวัล ×1.5
+      S.money += got;
+      await G.ui.say(`ได้เงินรางวัล ${got} บาท${rich ? ' (ปู่โสมช่วยเฝ้าทรัพย์ ×1.5)' : ''}`, null, { battle: true, auto: 700 });
     }
     if (result === 'recruit') {
       const m = b.foe; m.status = null;

@@ -23,14 +23,22 @@
   G.growthStage = (lv) => (lv >= 32 ? 3 : lv >= 16 ? 2 : 1);
   G.stageMult = (lv) => [1, 1, 1.35, 1.75][G.growthStage(lv)];
 
-  G.calcStats = function (spId, lv, ivs) {
+  // นิสัย: เพิ่มค่าหนึ่ง ×1.1 ลดอีกค่า ×0.9 (easy = สบายๆ ไม่เปลี่ยนอะไร)
+  G.NATURES = {
+    easy: ['สบายๆ'], hot: ['ใจร้อน', 'atk', 'spa'], shy: ['ขี้อาย', 'def', 'atk'], dreamy: ['ช่างฝัน', 'spa', 'atk'], calm: ['ใจเย็น', 'spd', 'spe'],
+    naughty: ['ซุกซน', 'spe', 'def'], greedy: ['ตะกละ', 'atk', 'spe'], playful: ['ขี้เล่น', 'spe', 'spa'], sly: ['เจ้าเล่ห์', 'spa', 'def'],
+    stubborn: ['หัวแข็ง', 'def', 'spa'], kind: ['ใจดี', 'spd', 'atk'], diligent: ['ขยัน', 'atk', 'spd'], brave: ['ใจเด็ด', 'atk', 'def'],
+  };
+  G.randomNature = (rng) => { const k = Object.keys(G.NATURES); return k[Math.floor((rng || G.rng)() * k.length)]; };
+  G.calcStats = function (spId, lv, ivs, nature) {
+    const nt = G.NATURES[nature] || G.NATURES.easy;
     const sp = G.DATA.species[spId];
     const m = sp.kind === 'kid' ? G.stageMult(lv) : 1;
     const out = {};
     for (const k of STATS) {
       const b = Math.round(sp[k] * m);
       const core = Math.floor(((2 * b + ivs[k]) * lv) / 100);
-      out[k] = k === 'hp' ? core + lv + 10 : core + 5;
+      out[k] = k === 'hp' ? core + lv + 10 : Math.floor((core + 5) * (nt[1] === k ? 1.1 : nt[2] === k ? 0.9 : 1));
     }
     return out;
   };
@@ -47,10 +55,11 @@
     const ivs = {};
     for (const k of STATS) ivs[k] = opt.ivs != null ? opt.ivs : rng.int(0, 31);
     const sp = G.DATA.species[spId];
-    const stats = G.calcStats(spId, lv, ivs);
+    const nature = opt.nature === 'random' ? G.randomNature(rng) : opt.nature || 'easy';
+    const stats = G.calcStats(spId, lv, ivs, nature);
     const mon = {
       sp: spId, name: opt.name || sp.name, lv, exp: G.expFor(lv), ivs, stats,
-      hp: stats.hp, status: null, slp: 0, held: null,
+      hp: stats.hp, status: null, slp: 0, held: null, nature,
       moves: G.movesAt(spId, lv).map((id) => ({ id, pp: G.DATA.moves[id].pp })),
     };
     if (opt.look) mon.look = opt.look;
@@ -69,7 +78,8 @@
     return G.makeMon(spId, lv, { ...opt, name: list[i].name, look: `eng:${spId}:${i}` });
   };
   // สร้างตัวละครตามชนิด (น้องวิศวะได้ชื่อ/หน้าตาเฉพาะคน)
-  G.spawn = (spId, lv, opt = {}) => ((G.DATA.engNames || {})[spId] ? G.makeEng(spId, lv, opt) : G.makeMon(spId, lv, opt));
+  G.spawn = (spId, lv, opt = {}) => { opt = { nature: 'random', ...opt };   // ผีป่า/คนที่เจอ: สุ่มนิสัย
+    return (G.DATA.engNames || {})[spId] ? G.makeEng(spId, lv, opt) : G.makeMon(spId, lv, opt); };
 
   // คนที่ชวนเข้าแก๊งได้ (น้องวิศวะ น้องหมอพยาบาล): มีชื่อและหน้าตาเฉพาะคน ชวนด้วยของกินคนละอย่างกับผี
   G.PERSON_KINDS = ['eng', 'med'];
@@ -77,7 +87,7 @@
 
   G.refreshStats = function (mon) {
     const old = mon.stats.hp;
-    mon.stats = G.calcStats(mon.sp, mon.lv, mon.ivs);
+    mon.stats = G.calcStats(mon.sp, mon.lv, mon.ivs, mon.nature);
     mon.hp = Math.min(mon.stats.hp, mon.hp + (mon.stats.hp - old));
   };
 
@@ -114,7 +124,7 @@
     const a = att.held && I[att.held], d = def.held && I[def.held];
     if (a && a.for === 'phys' && move.cat === 'phys') k *= a.value;
     if (a && a.for === 'spec' && move.cat === 'spec') k *= a.value;
-    if (a && a.for === move.type) k *= a.value;   // เช่น เกล็ดพญานาค: ท่าน้ำแรงขึ้น
+    if (a && a.for === move.type) k *= a.value;   // เช่น เกล็ดพญานาค ดินจอมปลวก: ท่าธาตุนั้นแรงขึ้น
     if (d && d.for === 'ghost' && sp[att.sp].kind === 'ghost') k *= d.value;
     return k;
   };

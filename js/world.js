@@ -529,6 +529,15 @@
   G.period = () => { const h = Math.floor(G.state.time / 60) % 24; return h >= 5 && h < 9 ? 'morning' : h >= 9 && h < 16 ? 'day' : h >= 16 && h < 19 ? 'evening' : 'night'; };
   G.PERIOD_TH = { morning: 'เช้า', day: 'กลางวัน', evening: 'เย็น', night: 'กลางคืน' };
   G.raining = () => G.state.rainLeft > 0 && !W.def.indoor;
+  // สภาพอากาศตามแผนที่/เวลา/วัน: หมอกเช้าตามทุ่งและริมน้ำ แดดจ้าเที่ยง ฝุ่น PM ในเมืองตอนกลางวัน (ใช้ในฉากต่อสู้ด้วย)
+  G.fieldWeather = function () {
+    if (!W.def || W.def.indoor || G.raining()) return null;
+    const h = Math.floor(G.state.time / 60), d = Math.floor((G.state.playMs || 0) / 1440000), m = W.map;
+    if (m === 'city' && h >= 10 && h < 17 && d % 3 !== 1) return 'dust';
+    if (['field', 'phong', 'donputa', 'village'].includes(m) && h >= 5 && h < 8 && d % 2 === 0) return 'fog';
+    if (m !== 'city' && h >= 11 && h < 15 && d % 3 === 0) return 'sun';
+    return null;
+  };
   // สีแสงตามเวลา: เช้าแสงทองอ่อน เย็นแสงส้ม (ซ้อนก่อนความมืด)
   G.tint = () => {
     const h = (G.state.time / 60) % 24;
@@ -716,6 +725,13 @@
     const dk = blackout ? 0.78 : W.def.indoor ? 0 : Math.min(0.6, G.darkness() + (G.raining() ? 0.12 : 0));
     const tn = !W.def.indoor && !blackout && G.tint();
     if (tn) { ctx.fillStyle = tn; ctx.fillRect(0, 0, 240, 160); }
+    const wx = G.fieldWeather();
+    if (wx === 'sun') { ctx.fillStyle = 'rgba(255,236,170,0.10)'; ctx.fillRect(0, 0, 240, 160); }
+    else if (wx === 'fog' || wx === 'dust') {   // หมอก/ฝุ่นลอยเป็นก้อนช้าๆ
+      const t = performance.now() / 9000, col = wx === 'fog' ? '235,240,245' : '205,180,120';
+      ctx.fillStyle = `rgba(${col},${wx === 'fog' ? 0.2 : 0.14})`; ctx.fillRect(0, 0, 240, 160);
+      for (let i = 0; i < 5; i++) { const x = ((i * 67 + t * 40 * (i % 2 ? 1 : -1)) % 320 + 320) % 320 - 40, y = (i * 37) % 150, g2 = ctx.createRadialGradient(x, y, 4, x, y, 50); g2.addColorStop(0, `rgba(${col},0.22)`); g2.addColorStop(1, `rgba(${col},0)`); ctx.fillStyle = g2; ctx.fillRect(x - 50, y - 50, 100, 100); }
+    }
     if (dk > 0) {
       ctx.fillStyle = `rgba(10,12,34,${dk})`; ctx.fillRect(0, 0, 240, 160);
       ctx.globalCompositeOperation = 'lighter';

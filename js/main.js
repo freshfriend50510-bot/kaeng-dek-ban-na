@@ -128,7 +128,8 @@
       m.lv = num(m.lv, 1, 100, 5);
       m.ivs = m.ivs && typeof m.ivs === 'object' ? m.ivs : {};
       for (const k of ['hp', 'atk', 'def', 'spa', 'spd', 'spe']) m.ivs[k] = num(m.ivs[k], 0, 31, 15);
-      m.stats = G.calcStats(m.sp, m.lv, m.ivs);
+      if (!G.NATURES[m.nature]) m.nature = 'easy';   // เซฟเก่าไม่มีนิสัย = สบายๆ (ค่าเท่าเดิม)
+      m.stats = G.calcStats(m.sp, m.lv, m.ivs, m.nature);
       m.exp = Math.max(G.expFor(m.lv), Math.min(G.expFor(m.lv + 1) - 1, Number(m.exp) || 0));
       m.hp = num(m.hp, 0, m.stats.hp, m.stats.hp);
       if (!['par', 'slp', 'psn', null].includes(m.status || null)) { fix(); m.status = null; } else m.status = m.status || null;

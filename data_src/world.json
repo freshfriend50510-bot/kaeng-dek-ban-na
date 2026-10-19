@@ -4017,6 +4017,20 @@
    "dir": "down",
    "script": "ghost_back",
    "showIf": "forest_healed"
+  },
+  {
+   "id": "amulet",
+   "name": "ยายคำ แผงเครื่องราง",
+   "map": "market",
+   "x": 14,
+   "y": 13,
+   "look": "teryai",
+   "dir": "down",
+   "script": "amulet",
+   "tag": [
+    "แผงเครื่องราง",
+    "ของถือ · ตะกรุด · ผ้าประเจียด"
+   ]
   }
  ],
  "rides": [
