@@ -230,19 +230,19 @@
         '.....BBBBBb.....',
         '.....PPPPPP.....',
         '......FF.FF.....'] },
-    // พี่ม่อน (FIEWXANDER): โปรเพลเยอร์ หนุ่มหล่อลุคแบดบอย ผมขาวเงินยุ่งไฮไลต์ดำ หมวกดำขอบขาว ตาเรืองเหลือง โค้ตดำยาวกระดุมขาว เชิ้ตขาว เนกไทดำ ก้มกดมือถือ
+    // พี่ม่อน (FIEWXANDER): โปรเพลเยอร์ หนุ่มหล่อลุคแบดบอย ผมขาวเงินยุ่งไฮไลต์ดำ หมวกดำขอบขาว ผมม้ายาวปิดตา มีแสงตาเหลืองลอดเส้นผม โค้ตดำยาวกระดุมขาว เชิ้ตขาว เนกไทดำ ก้มกดมือถือ
     mon: {
-      pal: { H: '#e9ebf2', h: '#9aa1b6', k: '#1b1b24', B: '#1a1d2b', b: '#2f3650', W: '#f4f4f4', S: '#f6d6b8', s: '#d9ab86', E: '#2a2630', K: '#16121c', j: '#ffe25a',
+      pal: { H: '#e9ebf2', h: '#9aa1b6', k: '#1b1b24', B: '#1a1d2b', b: '#2f3650', W: '#f4f4f4', S: '#f6d6b8', s: '#d9ab86', E: '#2a2630', K: '#16121c', g: '#ffe25a',
         m: '#b97a6e', C: '#141a2a', c: '#283150', O: '#f4f4f4', T: '#f4f4f4', t: '#101014', D: '#23262f', d: '#7fd0ff', P: '#131624', F: '#0b0b10' },
       rows: [
         '....WWWWWWWW....',
         '...BBBBBBBBBB...',
         '..BBbbBBBBBBBB..',
-        '..HHHHkHHHHkHH..',
-        '.HHhHHHHHHkHHHH.',
-        '.HhkSHHSSHHSkhH.',
-        '..HSKKSSSSKKSH..',
-        '..HSKjSSSSjKSH..',
+        '..HHHHhHHHHHHH..',
+        '.HHhHHHHHHHkHHH.',
+        '.HhHHHHHHHHkhhH.',
+        '..HHhHHhHHkHHH..',
+        '..HShgHSSHgkSH..',
         '...SSSSSSSSSS...',
         '....sSSmmSSs....',
         '...CCTTttTTCC...',
@@ -255,11 +255,11 @@
         '....WWWWWWWW....',
         '...BBBBBBBBBB...',
         '..BBBBBBbBBBBB..',
-        '..HHHHkHHHHkHH..',
-        '.HHhHHHHHHkHHHH.',
-        '.HHHHkHHHHHHhHH.',
-        '..HHHHHhHHkHHH..',
-        '..HHkHHHHHHHHH..',
+        '..HHHHHHHHHHHH..',
+        '.HHhHHHHHHHkHHH.',
+        '.HHhHHHHHHHkhHH.',
+        '..HHhHHhHHkHHH..',
+        '..HHhHHHHHkHHH..',
         '...HHHHHHHHHH...',
         '....hsSSSSsh....',
         '...CCCCCCCCCC...',
@@ -268,15 +268,17 @@
         '..CCCCCCCCCCCC..',
         '...CCPPPPPPCC...',
         '....FF....FF....'],
+      // ผมปิดตา: เปลี่ยนแสงตาตามอารมณ์แทน (ปากยังเปลี่ยนตาม moodRows)
+      moods: { happy: { 7: '..HShKHSSHKhSH..' }, angry: { 6: '..HHhkHhHkkHHH..', 7: '..HSggHSSHggSH..' }, tired: { 7: '..HShhHSSHhhSH..' } },
       side: [
         '.....WWWWWWW....',
         '....BBBBBBBBBB..',
         '...BBBBBBBbBBBB.',
-        '...HHHkHHHHHHH..',
+        '...HHHhHHHHHHH..',
         '..HHhHHHHHkHHHH.',
-        '..HHHHHHSHHSSH..',
-        '...HHHHSSSSKKS..',
-        '...HHkHSSSSSjS..',
+        '..HHHHHHHHHHHH..',
+        '...HHHHHkHHhHH..',
+        '...HHhHSSSHgHS..',
         '....HHSSSSSSSSS.',
         '.....hSSSSSSmS..',
         '......sSSSSs....',
@@ -474,7 +476,7 @@
     if (id.startsWith('eng:')) { const [, br, i] = id.split(':'); return buildHuman(engLook(br, +i)); }
     if (SHOP[id]) return buildHuman(engLook(id, 0));
     const lk = LOOKS[id] || LOOKS.player;
-    if (lk.rows) return { rows: lk.rows, pal: lk.pal, human: true, hairKey: 'H', views: { up: lk.up, side: lk.side } };
+    if (lk.rows) return { rows: lk.rows, pal: lk.pal, human: true, hairKey: 'H', views: { up: lk.up, side: lk.side }, moods: lk.moods };
     return buildHuman(lk);
   }
   function paint(def, rows) {
@@ -630,6 +632,11 @@
 
   // ---------- อารมณ์บนหน้า (ใช้กับรูปหน้าในกล่องข้อความ และท่านั่งหอบ) ----------
   // happy = ตายิ้ม ^ ^ ปากกว้าง, angry = คิ้วขมวด ปากเม้ม, shock = ปากอ้า, tired = ตาปรือ
+  // ตัวละครที่วาดเองบางตัวมีหน้าเฉพาะอารมณ์ (moods: {อารมณ์: {แถว: '...'}}) ทับหลัง moodRows
+  function faceRows(def, mood) {
+    const rows = moodRows(def.rows, mood), p = def.moods && def.moods[mood];
+    return p ? rows.map((r, y) => p[y] || r) : rows;
+  }
   function moodRows(rows, mood) {
     if (!mood || mood === 'normal') return rows;
     const r = rows.map((x) => x.split(''));
@@ -668,7 +675,7 @@
     if (portraitCache[key]) return portraitCache[key];
     const def = defFor(id);
     const c = document.createElement('canvas'); c.width = def.human ? 12 : 16; c.height = def.human ? 12 : 16;
-    if (def.human) c.getContext('2d').drawImage(paint({ ...def, pal: { W: '#ffffff', ...def.pal } }, moodRows(def.rows, mood)), -2, 0);   // ซูมเฉพาะหัวถึงไหล่
+    if (def.human) c.getContext('2d').drawImage(paint({ ...def, pal: { W: '#ffffff', ...def.pal } }, faceRows(def, mood)), -2, 0);   // ซูมเฉพาะหัวถึงไหล่
     else c.getContext('2d').drawImage(G.sprite(id), 0, 0);
     return (portraitCache[key] = c);
   };
@@ -678,7 +685,7 @@
     if (id in sitCache) return sitCache[id];
     const def = defFor(id);
     if (!def.human) return (sitCache[id] = null);
-    const f = moodRows(def.rows, 'tired');
+    const f = faceRows(def, 'tired');
     const pants = (f[13].match(/[^.]/) || ['P'])[0], foot = (f[15].match(/[^.]/) || ['F'])[0];
     const rows = ['................', '................', ...f.slice(0, 13)];   // ทรุดลง 2 ช่อง
     rows[14] = rows[14].replace(/^(\.\.)\./, '$1' + pants).replace(/\.(\.\.)$/, pants + '$1');   // หัวเข่า
