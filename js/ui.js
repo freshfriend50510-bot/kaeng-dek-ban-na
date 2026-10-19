@@ -216,7 +216,7 @@
     const p = Math.max(0, hp / max);
     return `<div class="hpbar"><i style="width:${(p * 100).toFixed(1)}%" class="${p < 0.2 ? 'red' : p < 0.5 ? 'yellow' : ''}"></i></div>`;
   };
-  const STATUS = { par: 'ชา', slp: 'หลับ', psn: 'ท้องเสีย' };
+  const STATUS = { par: 'ชา', slp: 'หลับ', psn: 'ท้องเสีย', brn: 'ไฟลวก' };
   G.ui.statusTag = (s) => (s ? `<span class="tag st-${s}">${STATUS[s]}</span>` : '');
   const TYPE_TH = { normal: 'ปกติ', water: 'น้ำ', earth: 'ดิน', electric: 'สายฟ้า', wind: 'ลม' };
   G.ui.typeTag = (t) => `<span class="tag ty-${t}"><canvas class="ty-ico" width="16" height="16" data-sprite="type:${t}"></canvas>${TYPE_TH[t]}</span>`;
@@ -249,7 +249,7 @@
         const off = opt.mustAlive && m.hp <= 0;
         return `<div class="tcard ${m.hp <= 0 ? 'down' : ''} ${off ? 'off' : ''}" data-i="${k}">
           <div class="tc-pic"><canvas width="16" height="16" data-sprite="${esc(G.monLook(m))}"></canvas>${k === 0 && S.follower ? '<em class="tc-lead">เดินตาม</em>' : ''}</div>
-          <div class="tc-body"><div class="tc-top"><b>${esc(m.name)}</b><span class="lv">Lv${m.lv}</span></div>
+          <div class="tc-body"><div class="tc-top"><b>${m.shiny ? '<span class="k-shiny">✨</span>' : ''}${esc(m.name)}</b><span class="tc-heart" title="ความสนิท">${'♥'.repeat(G.hearts(m))}</span><span class="lv">Lv${m.lv}</span></div>
             <div class="tc-tags">${G.ui.typeTag(sp.type)}<span class="tag tc-kind">${KIND_TH[sp.kind] || ''}</span>${G.ui.statusTag(m.status)}${m.hp <= 0 ? '<span class="tag tc-ko">หมดแรง</span>' : ''}</div>
             ${G.ui.hpBar(m.hp, m.stats.hp)}<div class="tc-num"><span>${m.hp}/${m.stats.hp}</span>${m.held ? `<span class="tc-held"><canvas width="16" height="16" data-sprite="item:${m.held}"></canvas>${esc(G.DATA.items[m.held].name)}</span>` : ''}</div>
             <div class="expbar"><i style="width:${ex}%"></i></div></div></div>`;
@@ -366,7 +366,7 @@
     return G.ui.panel(`
       <div class="info-head"><canvas class="info-sprite" width="16" height="16" data-sprite="${G.monLook(m)}"></canvas>
         <div><b>${esc(m.name)}</b> Lv${m.lv} ${G.ui.typeTag(sp.type)} ${G.ui.statusTag(m.status)} <small>${KIND_TH[sp.kind] || ''}${m.name !== sp.name && sp.kind !== 'eng' && sp.kind !== 'med' ? ' · ' + esc(sp.name) : ''}</small><br>
-        <small>${esc(sp.desc)}</small>${sp.ability ? `<br><small>ความสามารถ: ${esc(AB_SHORT[sp.ability] + ' — ' + G.AB_DESC[sp.ability])}</small>` : ''}<br><small>นิสัย: ${esc(G.natureText(m))}</small>${m.held ? `<br><small>ถือ: ${esc(G.DATA.items[m.held].name)}</small>` : ''}</div></div>
+        <small>${esc(sp.desc)}</small>${sp.ability ? `<br><small>ความสามารถ: ${esc(AB_SHORT[sp.ability] + ' — ' + G.AB_DESC[sp.ability])}</small>` : ''}<br><small>นิสัย: ${esc(G.natureText(m))} · ความสนิท ${'♥'.repeat(G.hearts(m)) || '—'}${G.hearts(m) >= 4 ? ' (สนิทมาก บางทีจะทนหมัดสุดท้ายได้)' : ''}</small>${m.held ? `<br><small>ถือ: ${esc(G.DATA.items[m.held].name)}</small>` : ''}</div></div>
       <div class="stats">HP ${m.hp}/${st.hp} · โจมตี ${st.atk} · ป้องกัน ${st.def} · พิเศษ ${st.spa} · ป้องกันพิเศษ ${st.spd} · ความเร็ว ${st.spe}</div>
       <table class="moves"><tr><th>ท่า</th><th>ธาตุ</th><th>พลัง</th><th>PP</th></tr>${moves}</table>`, 'mon-info');
   };
@@ -485,7 +485,8 @@
         if (S.party.every((m) => m.hp >= m.stats.hp && !m.status)) { await G.ui.say('ทุกคนแข็งแรงดีอยู่แล้ว'); continue; }
         S.party.forEach((m) => { m.hp = m.stats.hp; m.status = null; }); S.kitDay = day;
         G.sfx('heal'); await G.ui.say('เปิดกระเป๋าปฐมพยาบาลของพี่บูม ทำแผลให้ทุกคน ฟื้นพลังเต็ม!');
-      } else if (it.kind === 'key') await G.ui.say(it.desc);
+      } else if (ids[i] === 'bike') { G.toggleBike(); return null; }
+      else if (it.kind === 'key') await G.ui.say(it.desc);
       else await G.ui.say(`${it.name}ใช้ได้ตอนต่อสู้เท่านั้น`);
     }
   };
@@ -792,6 +793,14 @@
     const left = S.party.filter((m) => m.hp > 0 && m.hp < m.stats.hp).length;
     await G.ui.say(`ใช้ ${list}${left ? ` · ยาหมด ยังมีอีก ${left} คนที่เลือดไม่เต็ม` : ' · ทุกคนพร้อมลุยแล้ว!'}`);
   };
+  // ตารางธาตุ: แถว = ธาตุท่าที่ใช้ตี คอลัมน์ = ธาตุของฝ่ายที่โดน
+  G.ui.typeChart = function () {
+    const T = G.DATA.types, ch = G.DATA.chart;
+    const head = T.map((t) => `<th>${G.ui.typeTag(t)}</th>`).join('');
+    const rows = T.map((a) => `<tr><th>${G.ui.typeTag(a)}</th>${T.map((d) => { const v = ch[a][d]; return `<td class="tc-${v > 1 ? 'up' : v < 1 ? 'down' : 'eq'}">${v > 1 ? '×2' : v < 1 ? '×½' : '·'}</td>`; }).join('')}</tr>`).join('');
+    const tips = T.map((a) => { const good = T.filter((d) => ch[a][d] > 1).map((d) => G.TYPE_TH[d]); return good.length ? `<li>${G.ui.typeTag(a)} แรงกับ ${good.join(' ')}</li>` : ''; }).join('');
+    return G.ui.panel(`<div class="choice-title">ตารางธาตุ</div><div class="tchart-wrap"><table class="tchart"><tr><th class="corner">ท่า ↓ / โดน →</th>${head}</tr>${rows}</table><ul class="howto tchart-tips">${tips}<li>ท่าธาตุเดียวกับตัวเองแรงขึ้น ×1.5</li></ul></div>`, 'tchart-sheet');
+  };
   let lastMain = '';
   G.ui.mainMenu = async function () {
     const S = G.state;
@@ -802,7 +811,7 @@
     if (S.flags.starter_chosen) items.push('สมุดบันทึก');
     if (S.flags.intro_done) items.push('สมุดเควสต์');
     if (G.travelSpots().length > 1) items.push('เดินทาง');
-    items.push('ตรา', 'วิธีเล่น', 'บันทึกเกม', 'ตั้งค่า', 'ปิด');
+    items.push('ตรา', 'ตารางธาตุ', 'วิธีเล่น', 'บันทึกเกม', 'ตั้งค่า', 'ปิด');
     const i = await G.ui.choose(items, { cls: 'mainmenu', title: `${S.name} · ${S.money} บาท`, start: Math.max(0, items.indexOf(lastMain)) });
     const pick = items[i]; if (pick && pick !== 'ปิด') lastMain = pick;
     if (pick === 'ทีม') await G.ui.partyMenu();
@@ -811,6 +820,7 @@
     else if (pick === 'สมุดบันทึก') await G.ui.notebook();
     else if (pick === 'สมุดเควสต์') await G.ui.questLog();
     else if (pick === 'เดินทาง') await G.ui.travel();
+    else if (pick === 'ตารางธาตุ') await G.ui.typeChart();
     else if (pick === 'ตรา') await G.ui.panel(`<div class="choice-title">ตรายิม</div><div class="badges">${
       [['gym1', 'ผ้าโพก'], ['gym2', 'เฟือง'], ['gym3', 'หูฟัง'], ['gym4', 'ไม้เรียว']].map(([f, n]) =>
         `<div class="badge ${S.flags[f + '_done'] ? 'on' : ''}"><canvas width="16" height="16" data-sprite="badge:${f}"></canvas>ตรา${n}</div>`).join('')}</div>`);

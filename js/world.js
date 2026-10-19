@@ -398,7 +398,8 @@
       }
     }
     if (!G.world.passable(nx, ny)) { if (!W.bumpCD) { G.sfx('bump'); W.bumpCD = 14; } return; }
-    startMove(nx, ny, run ? 0.25 : 0.125, false);
+    const bike = S.biking && !W.def.indoor;
+    startMove(nx, ny, bike ? 0.34 : run ? 0.25 : 0.125, false);
   };
   G.world.enterDoor = function (door) {
     const F = G.state.flags;
@@ -433,7 +434,9 @@
 
   G.world.afterStep = function () {
     const S = G.state;
+    if (S.biking && W.def.indoor) S.biking = false;   // เข้าตึกแล้วจอดจักรยาน
     S.steps++;
+    if (S.steps % 48 === 0 && S.party[0]) G.addFriend(S.party[0], 1);   // เพื่อนที่เดินนำ สนิทขึ้นเรื่อยๆ
     if (S.repel > 0) { S.repel--; if (S.repel === 0) G.runScript('repel_end'); }
     const wp = warpAt(S.x, S.y);
     if (wp) { G.sfx('door'); G.fadeTo(() => G.loadMap(wp.to, wp.tx, wp.ty, wp.dir)).then(() => G.runScript('enter', wp.to)); return; }
@@ -720,7 +723,16 @@
     const walking = !!W.moving;
     const step = walking ? (Math.floor(W.anim / 7) % 2) + 1 : 0;
     const actors = W.npcs.map((n) => ({ y: n.y, draw: () => drawActor(ctx, n.look, n.x * TS - cx, n.y * TS - cy, n.dir, 0, n) }));
-    actors.push({ y: py, draw: () => drawActor(ctx, 'player', Math.round(px * TS - cx), Math.round(py * TS - cy), S.dir, step) });
+    actors.push({ y: py, draw: () => {
+      const ax = Math.round(px * TS - cx), ay = Math.round(py * TS - cy), bike = S.biking && !W.def.indoor;
+      drawActor(ctx, 'player', ax, ay - (bike ? 2 : 0), S.dir, bike ? 0 : step);
+      if (bike) {   // จักรยาน: ล้อหมุน โครงสีแดง
+        const side = S.dir === 'left' || S.dir === 'right', spin = Math.floor(W.anim / 4) % 2;
+        ctx.strokeStyle = '#1b1414'; ctx.lineWidth = 1.5;
+        if (side) { for (const wx of [3, 13]) { ctx.beginPath(); ctx.arc(ax + wx, ay + 13, 3, 0, 7); ctx.stroke(); ctx.fillStyle = '#9aa3ae'; ctx.fillRect(ax + wx - (spin ? 1 : 0), ay + 12 + spin, 1, 1); } ctx.fillStyle = '#c5482b'; ctx.fillRect(ax + 4, ay + 11, 9, 1); ctx.fillRect(ax + 8, ay + 9, 1, 3); }
+        else { ctx.fillStyle = '#1b1414'; ctx.fillRect(ax + 7, ay + 10, 2, 6); ctx.fillStyle = '#c5482b'; ctx.fillRect(ax + 4, ay + 9, 8, 1); ctx.fillStyle = '#9aa3ae'; ctx.fillRect(ax + 7, ay + 12 + spin * 2, 2, 1); }
+      }
+    } });
     const lead = S.party[0];
     if (S.follower && lead && W.follow) {
       const fm = W.fmove, t = W.moving ? W.moving.t : 0;

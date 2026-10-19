@@ -180,6 +180,7 @@
     V.layer.remove(); V.active = false;
     G.scene = 'world';
     G.music(G.world.def.music);
+    S.party.forEach((m) => G.addFriend(m, result === 'win' ? (m.hp > 0 ? 3 : 1) : m.hp > 0 ? 0 : -2));   // ความสนิท
     if (result !== 'lose') for (const m of S.party.slice()) await G.ui.tryEvolve(m);   // วิวัฒนาการหลังจบการต่อสู้
     return result;
   };

@@ -295,3 +295,11 @@ table.moves td, table.moves th { padding: calc(var(--u) * 0.5) calc(var(--u) * 2
 .gauge.used { opacity: .45; }
 @keyframes gaugeGlow { from { filter: brightness(1); } to { filter: brightness(1.5); } }
 .choice-item.ult { background: linear-gradient(90deg, rgba(242,210,75,.25), rgba(255,154,42,.15)); border: 1px solid #f2d24b; }
+.st-brn { background: #e8601a; color: #fff8e0; }
+.tc-heart { color: #ff7aa8; font-size: .7em; margin-left: auto; margin-right: calc(var(--u) * 1); letter-spacing: -1px; }
+.tchart-wrap { display: flex; gap: calc(var(--u) * 6); align-items: flex-start; justify-content: center; }
+.tchart { border-collapse: collapse; font-size: .8em; }
+.tchart th, .tchart td { padding: calc(var(--u) * 1.5); text-align: center; border: 1px solid rgba(246,238,216,.15); }
+.tchart .corner { font-size: .7em; opacity: .7; }
+.tc-up { background: rgba(108,192,74,.35); color: #c8ffb0; font-weight: bold; } .tc-down { background: rgba(217,69,90,.3); color: #ffc0c8; } .tc-eq { opacity: .4; }
+.tchart-tips { font-size: .75em; max-width: 40%; }

@@ -3,7 +3,7 @@
   'use strict';
   const $ = (s) => document.querySelector(s);
   const hud = $('#hud'), partyEl = $('#party-hud'), mini = $('#minimap'), mctx = mini.getContext('2d');
-  const STATUS = { par: 'ชา', slp: 'หลับ', psn: 'ท้องเสีย' };
+  const STATUS = { par: 'ชา', slp: 'หลับ', psn: 'ท้องเสีย', brn: 'ไฟลวก' };
 
   // หมุดบนแผนที่: ลูกศรตัวเรา ดาวเป้าหมาย จุดคน
   const star = (x, cx, cy, r, fill) => { x.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + (k * Math.PI) / 5, rr = k % 2 ? r * 0.45 : r; x.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr); } x.closePath(); x.fillStyle = fill; x.fill(); x.lineWidth = Math.max(1, r / 4); x.strokeStyle = '#18203f'; x.stroke(); };

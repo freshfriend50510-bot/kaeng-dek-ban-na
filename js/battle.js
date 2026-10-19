@@ -290,6 +290,7 @@
           const sash = tgt.held && G.DATA.items[tgt.held] && G.DATA.items[tgt.held].for === 'sash' && tgt.hp >= tgt.stats.hp && dmg >= tgt.hp;
           tgt.hp = Math.max(sash ? 1 : 0, tgt.hp - dmg); total += dmg;
           if (sash) { ev.push({ t: 'msg', text: `${tname} ยึด${G.DATA.items[tgt.held].name}ไว้ รอดมาได้ด้วยพลังเฮือกสุดท้าย!` }); tgt.held = null; }
+          else if (tgt.hp <= 0 && tside === 'p' && (tgt.friend || 0) >= 200 && r() < 0.15) { tgt.hp = 1; ev.push({ t: 'msg', text: `${tname} กัดฟันทนไว้ได้ เพราะไม่อยากให้เพื่อนผิดหวัง!` }); }   // ความสนิทสูง
           ev.push({ t: 'hit', side: tside, eff });
           ev.push({ t: 'hp', side: tside, hp: tgt.hp });
           if (crit) { ev.push({ t: 'crit', side: tside }); ev.push({ t: 'msg', text: side === 'p' ? 'คริติคอล! ตีเข้าจุดสำคัญเต็มๆ!' : 'โดนจุดสำคัญ!' }); }
@@ -365,7 +366,7 @@
         if (tv.cnf > 0) { if (!secondary) ev.push({ t: 'msg', text: `${tname} มึนอยู่แล้ว!` }); return; }
         tv.cnf = this.rng.int(2, 5) + 1;
         ev.push({ t: 'msg', text: `${tname} มึนหัวไปแล้ว!` });
-      } else if (eff === 'par' || eff === 'slp' || eff === 'psn') {
+      } else if (eff === 'par' || eff === 'slp' || eff === 'psn' || eff === 'brn') {
         if (tgt.status) { if (!secondary) ev.push({ t: 'msg', text: 'แต่ไม่ได้ผล!' }); return; }
         tgt.status = eff;
         if (eff === 'slp') tgt.slp = this.rng.int(1, 3);
@@ -382,6 +383,10 @@
         if (v.regen > 0) { v.regen--; if (m.hp < m.stats.hp) { m.hp = Math.min(m.stats.hp, m.hp + Math.max(1, Math.floor(m.stats.hp / 16))); ev.push({ t: 'msg', text: `${this.label(side)} ฟื้นพลังทีละนิด` }); ev.push({ t: 'hp', side, hp: m.hp }); } }
         this.endAbility(side, m, v, ev); if (m.hp <= 0) continue;
         if (v.burn > 0) { v.burn--; m.hp = Math.max(0, m.hp - Math.max(1, Math.floor(m.stats.hp / 12))); ev.push({ t: 'msg', text: `${this.label(side)} โดนไฟเผาพื้นร้อนจนเจ็บ!` }); ev.push({ t: 'hp', side, hp: m.hp }); if (m.hp <= 0) continue; }
+        if (m.status === 'brn') {   // ไฟลวก: เจ็บ 1/16 ทุกเทิร์น (ท่ากายภาพอ่อนลงครึ่งหนึ่งใน G.damage)
+          m.hp = Math.max(0, m.hp - Math.max(1, Math.floor(m.stats.hp / 16)));
+          ev.push({ t: 'msg', text: `${this.label(side)} แสบร้อนจากไฟลวก!` }); ev.push({ t: 'hp', side, hp: m.hp });
+        }
         if (m.status === 'psn') {
           m.hp = Math.max(0, m.hp - Math.max(1, Math.floor(m.stats.hp / 8)));
           ev.push({ t: 'msg', text: `${this.label(side)} ปวดท้อง!` }); ev.push({ t: 'hp', side, hp: m.hp });

@@ -131,11 +131,11 @@
       m.ivs = m.ivs && typeof m.ivs === 'object' ? m.ivs : {};
       for (const k of ['hp', 'atk', 'def', 'spa', 'spd', 'spe']) m.ivs[k] = num(m.ivs[k], 0, 31, 15);
       if (!G.NATURES[m.nature]) m.nature = 'easy';
-      m.shiny = m.shiny === true; if (m.noEvo != null) m.noEvo = num(m.noEvo, 1, 100, 1);   // เซฟเก่าไม่มีนิสัย = สบายๆ (ค่าเท่าเดิม)
+      m.shiny = m.shiny === true; m.friend = num(m.friend, 0, 255, 70); if (m.noEvo != null) m.noEvo = num(m.noEvo, 1, 100, 1);   // เซฟเก่าไม่มีนิสัย = สบายๆ (ค่าเท่าเดิม)
       m.stats = G.calcStats(m.sp, m.lv, m.ivs, m.nature);
       m.exp = Math.max(G.expFor(m.lv), Math.min(G.expFor(m.lv + 1) - 1, Number(m.exp) || 0));
       m.hp = num(m.hp, 0, m.stats.hp, m.stats.hp);
-      if (!['par', 'slp', 'psn', null].includes(m.status || null)) { fix(); m.status = null; } else m.status = m.status || null;
+      if (!['par', 'slp', 'psn', 'brn', null].includes(m.status || null)) { fix(); m.status = null; } else m.status = m.status || null;
       m.moves = (Array.isArray(m.moves) ? m.moves : []).filter((x) => x && D.moves[x.id] || (fix(), false)).slice(0, 4)
         .map((x) => ({ id: x.id, pp: num(x.pp, 0, D.moves[x.id].pp, D.moves[x.id].pp) }));
       if (!m.moves.length) { fix(); m.moves = G.movesAt(m.sp, m.lv).map((id) => ({ id, pp: D.moves[id].pp })); }
@@ -147,6 +147,8 @@
     };
     s.party = (Array.isArray(s.party) ? s.party : []).map(cleanMon).filter(Boolean);
     s.storage = (Array.isArray(s.storage) ? s.storage : []).map(cleanMon).filter(Boolean);
+    s.daycare = (Array.isArray(s.daycare) ? s.daycare : []).filter((d) => d && d.mon).map((d) => ({ mon: cleanMon(d.mon), steps: Number(d.steps) || 0 })).filter((d) => d.mon).slice(0, 2);
+    s.biking = s.biking === true && !!s.bag.bike;
     while (s.party.length > 6) { s.storage.push(s.party.pop()); fix(); }
     if (!s.party.length && s.storage.length) { s.party.push(s.storage.shift()); fix(); }
     // ตำแหน่งต้องอยู่บนแผนที่ที่มีจริงและยืนได้
@@ -198,11 +200,11 @@
 
   // ---------- ปุ่ม ----------
   const KEYMAP = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
-    KeyZ: 'ok', Space: 'ok', KeyX: 'back', Escape: 'back', Backspace: 'back', Enter: 'menu', KeyM: 'map', KeyB: 'bag', KeyT: 'team', KeyQ: 'quest', Tab: 'hud', KeyL: 'log' };
+    KeyZ: 'ok', Space: 'ok', KeyX: 'back', Escape: 'back', Backspace: 'back', Enter: 'menu', KeyM: 'map', KeyB: 'bag', KeyT: 'team', KeyQ: 'quest', Tab: 'hud', KeyL: 'log', KeyC: 'bike' };
   const held = {};
   G.press = function (k) {
     G.unlockAudio();
-    if (G.ui.active()) { if (['map', 'bag', 'team', 'hud', 'quest', 'log'].includes(k)) k = 'back'; G.ui.key(k === 'menu' ? 'ok' : k); return; }
+    if (G.ui.active()) { if (['map', 'bag', 'team', 'hud', 'quest', 'log', 'bike'].includes(k)) k = 'back'; G.ui.key(k === 'menu' ? 'ok' : k); return; }
     if (G.scene !== 'world' || G.busy || G.world.moving || fading) return;
     if (k === 'ok') G.world.interact();
     else if (k === 'menu') G.runScript('_menu');
@@ -211,10 +213,16 @@
     else if (k === 'quest' && G.state.flags.intro_done) G.runScript('_quest');
     else if (k === 'team' && G.state.party.length) G.runScript('_team');
     else if (k === 'log') G.runScript('_log');
+    else if (k === 'bike') G.toggleBike();
     else if (k === 'hud') { G.settings.hud = G.settings.hud === false; G.saveSettings(); }
   };
   G.SCRIPTS._menu = () => G.ui.mainMenu();
   G.SCRIPTS._log = () => G.ui.showLog();
+  G.toggleBike = () => {   // จักรยาน: ใช้ได้เฉพาะข้างนอก
+    const S = G.state; if (!S.bag.bike) return;
+    if (!S.biking && G.world.def.indoor) { G.showToast('ปั่นในตึกไม่ได้นะ'); return; }
+    S.biking = !S.biking; G.sfx(S.biking ? 'switch' : 'door'); G.showToast(S.biking ? '🚲 ขึ้นจักรยานแล้ว ปั่นเร็วขึ้นสองเท่า' : 'ลงจากจักรยานแล้ว');
+  };
   G.applyTextSize = () => document.documentElement.style.setProperty('--fs', [1, 1.15, 1.3][G.settings.textSize || 0]);
   window.addEventListener('keydown', (e) => {
     const k = KEYMAP[e.code]; if (!k) return;

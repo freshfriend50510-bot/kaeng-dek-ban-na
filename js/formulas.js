@@ -136,6 +136,9 @@
     return (1 / 200) * (1 + ch * 0.25) * (ob && ob.sp === sp && ob.map === onMap ? 3 : 1) * ((S.bag || {}).lucky_charm ? 3 : 1);
   };
   // ท่าไม้ตายประจำตัว: เด็ก 4 คนมีท่าเฉพาะ ตัวอื่นตามธาตุ
+  // ความสนิท 0–255 (เริ่ม 70): ชนะด้วยกัน เดินด้วยกัน เลเวลอัป ได้กินของ → เพิ่ม · หมดแรง → ลด
+  G.addFriend = (m, n) => { if (!m) return; m.friend = Math.max(0, Math.min(255, (m.friend == null ? 70 : m.friend) + n)); };
+  G.hearts = (m) => Math.min(5, Math.floor((m.friend == null ? 70 : m.friend) / 51));
   G.ultOf = (m) => (G.DATA.moves['ult_' + m.sp] ? 'ult_' + m.sp : 'ult_' + G.DATA.species[m.sp].type);
   G.expGain = (foe, trainer) => Math.floor((G.DATA.species[foe.sp].baseexp * foe.lv) / 7 * (trainer ? 1.5 : 1));
 

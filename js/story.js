@@ -292,7 +292,24 @@
         await give('yantra', 1); F().yantra_given = true;
       }
     },
-    async novice() { await say('หลวงตาบอกว่าถ้าตั้งใจไหว้พระ จิตใจจะสงบ สู้ผีก็ไม่กลัว', 'เณรน้อย'); },
+    async novice(n) {   // ฝากเลี้ยงที่วัด: เดินไปเรื่อยๆ ลูกทีมที่ฝากไว้ได้ EXP เอง (สูงสุด 2 ตัว)
+      const D = (S().daycare = S().daycare || []), nm = n ? n.name : 'เณรน้อย';
+      const gain = (d) => Math.floor((S().steps - d.steps) * 8);
+      const opts = ['ฝากลูกทีมไว้ที่วัด', ...D.map((d) => `รับ${d.mon.name}คืน (+${gain(d)} EXP)`), 'ไม่เป็นไร'];
+      const i = await G.ui.ask(D.length ? `ลูกทีมที่ฝากไว้ช่วยกวาดลานวัดทุกวันเลย เดินไปเยอะๆ เขาก็เก่งขึ้นเอง` : 'ฝากลูกทีมไว้กับเณรได้นะ ช่วยงานวัดไปด้วย ฝึกตัวไปด้วย พี่เดินทางไกลแค่ไหน เขาก็เก่งขึ้นตามนั้น', nm, opts, { cls: 'small' });
+      if (i === 0) {
+        if (D.length >= 2) { await say('ฝากได้ทีละสองคนเท่านั้นนะ', nm); return; }
+        if (S().party.length <= 1) { await say('ต้องเหลือเพื่อนเดินทางอย่างน้อยหนึ่งคนนะ', nm); return; }
+        const t = await G.ui.partyMenu({ pick: true, title: 'ฝากใครไว้ที่วัด?' }); if (t < 0) return;
+        const m = S().party.splice(t, 1)[0]; D.push({ mon: m, steps: S().steps }); G.sfx('door');
+        await say(`ฝาก${m.name}ไว้แล้ว เดินไปเยอะๆ แล้วค่อยกลับมารับนะ`, nm);
+      } else if (i > 0 && i <= D.length) {
+        if (S().party.length >= 6) { await say('ทีมเต็มอยู่ ฝากใครไว้ในคลังก่อนนะ', nm); return; }
+        const d = D.splice(i - 1, 1)[0], g = gain(d); S().party.push(d.mon); G.addFriend(d.mon, 10);
+        await say(`${d.mon.name}กลับมาแล้ว! ช่วยงานวัดจนสดชื่นเลย`, nm);
+        if (g > 0) await G.ui.giveExp(d.mon, g);
+      } else await say('หลวงตาบอกว่าถ้าตั้งใจไหว้พระ จิตใจจะสงบ สู้ผีก็ไม่กลัว', nm);
+    },
     async altar() { await say('ไหว้พระสามครั้ง... จิตใจสงบลง ทุกคนสดชื่นขึ้น'); G.state.party.forEach((m) => { m.status = null; }); G.sfx('heal'); },
     async jam() {
       if (!F().gym3_done) { await say('บ่ได้ดอกหลาน ปู่ตาบ่ให้เข้า ไว้มีบุญค่อยมา', 'เฒ่าจ้ำ'); return; }
@@ -396,6 +413,9 @@
       else if (F().calf_found && !F().calf_done) {
         await say('เจ้าทอง! กลับมาแล้ว! ขอบใจหลายๆ เลยหลาน รับนี่ไปเป็นค่าเหนื่อย', 'พ่อบี');
         await finishQuest('s_calf'); G.refreshNpcs();
+      } else if (F().calf_done && !S().bag.bike) {
+        await say('เจ้าทองโตแล้ว ลุงไม่ได้ใช้จักรยานไปต้อนควายแล้ว หลานเอาไปปั่นเถอะ ไปไหนมาไหนจะได้ไว', 'พ่อบี');
+        await give('bike', 1); await say('กด C เพื่อขึ้น/ลงจักรยาน ใช้ได้ในที่โล่ง');
       } else await say('ระวังผีโพงตอนกลางคืนนะ มันชอบออกมาตอนมืด', 'พ่อบี');
     },
     async calf() {
