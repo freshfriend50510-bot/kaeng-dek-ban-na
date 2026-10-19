@@ -168,7 +168,7 @@
       const items = options.map((o) => (typeof o === 'string' ? { label: o } : o));
       const list = el('div', 'choice-list' + (opt.grid ? ' grid' : ''));
       const rows = items.map((it, i) => {
-        const r = el('div', 'choice-item' + (it.disabled ? ' disabled' : ''));
+        const r = el('div', 'choice-item' + (it.disabled ? ' disabled' : '') + (it.cls ? ' ' + it.cls : ''));
         r.innerHTML = `${it.icon ? `<canvas width="16" height="16" class="ico" data-sprite="${esc(it.icon)}"></canvas>` : ''}<span class="lbl">${esc(it.label)}</span>${it.sub ? `<span class="sub">${esc(it.sub)}</span>` : ''}`;
         r.addEventListener('click', () => { sel = i; draw(); pick(); });
         list.appendChild(r); return r;

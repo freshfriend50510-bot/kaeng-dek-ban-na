@@ -15,6 +15,8 @@
   // regen = ฟื้นทีละนิดทุกเทิร์น, dodge = หลบท่าโจมตีครั้งต่อไป, focus = ท่าโจมตีครั้งต่อไปคริแน่, breakDef = ทำลายบัฟป้องกัน, haze = ลมพัดบัฟศัตรูหาย,
   // chain = ใช้ซ้ำติดกันแรงขึ้น, money = ได้เงินเพิ่มหลังจบ, scan = บอกพลังที่เหลือของศัตรู, burn = ไฟติดพื้นเผาศัตรูทุกเทิร์น, heal8 = ฟื้นนิดหน่อย
   const GIM = {
+    ult_bee: { sure: true, flinch: 50 }, ult_am: { sure: true }, ult_tle: { sure: true, drain: 0.5 }, ult_ter: { sure: true }, ult_water: { sure: true, rain: true },
+    ult_earth: { sure: true, breakDef: true }, ult_electric: { sure: true }, ult_wind: { sure: true, haze: true }, ult_normal: { sure: true, also: ['self_atk+1', 100] },
     tackle: { boost: ['foeFull', 1.5, 'เปิดฉากพุ่งชนเต็มแรง!'] }, silly_face: { also: ['cnf', 30], txt: 'ศัตรูอาจขำจนมึน' }, mud_throw: { also: ['foe_acc-1', 30], txt: 'โคลนอาจเข้าตา' },
     pound_ground: { also: ['cnf', 20], txt: 'ศัตรูอาจหูอื้อจนมึน' }, field_slam: { crash: true, flinch: 20 }, push_glasses: { focus: true }, battery_shot: { boost: ['rain', 1.5, 'น้ำนำไฟฟ้า!'] },
     lecture: { sureIf: 'person', txt: 'นักศึกษาหนีไม่พ้น' }, plasma: { boost: ['foePar', 2, 'ไฟฟ้าวิ่งครบวงจร!'] }, belly_bump: { boost: ['userDef', 1.5, 'พุงแน่นเด้งแรง!'] },
@@ -86,6 +88,7 @@
       this.potions = opt.potions || 0;   // ยาฟื้นที่มาสเตอร์ใช้ได้ (พี่บูม 2 ครั้ง)
       this.weather = opt.weather !== undefined ? opt.weather : (G.fieldWeather ? G.fieldWeather() : null);   // sun แดดจ้า · fog หมอก · dust ฝุ่น PM
       this.started = false;
+      this.gauge = { p: 0, f: 0 }; this.ultUsed = { p: false, f: false };   // เกจหมอลำ: เต็ม 100 ใช้ท่าไม้ตายได้ครั้งเดียวต่อการต่อสู้
       this.applyRage([]);
     }
     // opt.rage = { sp, st, text }: ศัตรูชนิดนี้ลงสนามมาพร้อมบัฟ (เช่น พี่เฟรนด์โมโหเพราะเห็นอุ๋งอิ๋งในแก๊ง)
@@ -117,6 +120,7 @@
     }
 
     chooseFoeMove() {
+      if (this.ultReady('f') && this.foe.hp > 0) return this.useUlt('f');
       const f = this.foe, usable = f.moves.filter((m) => m.pp > 0);
       if (!usable.length) return STRUGGLE.id;
       const r = this.rng;
@@ -178,7 +182,7 @@
         if (done !== 'skipFoe' && foeMove) this.doMove('f', foeMove, ev, false);
       } else {
         const slot = this.me.moves[action.idx];
-        const myMove = slot && slot.pp > 0 ? slot.id : STRUGGLE.id;
+        const myMove = action.type === 'ult' && this.ultReady('p') ? this.useUlt('p') : slot && slot.pp > 0 ? slot.id : STRUGGLE.id;
         const M = (id) => (id === 'struggle' ? STRUGGLE : G.DATA.moves[id]);
         const pPri = M(myMove).priority + (this.sp(this.me).ability === 'quick' && this.pv.turns === 0 ? 0.5 : 0);
         const fPri = foeMove ? M(foeMove).priority : -99;
@@ -247,7 +251,7 @@
       const g = GIM[mv.id] || {};
       uv.chain = uv.last === mv.id ? Math.min(2, uv.chain + 1) : 0; uv.last = mv.id;
       // หลบ (ก้าวหลบสายลม ควันมืด ม่านเมฆ)
-      if (tv.dodge && mv.cat !== 'status') { tv.dodge = false; ev.push({ t: 'msg', text: `${tname} หลบได้ทันอย่างกับสายลม!` }); return; }
+      if (tv.dodge && mv.cat !== 'status' && !(mv.id || '').startsWith('ult_')) { tv.dodge = false; ev.push({ t: 'msg', text: `${tname} หลบได้ทันอย่างกับสายลม!` }); return; }   // ท่าไม้ตายหลบไม่ได้
       // ความแม่น
       const night = G.isNight ? G.isNight() : false;
       const sure = g.sure || (g.sureIf === 'night' && night) || (g.sureIf === 'person' && G.isPerson && G.isPerson(tgt));
@@ -296,6 +300,7 @@
         if (g.recoil && total > 0) { user.hp = Math.max(0, user.hp - Math.max(1, Math.floor(total * g.recoil))); ev.push({ t: 'hp', side, hp: user.hp }); ev.push({ t: 'msg', text: `${name} เจ็บตัวเองจากแรงกระแทก!` }); }
         if (g.flinch && !movedSecond && tgt.hp > 0 && r.chance(g.flinch)) tv.flinch = true;
         this.afterHit(user, tgt, mv, side, total, ev);
+        if (!mv.id || !mv.id.startsWith('ult_')) { this.gaugeAdd(side, 18); if (total > 0) this.gaugeAdd(tside, 12); }
         if (g.breakDef && (tv.st.def > 0 || tv.st.spd > 0)) { tv.st.def = Math.min(0, tv.st.def); tv.st.spd = Math.min(0, tv.st.spd); ev.push({ t: 'msg', text: `บัฟป้องกันของ ${tname} พังทลาย!` }); }
         if (g.haze && Object.values(tv.st).some((v) => v > 0)) { for (const kk in tv.st) tv.st[kk] = Math.min(0, tv.st[kk]); ev.push({ t: 'msg', text: `ลมพัดบัฟของ ${tname} หายเกลี้ยง!` }); }
         if (g.burn && tgt.hp > 0) { tv.burn = g.burn; ev.push({ t: 'msg', text: `ไฟลุกท่วมพื้นรอบตัว ${tname}!` }); }
@@ -307,6 +312,7 @@
         if (tgt.hp > 0 && mv.effect && r.chance(mv.chance)) this.applyEffect(mv.effect, side, ev, true);
       } else {
         this.applyEffect(mv.effect, side, ev, false);
+        this.gaugeAdd(side, 10);
       }
       this.gimmickAfter(g, side, ev, night);
     }
@@ -388,6 +394,14 @@
       if (this.rain > 0 && --this.rain === 0) ev.push({ t: 'msg', text: 'ฝนกลางสนามหยุดแล้ว' });
     }
 
+    // ---------- ท่าไม้ตาย (เกจหมอลำ) ----------
+    gaugeAdd(side, n) {
+      if (side === 'f' && !['master', 'boss'].includes(this.opt.kind)) return;   // ผีป่า/เทรนเนอร์ธรรมดาไม่มีท่าไม้ตาย
+      if (this.ultUsed[side]) return;
+      this.gauge[side] = Math.min(100, this.gauge[side] + n);
+    }
+    ultReady(side) { return this.gauge[side] >= 100 && !this.ultUsed[side]; }
+    useUlt(side) { this.gauge[side] = 0; this.ultUsed[side] = true; return G.ultOf(side === 'p' ? this.me : this.foe); }
     // ---------- ความสามารถติดตัว + ของถือ + สภาพอากาศ ----------
     onEntry(side, ev) {
       const m = side === 'p' ? this.me : this.foe, v = side === 'p' ? this.pv : this.fv;
@@ -445,6 +459,7 @@
         this.foe._fainted = true;
         ev.push({ t: 'faint', side: 'f' });
         ev.push({ t: 'msg', text: `${this.label('f')} หมดแรง!` });
+        this.gaugeAdd('p', 25);
         this.giveExp(ev);
         const next = this.F.findIndex((m) => m.hp > 0);
         if (next < 0) {

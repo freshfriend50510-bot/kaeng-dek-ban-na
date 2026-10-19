@@ -135,6 +135,8 @@
     const ob = G.outbreak && G.outbreak();
     return (1 / 200) * (1 + ch * 0.25) * (ob && ob.sp === sp && ob.map === onMap ? 3 : 1) * ((S.bag || {}).lucky_charm ? 3 : 1);
   };
+  // ท่าไม้ตายประจำตัว: เด็ก 4 คนมีท่าเฉพาะ ตัวอื่นตามธาตุ
+  G.ultOf = (m) => (G.DATA.moves['ult_' + m.sp] ? 'ult_' + m.sp : 'ult_' + G.DATA.species[m.sp].type);
   G.expGain = (foe, trainer) => Math.floor((G.DATA.species[foe.sp].baseexp * foe.lv) / 7 * (trainer ? 1.5 : 1));
 
   // โอกาสชวนผีสางเข้าแก๊ง (สูตรเดียวกับอัตราจับรุ่น III-IV)

@@ -9,11 +9,12 @@
     const expPct = Math.min(100, ((m.exp - G.expFor(m.lv)) / (G.expFor(m.lv + 1) - G.expFor(m.lv))) * 100);
     return `
       <div class="panel bpanel foe-panel"><div class="bname">${f.shiny ? '<span class="k-shiny">✨</span>' : ''}${f.name} ${G.ui.typeTag(fsp.type)} <span class="lv">Lv${f.lv}</span></div>
-        ${G.ui.hpBar(V.fhp, f.stats.hp)}${G.ui.statusTag(f.status)}${b.isWild() && G.state.dex[f.sp] === 2 ? '<span class="tag got">เคยชวนแล้ว</span>' : ''}</div>
+        ${G.ui.hpBar(V.fhp, f.stats.hp)}${G.ui.statusTag(f.status)}${b.isWild() && G.state.dex[f.sp] === 2 ? '<span class="tag got">เคยชวนแล้ว</span>' : ''}${['master', 'boss'].includes(b.opt.kind) ? gaugeHTML(b, 'f') : ''}</div>
       <div class="panel bpanel me-panel"><div class="bname">${m.name} ${G.ui.typeTag(msp.type)} <span class="lv">Lv${m.lv}</span></div>
         ${G.ui.hpBar(V.php, m.stats.hp)}<div class="hpnum">${Math.max(0, Math.round(V.php))}/${m.stats.hp} ${G.ui.statusTag(m.status)}</div>
-        <div class="expbar"><i style="width:${expPct}%"></i></div></div>`;
+        <div class="expbar"><i style="width:${expPct}%"></i></div>${gaugeHTML(b, 'p')}</div>`;
   }
+  const gaugeHTML = (b, side) => `<div class="gauge ${b.ultReady(side) ? 'full' : ''} ${b.ultUsed[side] ? 'used' : ''}"><i style="width:${b.gauge[side]}%"></i><span>${b.ultUsed[side] ? 'ใช้ท่าไม้ตายแล้ว' : b.ultReady(side) ? '★ ท่าไม้ตายพร้อม!' : 'เกจหมอลำ'}</span></div>`;
   function render(b) { V.layer.innerHTML = panelsHTML(b); }
 
   async function tweenHp(b, side, to) {
@@ -36,7 +37,8 @@
           if (e.reward && skip) break;
           await G.ui.say(e.text, null, { battle: true, auto: 650, onDouble: e.reward ? () => { skip = true; } : null });
           break;
-        case 'anim': startAct(e.side, e.type, e.cat, e.id, 0); V.fx = { side: e.side, type: e.type, cat: e.cat, id: e.id, t0: performance.now() }; G.sfx(e.cat === 'status' ? 'status' : 'attack'); await wait(SIG[e.id] ? Math.round(durOf(e.id) * 0.566) : e.cat === 'status' ? 300 : 260); break;
+        case 'anim': if (e.id && e.id.startsWith('ult_')) { V.cutin = { t0: performance.now(), text: G.DATA.moves[e.id].name, side: e.side }; G.sfx('power'); await wait(900); }
+          startAct(e.side, e.type, e.cat, e.id, 0); V.fx = { side: e.side, type: e.type, cat: e.cat, id: e.id, t0: performance.now() }; G.sfx(e.cat === 'status' ? 'status' : 'attack'); await wait(SIG[e.id] ? Math.round(durOf(e.id) * 0.566) : e.cat === 'status' ? 300 : 260); break;
         case 'hit': V.shake = { side: e.side, t: 0 }; V.knock = { side: e.side, t0: performance.now() }; G.sfx(e.eff > 1 ? 'super' : 'hit'); await wait(200); break;
         case 'crit': V.critFlash = 10; V.shake = { side: e.side, t: 0 }; G.sfx('super'); await wait(160); break;
         case 'hp': await tweenHp(b, e.side, e.hp); break;
@@ -79,13 +81,15 @@
       const top = await G.ui.choose(['สู้', 'กระเป๋า', 'ทีม', 'หนี'], { grid: true, cancel: false, cls: 'bmenu', title: `${b.me.name} จะทำอะไร?` });
       if (top === 0) {
         const m = b.me;
-        if (m.moves.every((s) => s.pp <= 0)) return { type: 'move', idx: 0 };
+        if (m.moves.every((s) => s.pp <= 0) && !b.ultReady('p')) return { type: 'move', idx: 0 };
+        const ult = b.ultReady('p') ? G.DATA.moves[G.ultOf(m)] : null;
         const i = await G.ui.choose(m.moves.map((s) => { const mv = G.DATA.moves[s.id];
           const e = mv.cat === 'status' ? 1 : G.typeEff(mv.type, G.DATA.species[b.foe.sp].type);   // บอกผลธาตุก่อนกดใช้
-          return { icon: `type:${mv.type}`, label: mv.name + (e > 1 ? ' ▲×2' : e < 1 ? ' ▼×½' : ''), sub: `${G.TYPE_TH[mv.type]} ${s.pp}/${mv.pp}`, disabled: s.pp <= 0 }; }),
-          { grid: true, cls: 'bmoves', info: (k) => { const s = m.moves[k]; if (!s) return ''; const mv = G.DATA.moves[s.id];
+          return { icon: `type:${mv.type}`, label: mv.name + (e > 1 ? ' ▲×2' : e < 1 ? ' ▼×½' : ''), sub: `${G.TYPE_TH[mv.type]} ${s.pp}/${mv.pp}`, disabled: s.pp <= 0 }; }).concat(ult ? [{ icon: `type:${ult.type}`, label: '★ ' + ult.name, sub: 'ท่าไม้ตาย · ใช้ได้ครั้งเดียว', cls: 'ult' }] : []),
+          { grid: true, cls: 'bmoves', info: (k) => { if (ult && k === m.moves.length) return ult.desc + ' · พลัง ' + ult.power; const s = m.moves[k]; if (!s) return ''; const mv = G.DATA.moves[s.id];
             const eff = mv.cat === 'status' ? '' : ` · ต่อ${b.foe.name}: ${{ 2: 'ได้ผลดีมาก', 1: 'ปกติ', 0.5: 'ไม่ค่อยได้ผล' }[G.typeEff(mv.type, G.DATA.species[b.foe.sp].type)]}`;
             const gm = G.gimmickText(mv.id); return `${mv.desc}${mv.power ? ' · พลัง ' + mv.power : ''}${eff}${gm ? ' · ' + gm : ''}`; } });
+        if (ult && i === m.moves.length) return { type: 'ult' };
         if (i >= 0) return { type: 'move', idx: i };
       } else if (top === 1) {
         const id = await G.ui.bagMenu({ inBattle: true, foe: b.isWild() ? b.foe : null, filter: (it) => ['heal', 'cure', 'recruit', 'healall'].includes(it.kind) });
@@ -281,6 +285,10 @@
     empress: ['self', '👑', { flash: true, aura: '#b06aff' }], leer_eye: ['throw', '👁️', { spin: true }], headshot: ['snipe', '🔫', { text: 'HEADSHOT!' }],
     operator: ['snipe', '🔭', { big: true, text: 'ปัง!!' }], hot_hands: ['throw', '🔥', { big: true }], tour_de_force: ['snipe', '💎', { text: 'สง่างาม~' }],
     incendiary: ['drop', '🔥', { n: 5, sat: true }],
+    // ท่าไม้ตาย
+    ult_bee: ['rush', '🐃', { big: true, ride: true, text: 'ม้อออออ!!', m: 'ride' }], ult_am: ['beam', '⚡', { c: '#fff2a8', wide: true, zig: true }], ult_tle: ['drop', '🍙', { n: 5, big: true }],
+    ult_ter: ['throw', '🪁', { tornado: true, big: true }], ult_water: ['cloud', '🌧️', { rain: true, big: true }], ult_earth: ['ground', '🪨', { m: 'stomp' }],
+    ult_electric: ['beam', '⚡', { c: '#fff2a8', zig: true, wide: true }], ult_wind: ['on', '🌪️', { big: true, spin: true }], ult_normal: ['wave', '🎶', { arcs: true, text: 'ม่วนซื่น!' }],
   };
   // ---------- ฉากเฉพาะท่า: วาดตามชื่อท่าตรงๆ (กระดานสอน กินข้าวเหนียว กระโดดลงนา ขากรรไกรงับ ฯลฯ) แทนแบบทั่วไปใน SIG ----------
   const PI = Math.PI;
@@ -863,6 +871,18 @@
     }
     draw(V.pSprite, 38, 66, true, V.faint ? V.faint.p : 0, 'p');
     drawFx(ctx, now);
+    if (V.cutin) {   // ท่าไม้ตาย: แถบดำพาดจอ ชื่อท่าสีทองวิ่งเข้า
+      const t = (now - V.cutin.t0) / 1100;
+      if (t >= 1) V.cutin = null;
+      else {
+        const a2 = Math.min(1, t * 6) * (1 - Math.max(0, (t - 0.8) * 5)), x = 120 + (1 - Math.min(1, t * 3)) * (V.cutin.side === 'p' ? -160 : 160);
+        ctx.save(); ctx.globalAlpha = a2 * 0.85; ctx.fillStyle = '#0c0d18'; ctx.fillRect(0, 38, 240, 30);
+        ctx.fillStyle = '#f2d24b'; ctx.fillRect(0, 38, 240, 2); ctx.fillRect(0, 66, 240, 2);
+        ctx.globalAlpha = a2; ctx.font = 'bold 15px Itim, Tahoma, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.lineWidth = 4; ctx.strokeStyle = '#3a1a00'; ctx.strokeText('★ ' + V.cutin.text + ' ★', x, 56); ctx.fillStyle = '#fff2a8'; ctx.fillText('★ ' + V.cutin.text + ' ★', x, 56);
+        ctx.font = '8px Itim, Tahoma, sans-serif'; ctx.fillStyle = '#f2d24b'; ctx.fillText('ท่าไม้ตาย!', x, 44); ctx.restore();
+      }
+    }
     if (V.critFlash > 0) { ctx.fillStyle = `rgba(255,240,180,${V.critFlash / (calm ? 40 : 14)})`; ctx.fillRect(0, 0, 240, 160); V.critFlash--; }
     if (V.wobble) { ctx.fillStyle = '#f4f4ec'; for (let i = 0; i < 3; i++) { const a = now / 300 + i * 2.1; ctx.fillRect(178 + Math.cos(a) * 26, 40 + Math.sin(a) * 10, 3, 3); } }
   };

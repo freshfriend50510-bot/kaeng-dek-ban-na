@@ -288,3 +288,10 @@ table.moves td, table.moves th { padding: calc(var(--u) * 0.5) calc(var(--u) * 2
 .evo-hint { font-size: 0.7em; opacity: .7; }
 .k-shiny { color: #fff2a8; text-shadow: 0 0 4px #f2d24b; margin-right: .2em; }
 .nb-where { color: #9fd8f0; } .nb-evo { color: #f2d24b; }
+.gauge { position: relative; height: calc(var(--u) * 3); margin-top: calc(var(--u) * 1); background: rgba(0,0,0,.35); border-radius: calc(var(--u) * 1); overflow: hidden; }
+.gauge i { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, #c9a42a, #f2d24b); }
+.gauge span { position: relative; display: block; font-size: 0.55em; line-height: calc(var(--u) * 3); text-align: center; color: #fff8e0; text-shadow: 0 0 2px #000; }
+.gauge.full i { background: linear-gradient(90deg, #ff9a2a, #fff2a8, #ff9a2a); animation: gaugeGlow .6s infinite alternate; }
+.gauge.used { opacity: .45; }
+@keyframes gaugeGlow { from { filter: brightness(1); } to { filter: brightness(1.5); } }
+.choice-item.ult { background: linear-gradient(90deg, rgba(242,210,75,.25), rgba(255,154,42,.15)); border: 1px solid #f2d24b; }
