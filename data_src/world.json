@@ -225,6 +225,14 @@
    "music": "city",
    "indoor": true,
    "floor": "-"
+  },
+  "donputa": {
+   "name": "ดอนปู่ตา",
+   "music": "forest",
+   "encounter": true,
+   "bg": "forest",
+   "encRate": 0.1,
+   "encTiles": "g"
   }
  },
  "warps": [
@@ -709,6 +717,22 @@
    "tx": 6,
    "ty": 26,
    "dir": "down"
+  },
+  {
+   "map": "village",
+   "x": 3,
+   "y": 1,
+   "to": "donputa",
+   "tx": 15,
+   "ty": 22
+  },
+  {
+   "map": "donputa",
+   "x": 15,
+   "y": 23,
+   "to": "village",
+   "tx": 3,
+   "ty": 2
   }
  ],
  "doors": [
@@ -1251,7 +1275,7 @@
    "map": "village",
    "x": 2,
    "y": 6,
-   "text": "ดอนปู่ตา ห้ามเข้า"
+   "text": "ดอนปู่ตา ป่าศักดิ์สิทธิ์ (ต้องได้รับอนุญาตจากเฒ่าจ้ำ)"
   },
   {
    "map": "field",
@@ -1420,6 +1444,12 @@
    "x": 49,
    "y": 18,
    "text": "สวนสาธารณะ · กลางคืนหญ้ารกมีผีออก เด็กๆ ระวังด้วย"
+  },
+  {
+   "map": "donputa",
+   "x": 2,
+   "y": 12,
+   "text": "ดอนปู่ตา ป่าศักดิ์สิทธิ์ของหมู่บ้าน ห้ามตัดไม้ ห้ามล่าสัตว์"
   }
  ],
  "npcs": [
@@ -1539,7 +1569,8 @@
    "y": 5,
    "look": "jam",
    "dir": "down",
-   "script": "jam"
+   "script": "jam",
+   "hideIf": "gym3_done"
   },
   {
    "id": "tasi",
@@ -3838,6 +3869,154 @@
    ],
    "dir": "down",
    "script": "line"
+  },
+  {
+   "id": "jam2",
+   "name": "เฒ่าจ้ำ",
+   "map": "village",
+   "x": 2,
+   "y": 5,
+   "look": "jam",
+   "dir": "right",
+   "script": "jam",
+   "showIf": "gym3_done"
+  },
+  {
+   "id": "puta",
+   "name": "ปู่ตา",
+   "map": "donputa",
+   "x": 8,
+   "y": 11,
+   "look": "puta",
+   "dir": "down",
+   "script": "puta"
+  },
+  {
+   "id": "logger1",
+   "name": "คนตัดไม้แดง",
+   "map": "donputa",
+   "x": 22,
+   "y": 12,
+   "look": "logger",
+   "dir": "left",
+   "script": "trainer",
+   "hideIf": "loggers_out",
+   "trainer": {
+    "name": "คนตัดไม้แดง",
+    "team": [
+     [
+      "kongkoi",
+      25
+     ],
+     [
+      "phrai",
+      26
+     ]
+    ],
+    "money": 700,
+    "sight": 3,
+    "flag": "tr_logger1",
+    "intro": "เด็กที่ไหนเข้ามา! ไม้ต้นนี้นายสั่งให้ตัด อย่ามายุ่ง!",
+    "lose": "โอ๊ย... ผีที่จับมามันไม่อยากสู้ให้เราเลย",
+    "after": "loggers_check"
+   }
+  },
+  {
+   "id": "logger2",
+   "name": "คนตัดไม้ดำ",
+   "map": "donputa",
+   "x": 28,
+   "y": 14,
+   "look": "logger2",
+   "dir": "left",
+   "script": "trainer",
+   "hideIf": "loggers_out",
+   "trainer": {
+    "name": "คนตัดไม้ดำ",
+    "team": [
+     [
+      "takhian",
+      26
+     ],
+     [
+      "pusom",
+      26
+     ]
+    ],
+    "money": 700,
+    "sight": 3,
+    "flag": "tr_logger2",
+    "intro": "ผีตะเคียนตัวนี้จับได้ตอนโค่นต้นมันเลย ฮ่าๆ มาลองดู!",
+    "lose": "ตะเคียนมันหนีกลับไปหาต้นมันแล้ว...",
+    "after": "loggers_check"
+   }
+  },
+  {
+   "id": "logboss",
+   "name": "เสี่ยเลื่อย",
+   "map": "donputa",
+   "x": 26,
+   "y": 10,
+   "look": "logboss",
+   "dir": "down",
+   "script": "trainer",
+   "hideIf": "loggers_out",
+   "trainer": {
+    "name": "เสี่ยเลื่อย",
+    "team": [
+     [
+      "krasue",
+      27
+     ],
+     [
+      "taehak",
+      27
+     ],
+     [
+      "takhian",
+      28
+     ]
+    ],
+    "money": 1500,
+    "sight": 3,
+    "flag": "tr_logboss",
+    "intro": "{angry}ไม้พวกนี้ราคาดี ใครจะมาขวางทางรวยของเสี่ย! เด็กน้อยก็ไม่เว้น!",
+    "lose": "{shock}เด็กพวกนี้... มีผีทั้งดอนยืนอยู่ข้างหลังจริงๆ ด้วย ไปแล้วๆ ไม่กลับมาอีกแล้ว!",
+    "after": "loggers_check"
+   }
+  },
+  {
+   "id": "naga_mom",
+   "name": "แม่นาค",
+   "map": "donputa",
+   "x": 15,
+   "y": 6,
+   "look": "naga_mom",
+   "dir": "down",
+   "script": "naga_mom",
+   "showIf": "forest_healed"
+  },
+  {
+   "id": "ghost_back",
+   "name": "ผีกองกอย",
+   "map": "donputa",
+   "x": 4,
+   "y": 8,
+   "look": "kongkoi",
+   "dir": "right",
+   "script": "ghost_back",
+   "showIf": "forest_healed"
+  },
+  {
+   "id": "ghost_back2",
+   "name": "ผีตะเคียน",
+   "map": "donputa",
+   "x": 21,
+   "y": 8,
+   "look": "takhian",
+   "dir": "down",
+   "script": "ghost_back",
+   "showIf": "forest_healed"
   }
  ],
  "rides": [
@@ -4475,6 +4654,27 @@
    "y": 25,
    "script": "vending",
    "label": "กดน้ำ"
+  },
+  {
+   "map": "donputa",
+   "x": 6,
+   "y": 11,
+   "script": "puta_shrine",
+   "label": "ตูบปู่ตา"
+  },
+  {
+   "map": "donputa",
+   "x": 7,
+   "y": 11,
+   "script": "puta_shrine",
+   "label": "ตูบปู่ตา"
+  },
+  {
+   "map": "donputa",
+   "x": 15,
+   "y": 5,
+   "script": "naga_pond",
+   "label": "หนองน้ำใต้ดอน"
   }
  ]
 }

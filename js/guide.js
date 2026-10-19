@@ -45,7 +45,7 @@
       const S = G.state;
       const engs = [...S.party, ...S.storage].filter((m) => G.isPerson(m)).length;
       const all = Object.values(G.DATA.engNames).reduce((a, l) => a + l.length, 0) + 1;
-      return { text: `จบเกมแล้ว! ชวนน้องวิศวะ น้องพยาบาล น้องหมอเข้าแก๊ง (${engs}/${all} คน) · ดอนปู่ตามาในเวอร์ชันหน้า` };
+      return { text: `จบเกมแล้ว! ชวนน้องวิศวะ น้องพยาบาล น้องหมอเข้าแก๊ง (${engs}/${all} คน)` };
     }
     return { text: q.desc, ...G.questTarget(q) };
   };

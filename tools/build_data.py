@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "data_src"
 OUT = ROOT / "js" / "data.js"
-TILES = ".:#PwTRrHhDSFobf^MmAILKn" + "aeg+JNCqQljiz!&$?@0X" + "_-%xtcksBp~E><OZYVu6789W2G" + "dvyU[]1345=" + "(),*;|{}`" + "กคงฉชซฌฏฑฒณดต"   # อักษรที่แผนที่ใช้ได้ (ดูความหมายใน js/world.js)
+TILES = ".:#PwTRrHhDSFobf^MmAILKn" + "aeg+JNCqQljiz!&$?@0X" + "_-%xtcksBp~E><OZYVu6789W2G" + "dvyU[]1345=" + "(),*;|{}`" + "กคงฉชซฌฏฑฒณดตถท"   # อักษรที่แผนที่ใช้ได้ (ดูความหมายใน js/world.js)
 WALK = ".:fTL_-x~><O2aeg+0dv1345=;{ฌต"   # ช่องที่เดินได้ (ต้องตรงกับ WALK ใน js/world.js)
 
 

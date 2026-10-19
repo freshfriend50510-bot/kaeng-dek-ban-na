@@ -114,6 +114,7 @@
     const a = att.held && I[att.held], d = def.held && I[def.held];
     if (a && a.for === 'phys' && move.cat === 'phys') k *= a.value;
     if (a && a.for === 'spec' && move.cat === 'spec') k *= a.value;
+    if (a && a.for === move.type) k *= a.value;   // เช่น เกล็ดพญานาค: ท่าน้ำแรงขึ้น
     if (d && d.for === 'ghost' && sp[att.sp].kind === 'ghost') k *= d.value;
     return k;
   };

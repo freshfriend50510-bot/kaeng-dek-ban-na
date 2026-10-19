@@ -1,6 +1,6 @@
 ################################
-#PPPPPP..MMMMMM.......rrrrrrr..#
-#PP^PPP..MMMMMM.......rrrrrrr..#
+#PP:PPP..MMMMMM.......rrrrrrr..#
+#P^:PPP..MMMMMM.......rrrrrrr..#
 #PP:PPP..mmDmmm.......hhhDhhh..#
 #PP:PPP....:Sf......f...S:.....#
 #::::::::::::::::::::::::::::::#

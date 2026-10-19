@@ -98,6 +98,10 @@
     teacher: { hair: 'neat', H: C.hairBlack, S: C.skinFair, C: '#d8b25a', P: '#3b3b3b', extra: ['glasses'] },
     monk: { hair: 'bald', H: C.skinOld, S: C.skinOld, C: '#d9822b', P: '#d9822b', extra: ['robe'] },
     novice: { hair: 'bald', H: C.skinMid, S: C.skinMid, C: '#e8913a', P: '#e8913a', extra: ['robe'] },
+    puta: { hair: 'short', H: '#f4f4ec', S: '#e8cdb0', C: '#f8f6ee', P: '#f8f6ee', extra: ['robe', 'stick'] },   // ปู่ตา ผีบรรพบุรุษชุดขาวผมขาว
+    logger: { hair: 'cap', B: '#e8712a', H: C.hairBlack, S: C.skinTan, C: '#e8712a', P: '#3b3b3b', extra: [], patch: ['brows'] },
+    logger2: { hair: 'bandana', B: '#2a2a2a', W: '#5f6873', H: C.hairBlack, S: C.skinTan, C: '#5f6873', P: '#2a2a2a', extra: ['grin'] },
+    logboss: { hair: 'neat', H: C.hairBlack, S: C.skinMid, C: '#c9a45a', P: '#2a2a2a', extra: ['glasses', 'chubby'], patch: ['mustache', 'tie'], a: '#c5482b' },
     jam: { hair: 'bald', H: C.skinOld, S: C.skinOld, C: '#f2efe4', P: '#f2efe4', extra: ['robe', 'stick'] },
     tasi: { hair: 'short', H: C.hairGray, S: C.skinTan, C: '#2f3d6b', P: '#2f3d6b', extra: ['shorts', 'barefoot'] },
     beedad: { hair: 'short', H: C.hairBlack, S: C.skinTan, C: '#b5502f', P: '#2f3d6b', extra: ['barefoot'] },
@@ -510,6 +514,9 @@
     nak: { pal: { B: '#2f6fb0', b: '#5fa8e0', Y: '#e8bf4a', K: '#1b1414', W: '#ffffff', R: '#d9455a', L: '#c8ecf8' }, rows: [
       '....Y.Y.Y.......', '....YYYYY.......', '...BBBBBBB......', '..BBKWBBKWB.....', '..BBBBBBBBB.....', '...BLLLLLB.R....', '....BBBBB.R.....', '.....BbBB.......',
       '......BbBB......', '.......BbBB.....', '........BbBB....', '.......BbBB.....', '.....BBbBB......', '...BBbbBB.......', '..BBBBBB........', '.BB.............'] },
+    naga_mom: { pal: { B: '#1f5a9a', b: '#e8bf4a', Y: '#f2d24b', K: '#1b1414', W: '#ffffff', R: '#d9455a', L: '#9fd8f0' }, rows: [   // แม่นาคขดตัว มงกุฎทอง
+      '.....Y.Y.Y......', '.....YYYYY......', '....BBBBBBB.....', '...BBKWBKWBB....', '...BBBBBBBBB....', '....BLLLLLB.R...', '.....BBBBB.R....', '......BbBB......',
+      '...BBBBbBBBB....', '..BBbbbbbbbBB...', '.BBbBBBBBBBbBB..', '.BbBB.....BBbB..', '.BbBBBBBBBBBbB..', '..BBbbbbbbbBB...', '...BBBBBBBBB.BB.', '.............BB.'] },
     takhon: { pal: { R: '#d9455a', Y: '#f2d24b', G: '#4f9a5a', B: '#3a6ab0', W: '#f4f4ec', K: '#1b1414', N: '#e8913a', P: '#8a3f6b', S: '#c08a62', w: '#8a6440' }, rows: [
       '...Y..RRRR..Y...', '...YYRRRRRRYY...', '....RWWRRWWR....', '....RWKRRKWR....', '....RRRNNRRR....', '....YRRNNRRY....', '....YYRNNRYY....', '.....GGNNGG.....',
       '....BBGGGGRR....', '...BBBGGGRRRw...', '..SBBYYGGRRRSw..', '....PPYYBBPP.w..', '....PPPPBBPP.w..', '....GG....YY....', '....GG....YY....', '...KKK....KKK...'] },
@@ -624,6 +631,7 @@
       case 'ovaltine_shake': cup('#6b4a2f', '#a8744a'); O('#8a5a34', 8, 4, 4, 2.5); break;
       case 'holy_water': O(K, 8, 10, 7, 4.5); O('#b8bcc4', 8, 10, 6, 3.5); O('#7cc6de', 8, 9, 4.5, 2); R('#f4f4ec', 6, 8, 2, 1); R('#d9b25a', 7, 2, 2, 4); break;
       case 'magic_rice': O(K, 8, 10, 6, 5); O('#e8dcc0', 8, 10, 5, 4); R('#c5482b', 5, 4, 6, 2); R('#f4f4ec', 6, 8, 1, 1); R('#f4f4ec', 9, 10, 1, 1); R('#f4f4ec', 7, 12, 1, 1); break;
+      case 'naga_scale': O('#1f5a9a', 8, 8, 6, 7); O('#3f8ad0', 8, 7, 4.5, 5); for (const [a, b] of [[5, 6], [9, 6], [7, 9]]) O('#e8bf4a', a + 1, b + 1, 1.5, 1.2); R('#ffffff', 6, 4, 2, 1); break;
       case 'yantra': R(K, 2, 2, 12, 12); R('#f4f4ec', 3, 3, 10, 10); g.strokeStyle = '#c5482b'; g.lineWidth = 1; g.strokeRect(4.5, 4.5, 7, 7); R('#c5482b', 7, 6, 2, 4); R('#c5482b', 6, 7, 4, 1); break;
       case 'gloves': R(K, 4, 3, 9, 11); R('#d9a04a', 5, 4, 7, 9); R('#a8742a', 5, 11, 7, 2); R(K, 7, 4, 1, 4); R(K, 9, 4, 1, 4); R('#d9a04a', 2, 7, 3, 3); break;
       case 'goggles': R(K, 1, 5, 14, 7); R('#f2d24b', 2, 6, 12, 5); O('#5fb8e0', 5, 8.5, 2.5, 2); O('#5fb8e0', 11, 8.5, 2.5, 2); R('#18203f', 7, 8, 2, 1); break;

@@ -38,3 +38,5 @@ s_flower,side,ดอกไม้วันนั้น,namfon_city,city_arrived,f
 s_sign,side,ลายเซ็นให้น้องจ๋า,joe_kid,yok_met,sign_asked,sign_done,npc:mon_net,sign_got,npc:joe_kid,khao_ji:2;money:800,ได้ข่าวว่าตอนกลางคืน (2 ทุ่ม – ตี 4) มีผู้ชายใส่ฮู้ดนั่งเครื่อง 07 ร้านเน็ต ไปขอลายเซ็นให้น้องจ๋า
 s_sausage,side,ไส้กรอกสิบไม้,c_street2,city_arrived,sausage_asked,sausage_done,npc:c_hotel,,,egg_ping:3;money:300,เอาไส้กรอกอีสาน 10 ไม้ไปฝากพนักงานโรงแรม ส่งให้ลูกค้าประจำห้อง 304
 s_photo,side,รูปทีมเก่า 5 ใบ,c_netuncle,city_arrived,photo_asked,photo_done,npcs:photo1;photo2;photo3;photo4;photo5,photo_all,npc:c_netuncle,khao_lam:1;money:500,รูปเก่าของสามเกลอร้านเน็ตปลิวหายไปทั่วเมือง หาให้ครบ 5 ใบแล้วเอามาคืนลุงเจ้าของร้าน
+s_putata,side,ดอนปู่ตาร้องไห้,jam2,gym3_done,putata_asked,putata_done,npc:puta,puta_met,npcs:logger1;logger2;logboss;puta,khao_lam:1;money:1500,มีคนแอบเข้าไปตัดไม้ในดอนปู่ตา ผีในป่าหนีหมด ไปหาปู่ตาที่ตูบกลางดอน แล้วไล่คนตัดไม้ออกไป
+s_naga,side,ลูกนาคพลัดหลง,puta,putata_done,naga_asked,naga_done,npc:naga_mom,,,herb_big:3;money:1000,แม่นาคตื่นแล้วที่หนองน้ำกลางดอน ร้องหาลูกที่พลัดหลง ลูกนาคน่าจะอยู่แถวลำน้ำพอง (ตกปลาเจอได้) พามาหาแม่

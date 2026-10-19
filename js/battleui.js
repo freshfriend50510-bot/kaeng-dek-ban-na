@@ -195,6 +195,12 @@
     if (bg === 'market') { sky.addColorStop(0, night ? '#2a2f5a' : '#e8b07a'); sky.addColorStop(1, night ? '#4a3a5a' : '#f2d2a0'); }
     else { sky.addColorStop(0, night ? '#1d2650' : '#8fc3d6'); sky.addColorStop(1, night ? '#3d3a6a' : '#e8e2c0'); }
     ctx.fillStyle = sky; ctx.fillRect(0, 0, 240, 160);
+    if (bg === 'forest') {   // ดอนปู่ตา: ป่าทึบสองชั้น ตูบปู่ตาเล็กๆ กลางป่า แสงลอดใบไม้
+      for (let x = -10; x < 250; x += 22) { ctx.fillStyle = night ? '#14261c' : '#2a4a30'; ctx.beginPath(); ctx.arc(x, 44 + (x % 3) * 4, 20, 0, 7); ctx.fill(); }
+      for (let x = 0; x < 250; x += 30) { ctx.fillStyle = night ? '#1c3424' : '#3f6b3a'; ctx.beginPath(); ctx.arc(x + 8, 60, 18, 0, 7); ctx.fill(); R(night ? '#2a1d14' : '#5a3a22', x + 6, 66, 4, 10); }
+      R('#8a5a34', 112, 52, 16, 12); R('#c5482b', 108, 48, 24, 5); R('#f2d24b', 118, 56, 4, 4);
+      if (!night) for (let i = 0; i < 4; i++) { ctx.fillStyle = 'rgba(255,248,200,0.12)'; ctx.beginPath(); ctx.moveTo(30 + i * 55, 0); ctx.lineTo(44 + i * 55, 0); ctx.lineTo(60 + i * 55, 80); ctx.lineTo(40 + i * 55, 80); ctx.fill(); }
+    }
     if (bg === 'phong') {   // ลำน้ำพองกับสะพาน
       R(night ? '#2a3a6a' : '#4f8fb0', 0, 56, 240, 16); R(night ? '#3a4a7a' : '#7cb6cf', 30, 60, 30, 2); R(night ? '#3a4a7a' : '#7cb6cf', 150, 64, 40, 2);
       R(night ? '#3a2f28' : '#8a6440', 0, 46, 240, 3); for (let x = 6; x < 240; x += 24) R(night ? '#3a2f28' : '#6b4a2f', x, 46, 3, 12);
