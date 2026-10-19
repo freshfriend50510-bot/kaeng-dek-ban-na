@@ -480,6 +480,44 @@
       else await G.ui.say(`${it.name}ใช้ได้ตอนต่อสู้เท่านั้น`);
     }
   };
+  // ---------- วิวัฒนาการ: evo = "ร่างใหม่:เลเวล[:night|rain|flag]" ----------
+  G.evoReady = function (m) {
+    const ev = (G.DATA.species[m.sp].evo || '').split(':');
+    if (!ev[0] || m.lv < +ev[1] || m.noEvo === m.lv) return null;
+    const c = ev[2];
+    if (c === 'night' ? !G.isNight() : c === 'rain' ? !G.raining() : c ? !G.state.flags[c] : false) return null;
+    return ev[0];
+  };
+  G.EVO_HINT = { night: 'ตอนกลางคืน', rain: 'ตอนฝนตก', forest_healed: 'หลังดอนปู่ตาฟื้น', naga_done: 'หลังได้พรจากแม่นาค' };
+  function evolveScene(m, to) {   // ภาพสลับร่างเร็วขึ้นเรื่อยๆ ตัวเรืองแสงขาว กด X หยุดได้
+    return new Promise((resolve) => {
+      const tsp = G.DATA.species[to], box = el('div', 'panel evo-panel');
+      box.innerHTML = `<div class="choice-title">วิวัฒนาการ!</div><canvas class="evo-cv" width="64" height="64"></canvas><div class="evo-text">${esc(m.name)} กำลังเปลี่ยนร่าง...</div><div class="evo-hint">กด X เพื่อหยุด</div>`;
+      const cv = box.querySelector('canvas'), x = cv.getContext('2d'); x.imageSmoothingEnabled = false;
+      const a = G.sprite(G.monLook(m)), b = G.sprite(tsp.look + (m.shiny ? '*' : ''));
+      const t0 = performance.now(), dur = G.settings.fast ? 1800 : 3200; let done = false;
+      const step = (now) => {
+        if (done) return;
+        const t = Math.min(1, (now - t0) / dur), showB = Math.sin(t * t * Math.PI * 26) > 0 || t >= 1;
+        x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, 64, 64); x.drawImage(showB ? b : a, 0, 0, 64, 64);
+        x.globalCompositeOperation = 'source-atop'; x.fillStyle = `rgba(255,255,255,${t < 1 ? 0.35 + t * 0.6 : 0})`; x.fillRect(0, 0, 64, 64);
+        if (t >= 1) { done = true; x.globalCompositeOperation = 'source-over'; G.sfx('level'); setTimeout(() => { pop(m2); resolve(true); }, 500); return; }
+        requestAnimationFrame(step);
+      };
+      const m2 = { el: box, onKey: (k) => { if (k === 'back' && !done) { done = true; pop(m2); resolve(false); } } };
+      push(m2); G.sfx('power'); requestAnimationFrame(step);
+    });
+  }
+  G.ui.tryEvolve = async function (m) {
+    const to = G.evoReady(m); if (!to) return;
+    const tsp = G.DATA.species[to], old = m.name, nick = m.name !== G.DATA.species[m.sp].name;
+    await G.ui.say(`เอ๊ะ? ${m.name} ตัวสั่นเรืองแสง...`);
+    if (!(await evolveScene(m, to))) { m.noEvo = m.lv; await G.ui.say(`${m.name} หยุดเปลี่ยนร่างไว้ก่อน (เลเวลขึ้นครั้งหน้าจะลองใหม่)`); return; }
+    m.sp = to; if (!nick) m.name = tsp.name;
+    G.refreshStats(m); G.state.dex[to] = 2;
+    await G.ui.say(`ยินดีด้วย! ${old} เปลี่ยนร่างเป็น ${tsp.name} แล้ว!`);
+    for (const [lv, mid] of tsp.learnset) if (lv <= m.lv && lv > (m.lv - 1) && !m.moves.some((s) => s.id === mid)) await G.ui.learnMove(m, mid);
+  };
   // ---------- EXP นอกการต่อสู้ (ของกินเพิ่มเลเวล) ----------
   G.ui.giveExp = async function (m, amount, quiet) {   // quiet = ไม่บอกถ้าไม่ได้เลเวลอัป
     const sp = G.DATA.species[m.sp], before = m.lv, stage = G.growthStage(m.lv), learned = [];
@@ -492,6 +530,7 @@
     G.sfx('level'); await G.ui.say(`${m.name} เลเวลอัปเป็น ${m.lv}!`);
     if (sp.kind === 'kid' && G.growthStage(m.lv) > stage) await G.ui.say(`${m.name} เติบโตขึ้นเป็นขั้นที่ ${G.growthStage(m.lv)}!`);
     for (const mid of learned) await G.ui.learnMove(m, mid);
+    await G.ui.tryEvolve(m);
   };
   // เรียนท่าใหม่นอกการต่อสู้: ท่าเต็ม 4 ให้เลือกลืมท่าเก่า (หรือไม่เรียน) คืน true ถ้าได้เรียน
   G.ui.learnMove = async function (m, mid) {

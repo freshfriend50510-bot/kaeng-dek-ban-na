@@ -564,7 +564,62 @@
     const extra = ['shop']; if (e.glasses) extra.push('glasses');
     return { ...base, P: i % 2 ? '#3b4a6b' : '#2a2a33', extra };
   }
+  // ---------- ร่างวิวัฒนาการของผี: วาดใหม่ 6 ตัว + ดัดแปลงจากร่างเดิม (เปลี่ยนสี ใส่มงกุฎ/หงอน) 9 ตัว ----------
+  Object.assign(CUSTOM, {
+    phrai2: { pal: { B: '#3f8fb8', L: '#bfe8f8', K: '#0d2a38', W: '#ffffff', M: '#1a4a60' }, rows: [
+      '.....LL..LL.....', '....LBBLLBBL....', '...BBBBBBBBBB...', '..BBLLBBBBBBBB..', '.BBLLBBBBBBBBBB.', '.BBBKKKBBKKKBBB.', '.BBBKWKBBKWKBBB.', '.BBBBBBBBBBBBBB.',
+      '.BBBBMWMMWMBBBB.', '.BBBBBMMMMBBBBB.', '.BBBBBBBBBBBBBB.', '..BBBBBBBBBBBB..', '..BBB.BBBB.BBB..', '..BB..BB.B..BB..', '..B...B..B...B..', '................'] },
+    kongkoi2: { pal: { N: '#4f3a26', S: '#b08060', K: '#1b1414', R: '#d9455a', M: '#5a1e1a', W: '#f4f4ec', G: '#5fae4a' }, rows: [
+      '....G.GGGG.G....', '...GGNNNNNNGG...', '..NNNNNNNNNNNN..', '..NNSSSSSSSSNN..', '..NSKKSSSSKKSN..', '..NSKRSSSSKRSN..', '..NSSSSSSSSSSN..', '..NNSMWMMWMSNN..',
+      '..NNNNNNNNNNNN..', '.NNNNNNNNNNNNNN.', 'NN.NNNNNNNNNN.NN', 'N..NNNNNNNNNN..N', '.....NNNNNN.....', '......NNNN......', '......NNNN......', '.....NNNNNN.....'] },
+    pob2: { pal: { G: '#7fa860', D: '#3f5f2a', K: '#1b1414', R: '#c03048', W: '#f4f4ec' }, rows: [
+      '.....DDDDDD.....', '...DGGGGGGGGD...', '..DGGGGGGGGGGD..', '..GGKWGGGGKWGG..', '..GGKKGGGGKKGG..', '..GGGGGGGGGGGG..', '..GDWDWDDWDWDG..', '..GDDRRRRRRDDG..',
+      '..GGGDRRRRDGGG..', '.GGGGGGRRGGGGGG.', 'WGGGGGGGGGGGGGGW', '.GGGGGGGGGGGGGG.', '.DGGGGGGGGGGGGD.', '..GGGG....GGGG..', '..DDD......DDD..', '................'] },
+    krahang2: { pal: { Y: '#e8c46a', y: '#b0883a', S: '#b07858', K: '#1b1414', C: '#2a1d18', N: '#6a4a30', R: '#d9455a' }, rows: [
+      '.....KKKKKK.....', '......SSSS......', '.....SRSSRS.....', '.....SSSSSS.....', 'YYYYY.RRRR.YYYYY', 'YyyyYY.CC.YYyyyY', 'YyyyyYCCCCYyyyyY', 'YyyyyYCCCCYyyyyY',
+      'YyyyYYCCCCYYyyyY', 'YYYYY.CCCC.YYYYY', 'YyyY..CCCC..YyyY', '.YY....NN....YY.', '.......NN.......', '.......NN.......', '.......NNN......', '........NN......'] },
+    phong2: { pal: { Y: '#fff8c0', O: '#f2c84b', R: '#e8601a', K: '#5a2a0a' }, rows: [
+      '.......YY.......', '......YOOY..Y...', '.....YOOOOY.Y...', '....YOORROOYY...', '...YOORRRROOY...', '..YOORYYYYROOY..', '..YORYKYYKYROY..', '.YOORYKYYKYROOY.',
+      '.YOORYYYYYYROOY.', '.YOORYKKKKYROOY.', '..YOORYYYYROOY..', '..YOOORRRROOOY..', '...YRRRRRRRRY...', '....YR.RR.RY....', '.....R.RR.R.....', '......R..R......'] },
+    pret2: { pal: { D: '#4a4a60', L: '#9a9ab8', K: '#ff6060', M: '#1b1414' }, rows: [
+      '.....LLLLLL.....', '....LDDDDDDL....', '....DKDDDDKD....', '....DDDMMDDD....', '.....DDDDDD.....', '......DDDD......', '....LLDDDDLL....', '...LDDDDDDDDL...',
+      '..LL.DDDDDD.LL..', '.LL..DDDDDD..LL.', 'LL...DDDDDD...LL', 'L....DDDDDD....L', '......DDDD......', '......D..D......', '......D..D......', '.....DD..DD.....'] },
+  });
+  // ดัดแปลงร่างเดิม: เปลี่ยนสีบางช่อง + มงกุฎ/หงอนเหนือหัว (Q) + ประกายรอบตัว (q)
+  const EVO_LOOK = {
+    nangngueak2: ['nangngueak', { G: '#2fae8a', g: '#1a7a6a', T: '#4fa8d8', t: '#2a6ab0' }, '#f2d24b'],
+    takhian2: ['takhian', { L: '#f2d24b', C: '#c9a42a', c: '#8a6a1a' }, '#f2d24b'],
+    taehak2: ['taehak', { N: '#c9a42a', C: '#4a2a6b', P: '#2a1a40' }, '#d9455a'],
+    krasue2: ['krasue', { O: '#ff7ad0', o: '#c040a0', Y: '#ffe0f4' }, '#ff7ad0'],
+    nak2: ['nak', { B: '#c9a42a', b: '#f2d24b', L: '#fff2c0' }, '#4fd0ff'],
+    takhon2: ['takhon', { R: '#a02a3a', B: '#2a3a8a', G: '#2f7a3a' }, '#f2d24b'],
+    pusom2: ['pusom', { Y: '#f2d24b', y: '#c9a42a', C: '#f8f0d8' }, '#f2d24b'],
+    nurseghost2: ['nurseghost', { R: '#2f6fb0', W: '#f8fcff' }, '#d9455a'],
+    wheelchair2: ['wheelchair', { B: '#2a2a33', b: '#d9455a', G: '#4fe0ff', g: '#2f8fb0' }, '#4fe0ff'],
+  };
+  for (const [id, [base, pal, crown]] of Object.entries(EVO_LOOK)) {
+    const b = CUSTOM[base], rows = b.rows.slice();
+    const top = rows.findIndex((r) => /[^.]/.test(r)), cols = [...rows[top]].map((c, i) => (c !== '.' ? i : -1)).filter((i) => i >= 0);
+    const mid = Math.round((cols[0] + cols[cols.length - 1]) / 2);
+    const put = (y, x, ch) => { if (y < 0 || x < 0 || x > 15) return; const r = rows[y].split(''); if (r[x] === '.') { r[x] = ch; rows[y] = r.join(''); } };
+    if (top >= 1) { put(top - 1, mid - 2, 'Q'); put(top - 1, mid, 'Q'); put(top - 1, mid + 2, 'Q'); }
+    if (top >= 2) put(top - 2, mid, 'Q');
+    for (const [y, x] of [[3, 1], [8, 14], [12, 1], [5, 14]]) put(y, x, 'q');
+    CUSTOM[id] = { pal: { ...b.pal, ...pal, Q: crown, q: 'rgba(255,255,220,0.85)' }, rows };
+  }
+  // สีพิเศษ (shiny): หมุนสีทั้งตัวแบบคงที่ต่อชนิด + ขอบประกาย
+  const shinyPal = (pal) => {
+    const out = {};
+    for (const [k, v] of Object.entries(pal)) {
+      const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(v);
+      if (!m) { out[k] = v; continue; }
+      const [r, g, b] = [1, 2, 3].map((i) => parseInt(m[i], 16));
+      out[k] = '#' + [b * 0.6 + g * 0.4, r * 0.9 + 25, g * 0.7 + r * 0.3].map((n) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0')).join('');
+    }
+    return out;
+  };
   function defFor(id) {
+    if (id.endsWith('*')) { const d = defFor(id.slice(0, -1)); return { ...d, pal: shinyPal(d.pal) }; }   // สีพิเศษ
     if (CUSTOM[id]) return { ...CUSTOM[id], human: false };
     const at = id.indexOf('@');
     if (at > 0) {   // เด็กขั้นเติบโต: วาดตัวเดิมแล้วแปะของประจำตัว
@@ -811,7 +866,7 @@
     if (m.look) return m.look;
     const sp = G.DATA.species[m.sp];
     if (sp.kind === 'kid' && G.growthStage(m.lv) > 1) return `${sp.look}@${G.growthStage(m.lv)}`;
-    return sp.look;
+    return sp.look + (m.shiny ? '*' : '');
   };
   G.lookColor = (id) => (LOOKS[id] ? LOOKS[id].C : '#888');
   G._spriteDefs = { HUMAN, HAIR, OVERLAY, LOOKS, CUSTOM, SHOP };

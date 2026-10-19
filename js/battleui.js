@@ -171,6 +171,7 @@
     V.layer.remove(); V.active = false;
     G.scene = 'world';
     G.music(G.world.def.music);
+    if (result !== 'lose') for (const m of S.party.slice()) await G.ui.tryEvolve(m);   // วิวัฒนาการหลังจบการต่อสู้
     return result;
   };
 

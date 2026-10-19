@@ -1,46 +1,61 @@
-id,name,type,hp,atk,def,spa,spd,spe,catch,baseexp,kind,ability,look,learnset,desc
-bee,บี,earth,55,60,55,30,50,50,0,64,kid,rage,bee,1:tackle;1:silly_face;5:mud_throw;9:pound_ground;13:field_slam;18:buffalo_charge,เด็กผิวแทนอ๊องๆ ใจดี แรงเยอะ
-am,แอม,electric,40,30,40,75,60,55,0,64,kid,analyze,am,1:tackle;1:push_glasses;5:battery_shot;9:lecture;13:plasma;18:radio_wave,เด็กเนิร์ดใส่แว่น ช่างสังเกต พูดเยอะ
-tle,เติ้ล,water,70,45,60,45,55,25,0,64,kid,eater,tle,1:belly_bump;1:sweet_smile;5:bamboo_squirt;9:sticky_rice;13:pond_dive;18:monsoon_splash,เด็กตุ้ยน่ารัก ใจเย็น ชอบกิน
-ter,เต๋อ,wind,50,60,40,45,30,75,0,64,kid,quick,ter,1:dash;1:tongue;5:dust_kick;9:spin;13:whirlwind;18:kite_storm,เด็กดีด อยู่ไม่นิ่ง ใจร้อน
-phrai,พรายน้ำน้อย,water,40,30,35,45,40,40,255,50,ghost,slick,phrai,1:splash_spook;3:wail;8:bamboo_squirt,วิญญาณตัวใสประจำหนอง ชอบสาดน้ำใส่คน
-kongkoi,ผีกองกอย,earth,40,45,55,25,35,35,255,50,ghost,thick,kongkoi,1:koi_hop;3:wail;8:mud_throw,ผีขาเดียวกระโดดร้องกอยกอย แค่อยากจั๊กจี้นิ้วเท้า
-pob,ปอบน้อย,normal,50,50,40,30,35,40,190,55,ghost,glutton,pob,1:raw_bite;3:spook;8:tackle,ปอบตัวเล็กชอบแอบขโมยปลาร้าจากครัว
-krahang,ผีกระหัง,wind,40,40,30,50,35,55,200,55,ghost,glider,krahang,1:basket_flap;3:wail;8:dust_kick,ใช้กระด้งเป็นปีก สากตำข้าวเป็นหาง บินเร็วมาก
-phong,ผีโพง,electric,35,30,30,60,45,55,190,60,ghost,static,phong,1:flicker;3:spook;8:battery_shot,ดวงไฟเรืองแสงเดินทุ่งยามค่ำ
-pret,เปรตต้นตาล,normal,90,45,40,35,45,15,45,90,ghost,tall,pret,1:wail;1:beg_merit;5:raw_bite,สูงเท่าต้นตาล ปากเท่ารูเข็ม จริงๆ ใจดี แค่หิว
-toad,คางคกเจ้าหนอง,normal,75,55,70,55,50,25,0,120,boss,scary,toad,1:mud_spout;1:belly_flop;1:rain_call;1:gape,คางคกยักษ์นั่งขวางทางน้ำ งอนเพราะไม่มีใครจุดบั้งไฟให้
-ossie,พี่ออสซี่,wind,55,70,50,50,50,75,0,140,master,,ossie,1:wind_blade;1:bamboo_sword;1:samurai_stare;1:wind_step,หัวโจกแก๊งสตรีทญี่ปุ่น หล่อ เท่ ถือดาบไม้ไผ่
-eng_mech,น้องวิศวะเครื่องกล,normal,60,70,60,35,45,50,120,70,eng,diligent,eng_mech,1:tackle;1:tighten_bolt;8:wrench_throw;12:grease;16:piston_ram,เสื้อช็อปดำ ตราเฟือง มือเปื้อนจารบี ซ่อมได้ทุกอย่างที่มีน็อต
-eng_civil,น้องวิศวะโยธา,earth,65,65,70,30,50,40,120,70,eng,diligent,eng_civil,1:tackle;1:level_check;8:pour_concrete;16:brick_smash,เสื้อช็อปสีอิฐ ตราสะพาน ตากแดดวัดที่ทั้งวันจนตัวดำ
-eng_elec,น้องวิศวะไฟฟ้า,electric,45,35,45,80,55,60,120,70,eng,diligent,eng_elec,1:tackle;1:multimeter;8:live_wire;13:blackout;17:short_circuit,เสื้อช็อปกรมท่า ตราสายฟ้า ผมชี้ตลอดเพราะโดนไฟดูด
-eng_chem,น้องวิศวะเคมี,water,50,35,50,75,60,50,120,70,eng,diligent,eng_chem,1:acid_splash;1:titrate;10:fumes;17:foam_burst,เสื้อช็อปม่วง ตราขวดแก้ว หอบโพยสูตรเคมีไปทุกที่
-eng_env,น้องวิศวะสิ่งแวดล้อม,wind,55,40,50,65,60,50,120,70,eng,diligent,eng_env,1:tackle;1:pm_dust;10:plant_tree;17:clean_wind,เสื้อช็อปเขียว ตราใบไม้ พกขวดน้ำรียูสและถุงผ้าเสมอ
-eng_ie,น้องวิศวะอุตสาหการ,normal,50,55,45,45,50,75,120,70,eng,diligent,eng_ie,1:conveyor_rush;1:stopwatch;10:kpi_pressure;17:lean_strike,เสื้อช็อปเทา ตรากราฟแท่ง คิดเรื่องประสิทธิภาพตลอดเวลา
-ungying,อุ๋งอิ๋ง,water,55,40,50,85,65,65,0,90,eng,diligent,ungying,1:acid_splash;1:titrate;1:fumes;14:foam_burst,สาวหมวยผิวขาว ผมยาวตรงหน้าม้า ใส่ชุดนักศึกษาเรียบร้อย เรียนวิศวะเคมีเก่งที่สุดในรุ่น ยิ้มหวานจนใครก็เหลียวมอง เป็นคนคุยเก่าของพี่เฟรนด์
-friend,พี่เฟรนด์,electric,60,70,60,75,55,55,0,160,master,,friend,1:short_circuit;1:wrench_throw;1:cheer_faculty;1:blackout,หัวโจกวิศวะเครื่องกล มข. หนุ่มหล่อประจำคณะ ผมทูบล็อกปัดข้าง ตาคม ยิ้มมุมปาก เสื้อช็อปดำพับแขน สร้อยเฟืองทองห้อยคอ สาวๆ ทั้งมหาลัยกรี๊ด
-nangngueak,นางเงือกน้อย,water,55,35,45,70,60,55,140,85,ghost,songbird,nangngueak,1:river_splash;1:nang_gaze;12:mermaid_song;22:naga_wave,ผมยาวสีเขียวน้ำทะเล หางปลาสีเงิน นั่งร้องเพลงบนโขดหินริมลำน้ำพอง ใครฟังนานๆ จะเผลอหลับ
-takhian,นางตะเคียน,wind,55,40,50,70,60,55,120,90,ghost,deeproot,takhian,1:basket_flap;1:nang_gaze;12:takhian_leaf;20:clean_wind,สาวสไบเขียวแห่งต้นตะเคียนริมทาง หวงต้นไม้มาก ใครตัดกิ่งจะโดนตามหลอก
-taehak,ผีตาแฮก,earth,70,65,80,30,55,30,140,85,ghost,guardian,taehak,1:hoe_swing;1:dike_stance;14:pound_ground;20:field_slam,ผีปู่เฝ้านาริมพอง สวมงอบถือจอบ ชาวนาต้องเลี้ยงข้าวทุกต้นฤดูไม่งั้นแกงอน
-krasue,กระสือ,electric,45,40,40,85,55,80,110,95,ghost,levitate,krasue,1:flicker;1:glow_flash;12:ghost_light;20:radio_wave,หัวลอยเรืองแสงสีส้มทอง ออกหากินกลางคืน ชอบบินวนรอบเสาไฟในตัวอำเภอ
-nak,นาคน้อย,water,75,70,70,80,70,65,25,150,ghost,torrent,nak,1:naga_coil;1:river_splash;10:mermaid_song;18:naga_wave,ลูกพญานาคที่พลัดหลงจากแม่ บางคนเชื่อว่าแม่ของมันหลับอยู่ใต้ดอนปู่ตา
-takhon,ผีตาโขน,normal,60,70,50,45,50,70,130,90,ghost,dancer,takhon,1:wood_sword;1:mask_dance;14:spook;20:piston_ram,หน้ากากหลากสีจมูกยาว เต้นไม่หยุดตั้งแต่งานบุญหลวงปีก่อน
-pusom,ผีปู่โสม,earth,80,55,110,40,90,15,45,120,ghost,treasure,pusom,1:stone_drop;1:treasure_guard;12:wail;20:brick_smash,ผีปู่เคราขาวกอดไหสมบัติใต้ซากเจดีย์ ป้องกันแน่นที่สุด แต่ขยับช้ามาก
-nurseghost,ผีพยาบาลกะดึก,water,60,35,55,65,70,45,130,90,ghost,nurse,nurseghost,1:night_round;1:take_meds;12:saline_drip;20:foam_burst,เข้าเวรดึกมาสามสิบปี ตายไปแล้วก็ยังไม่ยอมลงเวร ชอบเดินมาถามว่ากินยาหรือยังจ๊ะ
-wheelchair,รถเข็นผีสิง,normal,50,65,50,30,45,95,130,90,ghost,quick,wheelchair,1:wheel_ram;1:squeak_wheel;12:wrong_ward;20:piston_ram,รถเข็นคันที่ 13 ของโรงพยาบาล ไม่มีใครเข็นก็วิ่งเองได้ ชอบพาคนไข้ไปผิดตึก
-med_nurse,น้องพยาบาลฝึกหัด,water,60,35,55,65,70,55,110,85,med,firstaid,med_nurse,1:inject;1:bandage;12:night_round;18:foam_burst,ชุดขาวหมวกพยาบาล เรียนหนักฝึกงานหนัก แต่ยิ้มให้คนไข้ทุกคน
-med_doc,น้องนักศึกษาแพทย์,earth,65,60,70,45,60,50,110,85,med,firstaid,med_doc,1:tackle;1:case_present;12:anatomy_strike;18:mud_therapy,เสื้อกาวน์สั้นหูฟังคล้องคอ อ่านหนังสือทั้งคืนจนตาโหล
-boom,พี่บูม,earth,75,75,75,60,70,55,0,170,master,,boom,1:mud_therapy;1:herbal_pot;1:numb_shot;1:pulse_check,หมอหนุ่มหล่อสไตล์เกาหลีแห่งโรงพยาบาลอำเภอ เก่งแต่ชอบดูถูกเด็กบ้านนอก ทั้งที่ตัวเองก็มาจากบ้านนา
-raysie,เรซซี่,earth,70,80,60,85,55,75,0,160,master,,agent_raze,1:paint_shells;1:boom_bot;1:showstopper;1:stim_beacon,เอเจนต์สาวสายระเบิด ผ้าโพกหัวส้ม หัวเราะดังลั่น (พาโรดี้เกมวาโลแลนด์)
-neeon,นีอ้อน,electric,60,85,55,85,55,100,0,160,master,,agent_neon,1:high_gear;1:relay_bolt;1:overdrive;1:updraft,เอเจนต์สาวผมฟ้ามัดแกละ วิ่งเร็วที่สุดในทีม
-sagejae,เซจเจ้,water,80,50,75,80,85,60,0,160,master,,agent_sage,1:healing_orb;1:ice_barrier;1:slow_orb;1:toxic_screen,เอเจนต์สาวผมยาว หมอประจำทีม ใจเย็นที่สุด
-renuna,เรนูนา,normal,70,90,60,75,60,80,0,160,master,,agent_reyna,1:leer_eye;1:empress;1:hot_hands;1:headshot,เอเจนต์สาวผมม่วงตาเรือง ยิ่งล้มศัตรูยิ่งแรง
-ohmen,โอ้เมน,wind,75,70,65,85,65,70,0,160,master,,agent_omen,1:dark_cover;1:shadow_hand;1:blade_storm;1:updraft,ผีคลุมผ้าดำไม่มีหน้า สายควันมืด (เข้ากับธีมผีบ้านเรา)
-jettjung,เจ๊ดจัง,wind,72,95,60,70,60,110,0,180,master,,agent_jett,1:tail_dash;1:cloudburst;1:blade_storm;1:operator,เอเจนต์สาวผมขาวมัดจุก ตัวเมนของพี่ม่อน คล่องแคล่วที่สุดในเกม
-brimlung,ลุงบริม,earth,85,75,75,75,70,50,0,150,master,,agent_brim,1:incendiary;1:stim_beacon;1:fault_line;1:dark_cover,ลุงหนวดเคราหมวกแก๊ป สั่งดาวเทียมได้ เอเจนต์คู่ใจพี่โจ
-vaipa,ไวป้า,water,70,60,70,90,75,65,0,150,master,,agent_viper,1:toxic_screen;1:snake_bite;1:slow_orb;1:ice_barrier,ป้าผมดำชุดเขียว ปล่อยม่านพิษคุมพื้นที่
-phoenixjung,ฟินิกซ์จัง,normal,70,85,60,85,55,85,0,150,master,,agent_phoenix,1:hot_hands;1:headshot;1:healing_orb;1:tail_dash,หนุ่มเท่สายไฟ มีมือร้อนเป็นเอกลักษณ์
-sovanoi,โซว่าน้อย,electric,65,80,60,80,60,80,0,150,master,,agent_sova,1:shock_dart;1:relay_bolt;1:leer_eye;1:overdrive,นายพรานหนุ่มผมขาวหมวกฮู้ด ยิงลูกศรสแกนแม่นที่สุด
-breachy,บรีชชี่,earth,80,85,70,60,60,60,0,150,master,,agent_breach,1:fault_line;1:boom_bot;1:leer_eye;1:showstopper,หนุ่มแขนเหล็กผมส้ม ทุบพื้นสะเทือนทั้งสนาม
-killjoy,คิลจ๋อย,electric,65,55,70,90,70,65,0,150,master,,agent_killjoy,1:turret_fire;1:shock_dart;1:ice_barrier;1:overdrive,สาวแว่นหมวกไหมพรม ตั้งป้อมปืนเก่ง
-chamberlung,แชมเบอร์ลุง,normal,70,90,65,65,60,70,0,150,master,,agent_chamber,1:tour_de_force;1:headshot;1:ice_barrier;1:operator,สุภาพบุรุษชุดสูทแว่นทอง ยิงสไนเปอร์หรูหรา
+id,name,type,hp,atk,def,spa,spd,spe,catch,baseexp,kind,ability,look,learnset,desc,evo
+bee,บี,earth,55,60,55,30,50,50,0,64,kid,rage,bee,1:tackle;1:silly_face;5:mud_throw;9:pound_ground;13:field_slam;18:buffalo_charge,เด็กผิวแทนอ๊องๆ ใจดี แรงเยอะ,
+am,แอม,electric,40,30,40,75,60,55,0,64,kid,analyze,am,1:tackle;1:push_glasses;5:battery_shot;9:lecture;13:plasma;18:radio_wave,เด็กเนิร์ดใส่แว่น ช่างสังเกต พูดเยอะ,
+tle,เติ้ล,water,70,45,60,45,55,25,0,64,kid,eater,tle,1:belly_bump;1:sweet_smile;5:bamboo_squirt;9:sticky_rice;13:pond_dive;18:monsoon_splash,เด็กตุ้ยน่ารัก ใจเย็น ชอบกิน,
+ter,เต๋อ,wind,50,60,40,45,30,75,0,64,kid,quick,ter,1:dash;1:tongue;5:dust_kick;9:spin;13:whirlwind;18:kite_storm,เด็กดีด อยู่ไม่นิ่ง ใจร้อน,
+phrai,พรายน้ำน้อย,water,40,30,35,45,40,40,255,50,ghost,slick,phrai,1:splash_spook;3:wail;8:bamboo_squirt,วิญญาณตัวใสประจำหนอง ชอบสาดน้ำใส่คน,phrai2:18
+kongkoi,ผีกองกอย,earth,40,45,55,25,35,35,255,50,ghost,thick,kongkoi,1:koi_hop;3:wail;8:mud_throw,ผีขาเดียวกระโดดร้องกอยกอย แค่อยากจั๊กจี้นิ้วเท้า,kongkoi2:18
+pob,ปอบน้อย,normal,50,50,40,30,35,40,190,55,ghost,glutton,pob,1:raw_bite;3:spook;8:tackle,ปอบตัวเล็กชอบแอบขโมยปลาร้าจากครัว,pob2:18:night
+krahang,ผีกระหัง,wind,40,40,30,50,35,55,200,55,ghost,glider,krahang,1:basket_flap;3:wail;8:dust_kick,ใช้กระด้งเป็นปีก สากตำข้าวเป็นหาง บินเร็วมาก,krahang2:20
+phong,ผีโพง,electric,35,30,30,60,45,55,190,60,ghost,static,phong,1:flicker;3:spook;8:battery_shot,ดวงไฟเรืองแสงเดินทุ่งยามค่ำ,phong2:20:rain
+pret,เปรตต้นตาล,normal,90,45,40,35,45,15,45,90,ghost,tall,pret,1:wail;1:beg_merit;5:raw_bite,สูงเท่าต้นตาล ปากเท่ารูเข็ม จริงๆ ใจดี แค่หิว,pret2:26
+toad,คางคกเจ้าหนอง,normal,75,55,70,55,50,25,0,120,boss,scary,toad,1:mud_spout;1:belly_flop;1:rain_call;1:gape,คางคกยักษ์นั่งขวางทางน้ำ งอนเพราะไม่มีใครจุดบั้งไฟให้,
+ossie,พี่ออสซี่,wind,55,70,50,50,50,75,0,140,master,,ossie,1:wind_blade;1:bamboo_sword;1:samurai_stare;1:wind_step,หัวโจกแก๊งสตรีทญี่ปุ่น หล่อ เท่ ถือดาบไม้ไผ่,
+eng_mech,น้องวิศวะเครื่องกล,normal,60,70,60,35,45,50,120,70,eng,diligent,eng_mech,1:tackle;1:tighten_bolt;8:wrench_throw;12:grease;16:piston_ram,เสื้อช็อปดำ ตราเฟือง มือเปื้อนจารบี ซ่อมได้ทุกอย่างที่มีน็อต,
+eng_civil,น้องวิศวะโยธา,earth,65,65,70,30,50,40,120,70,eng,diligent,eng_civil,1:tackle;1:level_check;8:pour_concrete;16:brick_smash,เสื้อช็อปสีอิฐ ตราสะพาน ตากแดดวัดที่ทั้งวันจนตัวดำ,
+eng_elec,น้องวิศวะไฟฟ้า,electric,45,35,45,80,55,60,120,70,eng,diligent,eng_elec,1:tackle;1:multimeter;8:live_wire;13:blackout;17:short_circuit,เสื้อช็อปกรมท่า ตราสายฟ้า ผมชี้ตลอดเพราะโดนไฟดูด,
+eng_chem,น้องวิศวะเคมี,water,50,35,50,75,60,50,120,70,eng,diligent,eng_chem,1:acid_splash;1:titrate;10:fumes;17:foam_burst,เสื้อช็อปม่วง ตราขวดแก้ว หอบโพยสูตรเคมีไปทุกที่,
+eng_env,น้องวิศวะสิ่งแวดล้อม,wind,55,40,50,65,60,50,120,70,eng,diligent,eng_env,1:tackle;1:pm_dust;10:plant_tree;17:clean_wind,เสื้อช็อปเขียว ตราใบไม้ พกขวดน้ำรียูสและถุงผ้าเสมอ,
+eng_ie,น้องวิศวะอุตสาหการ,normal,50,55,45,45,50,75,120,70,eng,diligent,eng_ie,1:conveyor_rush;1:stopwatch;10:kpi_pressure;17:lean_strike,เสื้อช็อปเทา ตรากราฟแท่ง คิดเรื่องประสิทธิภาพตลอดเวลา,
+ungying,อุ๋งอิ๋ง,water,55,40,50,85,65,65,0,90,eng,diligent,ungying,1:acid_splash;1:titrate;1:fumes;14:foam_burst,สาวหมวยผิวขาว ผมยาวตรงหน้าม้า ใส่ชุดนักศึกษาเรียบร้อย เรียนวิศวะเคมีเก่งที่สุดในรุ่น ยิ้มหวานจนใครก็เหลียวมอง เป็นคนคุยเก่าของพี่เฟรนด์,
+friend,พี่เฟรนด์,electric,60,70,60,75,55,55,0,160,master,,friend,1:short_circuit;1:wrench_throw;1:cheer_faculty;1:blackout,หัวโจกวิศวะเครื่องกล มข. หนุ่มหล่อประจำคณะ ผมทูบล็อกปัดข้าง ตาคม ยิ้มมุมปาก เสื้อช็อปดำพับแขน สร้อยเฟืองทองห้อยคอ สาวๆ ทั้งมหาลัยกรี๊ด,
+nangngueak,นางเงือกน้อย,water,55,35,45,70,60,55,140,85,ghost,songbird,nangngueak,1:river_splash;1:nang_gaze;12:mermaid_song;22:naga_wave,ผมยาวสีเขียวน้ำทะเล หางปลาสีเงิน นั่งร้องเพลงบนโขดหินริมลำน้ำพอง ใครฟังนานๆ จะเผลอหลับ,nangngueak2:32
+takhian,นางตะเคียน,wind,55,40,50,70,60,55,120,90,ghost,deeproot,takhian,1:basket_flap;1:nang_gaze;12:takhian_leaf;20:clean_wind,สาวสไบเขียวแห่งต้นตะเคียนริมทาง หวงต้นไม้มาก ใครตัดกิ่งจะโดนตามหลอก,takhian2:30:forest_healed
+taehak,ผีตาแฮก,earth,70,65,80,30,55,30,140,85,ghost,guardian,taehak,1:hoe_swing;1:dike_stance;14:pound_ground;20:field_slam,ผีปู่เฝ้านาริมพอง สวมงอบถือจอบ ชาวนาต้องเลี้ยงข้าวทุกต้นฤดูไม่งั้นแกงอน,taehak2:32
+krasue,กระสือ,electric,45,40,40,85,55,80,110,95,ghost,levitate,krasue,1:flicker;1:glow_flash;12:ghost_light;20:radio_wave,หัวลอยเรืองแสงสีส้มทอง ออกหากินกลางคืน ชอบบินวนรอบเสาไฟในตัวอำเภอ,krasue2:34:night
+nak,นาคน้อย,water,75,70,70,80,70,65,25,150,ghost,torrent,nak,1:naga_coil;1:river_splash;10:mermaid_song;18:naga_wave,ลูกพญานาคที่พลัดหลงจากแม่ บางคนเชื่อว่าแม่ของมันหลับอยู่ใต้ดอนปู่ตา,nak2:32:naga_done
+takhon,ผีตาโขน,normal,60,70,50,45,50,70,130,90,ghost,dancer,takhon,1:wood_sword;1:mask_dance;14:spook;20:piston_ram,หน้ากากหลากสีจมูกยาว เต้นไม่หยุดตั้งแต่งานบุญหลวงปีก่อน,takhon2:32
+pusom,ผีปู่โสม,earth,80,55,110,40,90,15,45,120,ghost,treasure,pusom,1:stone_drop;1:treasure_guard;12:wail;20:brick_smash,ผีปู่เคราขาวกอดไหสมบัติใต้ซากเจดีย์ ป้องกันแน่นที่สุด แต่ขยับช้ามาก,pusom2:36
+nurseghost,ผีพยาบาลกะดึก,water,60,35,55,65,70,45,130,90,ghost,nurse,nurseghost,1:night_round;1:take_meds;12:saline_drip;20:foam_burst,เข้าเวรดึกมาสามสิบปี ตายไปแล้วก็ยังไม่ยอมลงเวร ชอบเดินมาถามว่ากินยาหรือยังจ๊ะ,nurseghost2:34
+wheelchair,รถเข็นผีสิง,normal,50,65,50,30,45,95,130,90,ghost,quick,wheelchair,1:wheel_ram;1:squeak_wheel;12:wrong_ward;20:piston_ram,รถเข็นคันที่ 13 ของโรงพยาบาล ไม่มีใครเข็นก็วิ่งเองได้ ชอบพาคนไข้ไปผิดตึก,wheelchair2:32
+med_nurse,น้องพยาบาลฝึกหัด,water,60,35,55,65,70,55,110,85,med,firstaid,med_nurse,1:inject;1:bandage;12:night_round;18:foam_burst,ชุดขาวหมวกพยาบาล เรียนหนักฝึกงานหนัก แต่ยิ้มให้คนไข้ทุกคน,
+med_doc,น้องนักศึกษาแพทย์,earth,65,60,70,45,60,50,110,85,med,firstaid,med_doc,1:tackle;1:case_present;12:anatomy_strike;18:mud_therapy,เสื้อกาวน์สั้นหูฟังคล้องคอ อ่านหนังสือทั้งคืนจนตาโหล,
+boom,พี่บูม,earth,75,75,75,60,70,55,0,170,master,,boom,1:mud_therapy;1:herbal_pot;1:numb_shot;1:pulse_check,หมอหนุ่มหล่อสไตล์เกาหลีแห่งโรงพยาบาลอำเภอ เก่งแต่ชอบดูถูกเด็กบ้านนอก ทั้งที่ตัวเองก็มาจากบ้านนา,
+raysie,เรซซี่,earth,70,80,60,85,55,75,0,160,master,,agent_raze,1:paint_shells;1:boom_bot;1:showstopper;1:stim_beacon,เอเจนต์สาวสายระเบิด ผ้าโพกหัวส้ม หัวเราะดังลั่น (พาโรดี้เกมวาโลแลนด์),
+neeon,นีอ้อน,electric,60,85,55,85,55,100,0,160,master,,agent_neon,1:high_gear;1:relay_bolt;1:overdrive;1:updraft,เอเจนต์สาวผมฟ้ามัดแกละ วิ่งเร็วที่สุดในทีม,
+sagejae,เซจเจ้,water,80,50,75,80,85,60,0,160,master,,agent_sage,1:healing_orb;1:ice_barrier;1:slow_orb;1:toxic_screen,เอเจนต์สาวผมยาว หมอประจำทีม ใจเย็นที่สุด,
+renuna,เรนูนา,normal,70,90,60,75,60,80,0,160,master,,agent_reyna,1:leer_eye;1:empress;1:hot_hands;1:headshot,เอเจนต์สาวผมม่วงตาเรือง ยิ่งล้มศัตรูยิ่งแรง,
+ohmen,โอ้เมน,wind,75,70,65,85,65,70,0,160,master,,agent_omen,1:dark_cover;1:shadow_hand;1:blade_storm;1:updraft,ผีคลุมผ้าดำไม่มีหน้า สายควันมืด (เข้ากับธีมผีบ้านเรา),
+jettjung,เจ๊ดจัง,wind,72,95,60,70,60,110,0,180,master,,agent_jett,1:tail_dash;1:cloudburst;1:blade_storm;1:operator,เอเจนต์สาวผมขาวมัดจุก ตัวเมนของพี่ม่อน คล่องแคล่วที่สุดในเกม,
+brimlung,ลุงบริม,earth,85,75,75,75,70,50,0,150,master,,agent_brim,1:incendiary;1:stim_beacon;1:fault_line;1:dark_cover,ลุงหนวดเคราหมวกแก๊ป สั่งดาวเทียมได้ เอเจนต์คู่ใจพี่โจ,
+vaipa,ไวป้า,water,70,60,70,90,75,65,0,150,master,,agent_viper,1:toxic_screen;1:snake_bite;1:slow_orb;1:ice_barrier,ป้าผมดำชุดเขียว ปล่อยม่านพิษคุมพื้นที่,
+phoenixjung,ฟินิกซ์จัง,normal,70,85,60,85,55,85,0,150,master,,agent_phoenix,1:hot_hands;1:headshot;1:healing_orb;1:tail_dash,หนุ่มเท่สายไฟ มีมือร้อนเป็นเอกลักษณ์,
+sovanoi,โซว่าน้อย,electric,65,80,60,80,60,80,0,150,master,,agent_sova,1:shock_dart;1:relay_bolt;1:leer_eye;1:overdrive,นายพรานหนุ่มผมขาวหมวกฮู้ด ยิงลูกศรสแกนแม่นที่สุด,
+breachy,บรีชชี่,earth,80,85,70,60,60,60,0,150,master,,agent_breach,1:fault_line;1:boom_bot;1:leer_eye;1:showstopper,หนุ่มแขนเหล็กผมส้ม ทุบพื้นสะเทือนทั้งสนาม,
+killjoy,คิลจ๋อย,electric,65,55,70,90,70,65,0,150,master,,agent_killjoy,1:turret_fire;1:shock_dart;1:ice_barrier;1:overdrive,สาวแว่นหมวกไหมพรม ตั้งป้อมปืนเก่ง,
+chamberlung,แชมเบอร์ลุง,normal,70,90,65,65,60,70,0,150,master,,agent_chamber,1:tour_de_force;1:headshot;1:ice_barrier;1:operator,สุภาพบุรุษชุดสูทแว่นทอง ยิงสไนเปอร์หรูหรา,
+phrai2,พรายบึงใหญ่,water,50,39,46,58,52,52,85,72,ghost,slick,phrai2,1:splash_spook;3:wail;8:bamboo_squirt;24:foam_burst;30:monsoon_splash,พรายน้ำที่อยู่บึงมานาน ตัวโตจนน้ำทั้งบึงขยับตามใจ เขี้ยวเล็กๆ งอกออกมา,
+kongkoi2,กองกอยเจ้าป่า,earth,50,58,72,32,46,46,85,72,ghost,thick,kongkoi2,1:koi_hop;3:wail;8:mud_throw;24:brick_smash;30:field_slam,กองกอยที่กระโดดขาเดียวมาร้อยปีจนกลายเป็นเจ้าป่า ใส่มงกุฎใบไม้,
+pob2,ปอบหิวโหย,normal,62,65,52,39,46,52,63,80,ghost,glutton,pob2,1:raw_bite;3:spook;8:tackle;24:naga_coil;30:belly_flop,ปอบน้อยที่กินมื้อดึกจนตัวโต เปลี่ยนร่างได้แต่ตอนกลางคืนเท่านั้น,
+krahang2,กระหังเหินฟ้า,wind,50,52,39,65,46,72,66,80,ghost,glider,krahang2,1:basket_flap;3:wail;8:dust_kick;26:kite_storm;32:whirlwind,กระหังที่ฝึกบินจนกระด้งงอกเพิ่มเป็นสี่ใบ บินได้สูงถึงยอดตาล,
+phong2,ผีโพงลุกโชน,electric,44,39,39,78,58,72,63,87,ghost,static,phong2,1:flicker;3:spook;8:battery_shot;26:short_circuit;32:plasma,ผีโพงที่โดนฟ้าผ่ากลางสายฝน แสงไฟลุกโชนไปทั้งตัว,
+pret2,เปรตยักษ์ต้นตาล,normal,112,58,52,46,58,20,15,130,ghost,tall,pret2,1:wail;1:beg_merit;5:raw_bite;32:stone_drop;38:belly_flop,เปรตที่สูงเท่าต้นตาลทั้งต้น ปากเล็กเท่ารูเข็ม แต่ใจดีถ้าได้ส่วนบุญ,
+nangngueak2,เจ้าแม่เงือกลำพอง,water,69,46,58,91,78,72,46,123,ghost,songbird,nangngueak2,1:river_splash;1:nang_gaze;12:mermaid_song;22:naga_wave;38:monsoon_splash;44:foam_burst,นางเงือกที่ลำน้ำพองยอมรับเป็นเจ้าแม่ เสียงเพลงกล่อมทั้งลำน้ำให้สงบ,
+takhian2,นางไม้ตะเคียนทอง,wind,69,52,65,91,78,72,40,130,ghost,deeproot,takhian2,1:basket_flap;1:nang_gaze;12:takhian_leaf;20:clean_wind;36:plant_tree;42:kite_storm,นางตะเคียนที่ได้บ้านคืนหลังดอนปู่ตาฟื้น ใบไม้รอบตัวกลายเป็นสีทอง,
+taehak2,ตาแฮกเจ้าทุ่ง,earth,88,84,104,39,72,39,46,123,ghost,guardian,taehak2,1:hoe_swing;1:dike_stance;14:pound_ground;20:field_slam;38:brick_smash;44:fault_line,ผีตาแฮกที่เฝ้าทุ่งมาหลายชั่วคน ทุกคันนาในอีสานเคารพ,
+krasue2,กระสือราตรี,electric,56,52,52,110,72,104,36,138,ghost,levitate,krasue2,1:flicker;1:glow_flash;12:ghost_light;20:radio_wave;40:plasma;46:short_circuit,กระสือที่แสงเรืองสว่างจนกลางคืนกลายเป็นกลางวัน เปลี่ยนร่างตอนดึกเท่านั้น,
+nak2,พญานาคหนุ่ม,water,94,91,91,104,91,84,8,218,ghost,torrent,nak2,1:naga_coil;1:river_splash;10:mermaid_song;18:naga_wave;38:monsoon_splash;44:foam_burst,ลูกนาคที่ได้พรจากแม่นาคแห่งดอนปู่ตา เกล็ดเปลี่ยนเป็นสีทอง มีหงอนเหมือนพญานาค,
+takhon2,ผีตาโขนใหญ่,normal,75,91,65,58,65,91,43,130,ghost,dancer,takhon2,1:wood_sword;1:mask_dance;14:spook;20:piston_ram;38:buffalo_charge;44:piston_ram,ผีตาโขนที่เต้นในงานบุญหลวงจนหน้ากากใหญ่เท่าตัว,
+pusom2,ปู่โสมเจ้าทรัพย์,earth,100,72,143,52,117,20,15,174,ghost,treasure,pusom2,1:stone_drop;1:treasure_guard;12:wail;20:brick_smash;42:fault_line;48:brick_smash,ผีปู่โสมที่เฝ้าทรัพย์มาจนไหสมบัติกลายเป็นทองคำทั้งใบ,
+nurseghost2,หัวหน้าพยาบาลผี,water,75,46,72,84,91,58,43,130,ghost,nurse,nurseghost2,1:night_round;1:take_meds;12:saline_drip;20:foam_burst;40:saline_drip;46:monsoon_splash,พยาบาลผีที่เข้าเวรดึกมาสามสิบปีจนได้เป็นหัวหน้าวอร์ด ใจดีแต่ดุมาก,
+wheelchair2,รถเข็นผีซิ่ง,normal,62,84,65,39,58,124,43,130,ghost,quick,wheelchair2,1:wheel_ram;1:squeak_wheel;12:wrong_ward;20:piston_ram;38:conveyor_rush;44:buffalo_charge,รถเข็นผีที่แต่งล้อแม็กกับไฟใต้ท้อง พุ่งในทางเดินโรงพยาบาลเร็วกว่าลม,

@@ -81,6 +81,9 @@ def validate(d):
         if m["pp"] <= 0: errs.append(f"moves.csv {mid}: PP ต้องมากกว่า 0")
     for sid, s in d["species"].items():
         if s["type"] not in T: errs.append(f"species.csv {sid}: ธาตุ '{s['type']}' ไม่มีอยู่")
+        if s.get("evo"):   # วิวัฒนาการ: ร่างใหม่:เลเวล[:เงื่อนไข night/rain/flag]
+            ev = s["evo"].split(":")
+            if ev[0] not in d["species"] or not ev[1].isdigit(): errs.append(f"species {sid}: evo '{s['evo']}' ผิด")
         for lv, mv in s["learnset"]:
             if mv not in d["moves"]: errs.append(f"species.csv {sid}: ท่า '{mv}' ไม่มีใน moves.csv")
         if s["kind"] == "kid":
