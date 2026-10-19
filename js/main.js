@@ -3,7 +3,7 @@
   'use strict';
   const SAVE_KEY = 'kaengdekbanna_save', SAVE_VER = 1;
   G.DATA = window.GAME_DATA;
-  G.settings = { textSpeed: 2, sound: true, music: true, guide: true, hud: true, easy: true, autosave: true, ambient: true, calm: false, skipRead: true, fast: false };
+  G.settings = { textSpeed: 2, sound: true, music: true, guide: true, hud: true, easy: true, autosave: true, ambient: true, calm: false, skipRead: true, fast: false, colorText: true };
   try { Object.assign(G.settings, JSON.parse(localStorage.getItem(SAVE_KEY + '_settings') || '{}')); } catch (e) { /* ไม่มีที่เก็บ */ }
   G.saveSettings = () => { try { localStorage.setItem(SAVE_KEY + '_settings', JSON.stringify(G.settings)); } catch (e) { /* */ } };
   G.wait = (ms) => new Promise((r) => setTimeout(r, ms));

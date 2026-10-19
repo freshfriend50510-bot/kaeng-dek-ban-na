@@ -269,3 +269,10 @@ table.moves td, table.moves th { padding: calc(var(--u) * 0.5) calc(var(--u) * 2
 .nb-filter .nb-arrow { color: var(--gold); cursor: pointer; pointer-events: auto; padding: 0 calc(var(--u) * 1); }
 .nb-filter .ty-ico { width: 1.1em; height: 1.1em; }
 #toast { z-index: 30; } #toast.err { white-space: normal; max-width: 90%; }
+
+/* ---------- สีคำสำคัญในข้อความ (G.ui.colorize) ---------- */
+.k-name { color: #8fdcff; } .k-move { color: #ffb070; } .k-item { color: #ffd84a; } .k-money { color: #d6f57a; } .k-quest { color: #ffb0e0; }
+.k-good { color: #6ff08a; } .k-lv { color: #6ff08a; } .k-weak { color: #a3abc4; } .k-hurt { color: #ff7070; }
+.k-psn { color: #d59aff; } .k-par { color: #ffe24a; } .k-slp { color: #8ab4ff; } .k-cnf { color: #ff9ad6; }
+.k-water { color: #6ec0ff; } .k-earth { color: #f0a870; } .k-electric { color: #ffe24a; } .k-wind { color: #7ee08a; } .k-normal { color: #e0d8c8; }
+[class^="k-"] { text-shadow: 0 1px 0 rgba(0,0,0,.45); }

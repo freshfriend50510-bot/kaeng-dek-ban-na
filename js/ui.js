@@ -46,6 +46,55 @@
     const st = seenSet(); if (st.has(k)) return; st.add(k);
     clearTimeout(seenT); seenT = setTimeout(() => { try { localStorage.setItem(SEEN_KEY, JSON.stringify([...st].slice(-6000))); } catch (e) { /* */ } }, 800);
   };
+  // ---------- สีคำสำคัญในข้อความ (ใช้ทั้งเกม): ชื่อ ท่า ไอเท็ม เงิน ธาตุ สถานะ ผลการโจมตี ----------
+  const KW_FIXED = [
+    ['ได้ผลดีมาก', 'k-good'], ['ไม่ค่อยได้ผล', 'k-weak'], ['แต่ไม่ได้ผล', 'k-weak'], ['ไม่ได้ผล', 'k-weak'], ['พลาดเป้า', 'k-weak'], ['คริติคอล', 'k-hurt'],
+    ['หมดแรง', 'k-hurt'], ['ปวดท้อง', 'k-psn'], ['ท้องเสีย', 'k-psn'], ['ติดพิษ', 'k-psn'], ['อัมพาต', 'k-par'], ['ตัวชา', 'k-par'], ['หลับปุ๋ย', 'k-slp'], ['หลับ', 'k-slp'],
+    ['มึนหัว', 'k-cnf'], ['มึนงง', 'k-cnf'], ['ฟื้นพลัง', 'k-good'], ['หายเป็นปกติ', 'k-good'], ['หายจากอาการผิดปกติ', 'k-good'], ['เพิ่มขึ้นมาก', 'k-good'], ['เพิ่มขึ้น', 'k-good'], ['ลดลงมาก', 'k-hurt'], ['ลดลง', 'k-hurt'],
+    ['เลเวลอัป', 'k-lv'], ['เติบโตขึ้น', 'k-lv'], ['เข้าแก๊ง', 'k-good'], ['สำเร็จ', 'k-good'], ['ได้รับ', 'k-good'],
+    ['ธาตุน้ำ', 'k-water'], ['ธาตุดิน', 'k-earth'], ['ธาตุสายฟ้า', 'k-electric'], ['ธาตุลม', 'k-wind'], ['ธาตุปกติ', 'k-normal'],
+    ['FIEWXANDER', 'k-name'], ['JOEKER', 'k-name'], ['หยกJADE', 'k-name']];
+  let kwBase = null;
+  const reEsc = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  function kwList() {
+    if (!kwBase) {
+      const D = G.DATA, m = new Map(KW_FIXED);
+      for (const it of Object.values(D.items)) if (it.name.length > 2 && !m.has(it.name)) m.set(it.name, 'k-item');
+      for (const mv of Object.values(D.moves)) if (mv.name.length > 2 && !m.has(mv.name)) m.set(mv.name, 'k-move');
+      for (const sp of Object.values(D.species)) if (sp.name.length > 1 && !m.has(sp.name)) m.set(sp.name, 'k-name');
+      for (const n of D.world.npcs) { const nm = (n.name || '').replace(/ \(.*\)$/, ''); if (/^(พี่|น้อง|ลุง|ป้า|ยาย|ครู|อาจารย์|หลวง|แม่ค้า|หยก|โจ้)/.test(nm) && nm.length > 2 && !m.has(nm)) m.set(nm, 'k-name'); }
+      kwBase = m;
+    }
+    const m = new Map(kwBase);
+    const S = G.state;
+    if (S) { for (const x of [...S.party, ...S.storage]) if (x.name && x.name.length > 1) m.set(x.name, 'k-name'); if (S.name) m.set(S.name, 'k-name'); }
+    return m;
+  }
+  // แตกข้อความเป็นช่วง [{t, c}] (c = คลาสสี หรือ '')
+  G.ui.colorize = function (text) {
+    const m = kwList(), keys = [...m.keys()].sort((a, b) => b.length - a.length);
+    const re = new RegExp(`(${keys.map(reEsc).join('|')}|\\d[\\d,]*\\s?บาท|ประสบการณ์ \\d+|Lv ?\\d+|"[^"]{1,24}")`, 'g');
+    const out = []; let last = 0, mt;
+    while ((mt = re.exec(text))) {
+      if (mt.index > last) out.push({ t: text.slice(last, mt.index), c: '' });
+      const w = mt[0];
+      out.push({ t: w, c: m.get(w) || (/บาท$/.test(w) ? 'k-money' : /^ประสบการณ์|^Lv/.test(w) ? 'k-lv' : 'k-quest') });
+      last = mt.index + w.length;
+    }
+    if (last < text.length) out.push({ t: text.slice(last), c: '' });
+    return out;
+  };
+  // แสดงช่วงที่ระบายสีแล้ว เฉพาะ n ตัวอักษรแรก (ใช้กับข้อความพิมพ์ทีละตัว)
+  G.ui.colorHTML = function (segs, n = Infinity) {
+    let left = n, html = '';
+    for (const sg of segs) {
+      if (left <= 0) break;
+      const ch = Array.from(sg.t), part = ch.slice(0, left).join(''); left -= ch.length;
+      html += sg.c ? `<span class="${sg.c}">${esc(part)}</span>` : esc(part);
+    }
+    return html;
+  };
+  G.ui.resetKeywords = () => { kwBase = null; };
   G.ui.skipping = false;
   G.ui.say = function (text, name, opt = {}) {
     let mood = opt.mood;
@@ -75,9 +124,10 @@
       const fast = opt.battle && G.settings.fast;   // ต่อสู้เร็ว ×2: พิมพ์เร็วขึ้นและรอสั้นลงครึ่งหนึ่ง
       const speed = G.settings.textSpeed * (fast ? 2 : 1), auto = opt.auto && fast ? Math.max(1, opt.auto / 2) : opt.auto;
       let held = false;
-      const complete = () => { clearInterval(tick); n = chars.length; body.textContent = text; done = true; box.classList.add('done'); if (track) markSeen(key); if (auto) setTimeout(finish, auto); if (opt.hold && !held) { held = true; resolve(() => pop(m)); } };   // hold = ค้างข้อความไว้ระหว่างเลือกตัวเลือก
+      const segs = G.settings.colorText === false ? [{ t: text, c: '' }] : G.ui.colorize(text);
+      const complete = () => { clearInterval(tick); n = chars.length; body.innerHTML = G.ui.colorHTML(segs); done = true; box.classList.add('done'); if (track) markSeen(key); if (auto) setTimeout(finish, auto); if (opt.hold && !held) { held = true; resolve(() => pop(m)); } };   // hold = ค้างข้อความไว้ระหว่างเลือกตัวเลือก
       const tick = setInterval(() => {
-        n += speed; body.textContent = chars.slice(0, n).join('');
+        n += speed; body.innerHTML = G.ui.colorHTML(segs, n);
         if (n >= chars.length) complete();
       }, 22);
       const finish = () => { if (!stack.includes(m)) return; pop(m); resolve(); };
@@ -118,7 +168,7 @@
       const draw = () => {
         rows.forEach((r, i) => r.classList.toggle('sel', i === sel));
         if (rows[sel]) rows[sel].scrollIntoView({ block: 'nearest' });
-        if (opt.info) info.textContent = opt.info(sel) || '';
+        if (opt.info) { const t = opt.info(sel) || ''; info.innerHTML = G.settings.colorText === false ? esc(t) : G.ui.colorHTML(G.ui.colorize(t)); }
       };
       const pick = () => { if (items[sel].disabled) { G.sfx('bump'); return; } G.sfx('tick'); pop(m); resolve(sel); };
       const cols = opt.grid ? 2 : 1;
@@ -636,10 +686,10 @@
       const on = (b) => (b ? 'เปิด' : 'ปิด');
       const s = await G.ui.choose([`ความเร็วข้อความ: ${['ช้า', 'กลาง', 'เร็ว'][G.settings.textSpeed - 1]}`, `เพลง: ${on(G.settings.music)}`,
         `เสียงเอฟเฟกต์: ${on(G.settings.sound)}`, `ไกด์และลูกศรชี้ทาง: ${on(G.settings.guide)}`, `แถบทีมและมินิแมพ: ${on(G.settings.hud !== false)}`, `เก็บเวลเร็ว + ติดคริง่าย: ${on(G.settings.easy !== false)}`, 'สำรองเซฟเป็นไฟล์', 'ใส่รหัสลับ', `บันทึกอัตโนมัติ: ${on(G.settings.autosave !== false)}`,
-        `เสียงบรรยากาศ: ${on(G.settings.ambient !== false)}`, `ลดการสั่นจอและแฟลช: ${on(G.settings.calm)}`, `ข้ามบทที่เคยอ่าน (ปุ่ม X): ${on(G.settings.skipRead !== false)}`, `ความเร็วการต่อสู้: ${G.settings.fast ? '×2 เร็ว' : 'ปกติ'}`], { cls: 'small',
+        `เสียงบรรยากาศ: ${on(G.settings.ambient !== false)}`, `ลดการสั่นจอและแฟลช: ${on(G.settings.calm)}`, `ข้ามบทที่เคยอ่าน (ปุ่ม X): ${on(G.settings.skipRead !== false)}`, `ความเร็วการต่อสู้: ${G.settings.fast ? '×2 เร็ว' : 'ปกติ'}`, `สีคำสำคัญในข้อความ: ${on(G.settings.colorText !== false)}`], { cls: 'small',
         info: (k) => ({ 5: 'เปิด: EXP ×3 แบ่งให้ทั้งแก๊ง และฝั่งเราติดคริ 25%', 8: `บันทึกลงช่อง ${G.slot} เองหลังเหตุการณ์ การต่อสู้ เปลี่ยนแผนที่ และทุก 1 นาที`,
           9: 'จิ้งหรีดกับกบตอนกลางคืน นกตอนเช้า ลมในทุ่งนา และเสียงฝน', 10: 'สำหรับคนที่ตาล้าง่าย: ตอนตีโดนสั่นน้อยลง และไม่กะพริบจอตอนเข้าต่อสู้',
-          11: 'บทที่เคยอ่านแล้วจะมีป้าย "X ข้าม" กด X แล้วข้ามรวดจนถึงบทใหม่หรือตัวเลือก', 12: '×2: ข้อความและท่าทางในการต่อสู้เร็วขึ้นเท่าตัว เก็บเลเวลได้ไวขึ้น' }[k] || '') });
+          11: 'บทที่เคยอ่านแล้วจะมีป้าย "X ข้าม" กด X แล้วข้ามรวดจนถึงบทใหม่หรือตัวเลือก', 12: '×2: ข้อความและท่าทางในการต่อสู้เร็วขึ้นเท่าตัว เก็บเลเวลได้ไวขึ้น', 13: 'ชื่อตัวละคร = ฟ้า · ท่า = ส้ม · ไอเท็ม = เหลือง · เงิน = เขียวอ่อน · ได้ผลดีมาก/ฟื้นพลัง = เขียว · หมดแรง/ลดลง = แดง · ไม่ค่อยได้ผล = เทา · ธาตุน้ำ ธาตุดิน ธาตุสายฟ้า ธาตุลม ตามสีธาตุ · หลับ อัมพาต ท้องเสีย มึนหัว แยกสี' }[k] || '') });
       if (s === 0) G.settings.textSpeed = (G.settings.textSpeed % 3) + 1;
       if (s === 1) { G.settings.music = !G.settings.music; G.restartMusic(); }
       if (s === 2) { G.settings.sound = !G.settings.sound; G.restartMusic(); }
@@ -653,6 +703,7 @@
       if (s === 10) G.settings.calm = !G.settings.calm;
       if (s === 11) G.settings.skipRead = G.settings.skipRead === false;
       if (s === 12) G.settings.fast = !G.settings.fast;
+      if (s === 13) G.settings.colorText = G.settings.colorText === false;
       G.saveSettings();
     }
   };
