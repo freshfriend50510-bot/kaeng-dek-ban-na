@@ -36,8 +36,8 @@
           if (e.reward && skip) break;
           await G.ui.say(e.text, null, { battle: true, auto: 650, onDouble: e.reward ? () => { skip = true; } : null });
           break;
-        case 'anim': V.lunge = { side: e.side, t: 0 }; V.fx = { side: e.side, type: e.type, cat: e.cat, id: e.id, t0: performance.now() }; G.sfx(e.cat === 'status' ? 'status' : 'attack'); await wait(SIG[e.id] ? 430 : e.cat === 'status' ? 300 : 260); break;
-        case 'hit': V.shake = { side: e.side, t: 0 }; G.sfx(e.eff > 1 ? 'super' : 'hit'); await wait(200); break;
+        case 'anim': startAct(e.side, e.type, e.cat, e.id, 0); V.fx = { side: e.side, type: e.type, cat: e.cat, id: e.id, t0: performance.now() }; G.sfx(e.cat === 'status' ? 'status' : 'attack'); await wait(SIG[e.id] ? 430 : e.cat === 'status' ? 300 : 260); break;
+        case 'hit': V.shake = { side: e.side, t: 0 }; V.knock = { side: e.side, t0: performance.now() }; G.sfx(e.eff > 1 ? 'super' : 'hit'); await wait(200); break;
         case 'crit': V.critFlash = 10; V.shake = { side: e.side, t: 0 }; G.sfx('super'); await wait(160); break;
         case 'hp': await tweenHp(b, e.side, e.hp); break;
         case 'status': render(b); break;
@@ -252,7 +252,26 @@
     wrong_ward: ['on', '🔀', { spin: true, text: 'ทางไหน?' }], bandage: ['self', '🩹', { hearts: true }], inject: ['throw', '💉'], case_present: ['on', '📊', { zzz: true }],
     anatomy_strike: ['throw', '🦴', { spin: true }], mud_therapy: ['throw', '🟤', { big: true }], herbal_pot: ['self', '🏺', { steam: true }], numb_shot: ['throw', '💉', { zzz: true }],
     pulse_check: ['self', '🩺', { ecg: true }], looking_down: ['on', '😏', { text: 'หึ...' }],
+    // ท่าพื้นฐาน + ท่าวาโลแลนด์ (m = ท่าทางของตัวละคร ถ้าไม่ใส่จะเดาจากแบบเอฟเฟกต์)
+    tackle: ['body', '💥', { m: 'rush' }], dash: ['body', '💨', { m: 'dashx', after: true }], flicker: ['on', '💡', { flash: true, blink: true }],
+    updraft: ['self', '🌬️', { m: 'jump', wind: true }], tail_dash: ['body', '🌪️', { m: 'dashx', after: true, c: '#c8f0b0' }], cloudburst: ['cloud', '☁️', { tint: 'rgba(240,244,255,0.75)', big: true }],
+    blade_storm: ['multi', '🔪', { n: 6, spin: true }], dark_cover: ['cloud', '🌑', { tint: 'rgba(20,18,40,0.65)', m: 'vanish' }], shadow_hand: ['on', '🖐️', { rise: true, shade: true }],
+    paint_shells: ['multi', '🎨', { n: 4, arc: true, paint: true }], boom_bot: ['rush', '🤖', { text: 'ตูม!', boom: true }], showstopper: ['rocket', '🚀', { big: true, text: 'ตูม!!' }],
+    fault_line: ['ground', '🪨', { m: 'stomp' }], stim_beacon: ['self', '🚩', { confetti: true }], high_gear: ['body', '⚡', { m: 'dashx', after: true, c: '#fff2a8' }],
+    relay_bolt: ['multi', '🔵', { n: 1, hop: true, sparks: true }], overdrive: ['beam', '✋', { c: '#5fe0f0', wide: true }], turret_fire: ['multi', '🔫', { n: 6, bullet: true, turret: true }],
+    shock_dart: ['multi', '🏹', { n: 1, straight: true, sparks: true }], healing_orb: ['self', '🟢', { hearts: true }], ice_barrier: ['self', '🧊', { wall: true }],
+    slow_orb: ['throw', '🔮', { freeze: true }], toxic_screen: ['cloud', '☠️', { tint: 'rgba(120,220,90,0.5)', big: true }], snake_bite: ['throw', '🐍', { blobs: true, bc: '#8fe06a', text: 'ฉึก!' }],
+    empress: ['self', '👑', { flash: true, aura: '#b06aff' }], leer_eye: ['throw', '👁️', { spin: true }], headshot: ['snipe', '🔫', { text: 'HEADSHOT!' }],
+    operator: ['snipe', '🔭', { big: true, text: 'ปัง!!' }], hot_hands: ['throw', '🔥', { big: true }], tour_de_force: ['snipe', '💎', { text: 'สง่างาม~' }],
+    incendiary: ['drop', '🔥', { n: 5, sat: true }],
   };
+  // ท่าทางของตัวละครที่ใช้ท่า ปรับเพิ่มบางท่า (ท่าที่มีอยู่แล้ว)
+  const MOTION_OF = { spin: 'spin', whirlwind: 'spin', mask_dance: 'spin', piston_ram: 'rush', buffalo_charge: 'rush', belly_bump: 'rush', conveyor_rush: 'rush', wheel_ram: 'rush',
+    koi_hop: 'jump', pond_dive: 'jump', belly_flop: 'jump', field_slam: 'jump', stone_drop: 'stomp', brick_smash: 'stomp', wind_step: 'dashx', blackout: 'vanish', spook: 'vanish', glow_flash: 'cast',
+    wak_shout: 'shout', pound_ground: 'shout', wail: 'shout', cheer_faculty: 'shout', squeak_wheel: 'shout', lecture: 'shout', silly_face: 'bounce', tongue: 'bounce', sticky_rice: 'bounce',
+    level_check: 'aim', samurai_stare: 'aim', nang_gaze: 'aim', looking_down: 'aim', raw_bite: 'lunge', hoe_swing: 'slash', bamboo_sword: 'slash', wood_sword: 'slash', wind_blade: 'slash', lean_strike: 'slash' };
+  const MOTION_BY_KIND = { throw: 'throw', rush: 'lunge', body: 'rush', drop: 'jump', cloud: 'cast', wave: 'shout', self: 'bounce', on: 'cast', beam: 'recoil', slash: 'slash', dark: 'vanish', multi: 'throw', snipe: 'aim', ground: 'stomp', rocket: 'recoil' };
+  G.motionFor = (id, cat) => { const sg = SIG[id]; return (sg && sg[2] && sg[2].m) || MOTION_OF[id] || (sg && MOTION_BY_KIND[sg[0]]) || (cat === 'status' ? 'bounce' : cat === 'spec' ? 'cast' : 'lunge'); };
   const EMOJI = (size) => `${size}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif`;
   function drawSig(ctx, now, f, t, sig, P) {
     const [kind, prop, o = {}] = sig, { ax, ay, tx, ty, c1, c2, cl, dot, line } = P;
@@ -270,12 +289,13 @@
         ctx.globalAlpha = 1 - hit; burst(tx, ty, hit, o.bc);
         if (o.blobs) for (let i = 0; i < 6; i++) dot(o.bc || '#2a2a2a', tx + Math.cos(i * 1.1) * hit * 18, ty + 6 + Math.sin(i * 1.7) * 8 + hit * 6, 3);
         if (o.tornado) for (let r = 0; r < 4; r++) { ctx.strokeStyle = c1; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(tx, ty + 12 - r * 9, 6 + r * 4, 3, 0, hit * 12 + r, hit * 12 + r + 4.5); ctx.stroke(); }
+        if (o.freeze) { ctx.strokeStyle = '#bfe8f8'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(tx, ty + 14, 6 + hit * 20, 2 + hit * 6, 0, 0, 7); ctx.stroke(); for (let i = 0; i < 4; i++) em('❄️', tx + (i - 1.5) * 10, ty + 8 - hit * 10, 7); }
         ctx.globalAlpha = 1; if (t < 0.85) em(prop, tx, ty + hit * 8, size, 0, false, 1 - hit);
       }
     } else if (kind === 'rush') {
       const k = cl(t / 0.65), x = ax + (tx - ax) * k, y = ay + 6 + (ty - ay) * k;
       if (t < 0.7) { em(prop, x, y, size + 2, o.spin ? t * 16 : 0, right); for (let i = 1; i < 4; i++) dot('rgba(216,180,122,0.7)', x - (tx - ax) * 0.08 * i, y + 8, 3 - i * 0.6); }
-      if (hit) { ctx.globalAlpha = 1 - hit; burst(tx, ty, hit); }
+      if (hit) { ctx.globalAlpha = 1 - hit; burst(tx, ty, hit); if (o.boom) { dot('#f2a03a', tx, ty, 4 + hit * 20); dot('#fff2a8', tx, ty, 2 + hit * 10); } if (o.text) say(o.text, tx, ty - 30, 1 - hit); }
     } else if (kind === 'drop') {
       const n = o.n || 1;
       for (let i = 0; i < n; i++) {
@@ -283,6 +303,7 @@
         const x = tx + (i - (n - 1) / 2) * 12, y = ty - 60 + k * 60;
         if (k < 1) em(prop, x, y, size, i * 0.6); else { ctx.globalAlpha = Math.max(0, 1 - (t - 0.45 - i * 0.12) * 2.5); dot('rgba(216,180,122,0.8)', x, ty + 12, 6); ctx.globalAlpha = 1; }
       }
+      if (o.sat) em('🛰️', tx, ty - 66, 14, 0, false, 1 - cl((t - 0.7) * 3));
       if (o.pour && t > 0.3 && t < 0.85) { ctx.fillStyle = o.pour; ctx.fillRect(tx - 3, ty - 46, 6, 46 * cl((t - 0.3) * 3)); }
     } else if (kind === 'cloud') {
       const a = cl(t * 4) * (1 - cl((t - 0.8) * 5));
@@ -310,6 +331,9 @@
       if (o.aim) { ctx.strokeStyle = '#d9455a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(tx, ty, 10 - t * 4, 0, 7); ctx.moveTo(tx - 14, ty); ctx.lineTo(tx + 14, ty); ctx.moveTo(tx, ty - 14); ctx.lineTo(tx, ty + 14); ctx.stroke(); }
       if (o.confetti) for (let i = 0; i < 8; i++) { ctx.fillStyle = ['#d9455a', '#f2d24b', '#5fb8e0', '#6cc04a'][i % 4]; ctx.fillRect(ax - 20 + i * 5, ay - 30 + ((t * 60 + i * 11) % 36), 2, 2); }
       if (o.flash && !G.settings.calm && t > 0.3 && t < 0.6) { ctx.globalAlpha = 0.3; ctx.fillStyle = '#ffd08a'; ctx.fillRect(0, 0, 240, 160); ctx.globalAlpha = 1; }
+      if (o.wind) for (let i = 0; i < 4; i++) line('#c8f0b0', 1.5, [[ax - 14 + i * 9, ay + 22 - ((t * 90 + i * 11) % 34)], [ax - 14 + i * 9, ay + 30 - ((t * 90 + i * 11) % 34)]]);
+      if (o.wall) for (let i = 0; i < 3; i++) { const k = cl(t * 3 - i * 0.3); if (k > 0) { ctx.globalAlpha = 0.85; ctx.fillStyle = '#bfe8f8'; ctx.fillRect(ax + (right ? 18 : -30), ay + 18 - i * 12 - k * 2, 12, 11 * k); ctx.fillStyle = '#ffffff'; ctx.fillRect(ax + (right ? 19 : -29), ay + 19 - i * 12, 3, 4 * k); ctx.globalAlpha = 1; } }
+      if (o.aura) { ctx.globalAlpha = 0.45 * Math.sin(t * Math.PI); ctx.strokeStyle = o.aura; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(ax, ay + 4, 18 + t * 6, 26 + t * 6, 0, 0, 7); ctx.stroke(); ctx.globalAlpha = 1; }
       if (o.text) say(o.text, ax, up - 14, 1 - cl((t - 0.8) * 5));
       if (!o.hearts && !o.coins) for (let i = 0; i < 6; i++) dot(i % 2 ? c1 : c2, ax + Math.cos(i + t * 6) * 16, ay + 10 - t * 24 - (i % 3) * 4, 1.5);
     } else if (kind === 'on') {
@@ -322,13 +346,15 @@
       if (o.coil) for (let r = 0; r < 3; r++) { ctx.globalAlpha = a; ctx.strokeStyle = '#2f6fb0'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(tx, ty + 10 - r * 8, 14 - t * 3, 4, 0, 0, 7); ctx.stroke(); ctx.globalAlpha = 1; }
       if (o.sparks) for (let i = 0; i < 6; i++) { const ang = i + now / 50; line('#fff2a8', 2, [[tx + Math.cos(ang) * 6, ty + Math.sin(ang) * 6], [tx + Math.cos(ang) * 16, ty + Math.sin(ang) * 14]]); }
       if (o.bubbles) for (let i = 0; i < 8; i++) { ctx.strokeStyle = '#e8f8ff'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(tx + Math.cos(i * 0.8) * t * 24, ty + Math.sin(i * 1.3) * t * 16, 2 + (i % 3), 0, 7); ctx.stroke(); }
+      if (o.rise) { const k = cl(t * 2); em(prop, tx + 4, ty + 22 - k * 24, 16, 0, false, a); if (o.shade) { ctx.globalAlpha = a * 0.6; ctx.fillStyle = '#14122a'; ctx.beginPath(); ctx.ellipse(tx, ty + 20, 18, 5, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1; } }
+      if (o.blink && !G.settings.calm && Math.floor(t * 12) % 2) { ctx.globalAlpha = 0.25; ctx.fillStyle = '#fff8c0'; ctx.fillRect(0, 0, 240, 160); ctx.globalAlpha = 1; }
       if (o.text) say(o.text, tx, ty - 26, a);
     } else if (kind === 'beam') {
       em(prop, ax + (right ? 12 : -12), ay - 6, 13, 0, !right);
       if (t > 0.15 && t < 0.85) {
         const k = cl((t - 0.15) * 3), ex = ax + (tx - ax) * k, ey = ay + (ty - ay) * k;
         if (o.zig) { const pts = []; for (let i = 0; i <= 8; i++) pts.push([ax + (ex - ax) * (i / 8), ay + (ey - ay) * (i / 8) + (i % 2 ? -4 : 4)]); line(o.c, 3, pts); line('#ffffff', 1, pts); }
-        else { line(o.c, 5, [[ax, ay], [ex, ey]]); line('rgba(255,255,255,0.8)', 1.5, [[ax, ay], [ex, ey]]); }
+        else { line(o.c, o.wide ? 10 : 5, [[ax, ay], [ex, ey]]); line('rgba(255,255,255,0.8)', o.wide ? 4 : 1.5, [[ax, ay], [ex, ey]]); }
       }
       if (hit) { ctx.globalAlpha = 1 - hit; burst(tx, ty, hit, o.c); }
     } else if (kind === 'slash') {
@@ -338,13 +364,42 @@
         ctx.globalAlpha = 1 - cl((t - 0.7) * 3.3); ctx.strokeStyle = o.c || c1; ctx.lineWidth = 3; ctx.beginPath();
         ctx.arc(tx - 6 + i * 6, ty - 4 + i * 4, 14, -2.4, -2.4 + k * 2.2); ctx.stroke();
       }
+    } else if (kind === 'body') {   // ตัวละครพุ่งไปเอง: เส้นความเร็ว + แรงกระแทกตอนถึงตัว
+      if (t > 0.1 && t < 0.5) { ctx.globalAlpha = 0.7; for (let i = 0; i < 5; i++) { const k = cl((t - 0.1) / 0.4), x = ax + (tx - ax) * k * 0.8, y = ay + (ty - ay) * k * 0.8 + (i - 2) * 6; line(o.c || c2, 1.5, [[x - (right ? 26 : -26), y], [x - (right ? 8 : -8), y]]); } ctx.globalAlpha = 1; }
+      if (t > 0.42) { const h = cl((t - 0.42) / 0.5); ctx.globalAlpha = 1 - h; burst(tx, ty, h, o.c); em(prop, tx, ty - 4, 14 + h * 10); for (let i = 0; i < 3; i++) em('⭐', tx + Math.cos(i * 2.1 + t * 8) * 18, ty - 18 + Math.sin(i * 2.1 + t * 8) * 6, 7); ctx.globalAlpha = 1; }
+    } else if (kind === 'multi') {   // ของหลายชิ้นต่อกัน: มีด กระสุน ลูกบอลเด้ง ลูกศร
+      const n = o.n || 3;
+      if (o.turret) em('🗼', ax + (right ? 22 : -22), ay + 4, 14);
+      for (let i = 0; i < n; i++) {
+        const st = i * (0.45 / Math.max(1, n)), k = cl((t - st) / 0.42); if (k <= 0 || k >= 1) continue;
+        const sx = o.turret ? ax + (right ? 22 : -22) : ax, x = sx + (tx - sx) * k + (o.arc ? 0 : (i % 2 ? 3 : -3)), lift = o.arc ? Math.sin(k * Math.PI) * (18 + i * 4) : o.hop ? Math.abs(Math.sin(k * Math.PI * 3)) * 16 : o.straight ? 0 : Math.sin(k * Math.PI) * 6;
+        const y = ay + (ty - ay) * k - lift + (o.arc ? (i - n / 2) * 4 : 0);
+        if (o.bullet) { line('#fff2a8', 2, [[x - (right ? 8 : -8), y + 2], [x, y]]); dot('#ffffff', x, y, 1.5); }
+        else em(prop, x, y, o.straight ? 13 : 11, o.spin ? k * 20 : o.straight ? (right ? -0.5 : 2.6) : 0, !right && !o.spin);
+        if (o.sparks) dot('#fff2a8', x + Math.sin(now / 30) * 4, y + Math.cos(now / 30) * 4, 1.5);
+      }
+      if (hit) { ctx.globalAlpha = 1 - hit; burst(tx, ty, hit, o.c); if (o.paint) for (let i = 0; i < 7; i++) dot(['#ff4fb0', '#f2d24b', '#4fe0ff', '#6cf06c'][i % 4], tx + Math.cos(i * 0.9) * (6 + hit * 16), ty + Math.sin(i * 1.3) * (4 + hit * 10), 3.5); if (o.sparks) for (let i = 0; i < 5; i++) line('#fff2a8', 2, [[tx, ty], [tx + Math.cos(i * 1.3) * 16 * hit, ty + Math.sin(i * 1.3) * 12 * hit]]); ctx.globalAlpha = 1; }
+    } else if (kind === 'snipe') {   // เล็งเป้าบนหัว แล้วยิงนัดเดียว เส้นกระสุน แสงวาบ
+      em(prop, ax + (right ? 16 : -16), ay - 4, 14, right ? -0.3 : 0.3, !right);
+      if (t < 0.55) { const r = 16 - t * 18; ctx.strokeStyle = '#ff4f6a'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(tx, ty - 8, r, 0, 7); ctx.moveTo(tx - r - 5, ty - 8); ctx.lineTo(tx + r + 5, ty - 8); ctx.moveTo(tx, ty - 8 - r - 5); ctx.lineTo(tx, ty - 8 + r + 5); ctx.stroke(); dot('#ff4f6a', tx, ty - 8, 1.5); }
+      else if (t < 0.66) { line('#fff8c0', o.big ? 4 : 2.5, [[ax + (right ? 22 : -22), ay - 6], [tx, ty - 8]]); line('#ffffff', 1, [[ax + (right ? 22 : -22), ay - 6], [tx, ty - 8]]); if (!G.settings.calm) { ctx.globalAlpha = 0.35; ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 240, 160); ctx.globalAlpha = 1; } }
+      if (t > 0.55) { const h = cl((t - 0.55) / 0.45); ctx.globalAlpha = 1 - h; burst(tx, ty - 8, h, '#fff2a8'); if (o.text) say(o.text, tx, ty - 34 - h * 6, 1 - h); ctx.globalAlpha = 1; }
+    } else if (kind === 'ground') {   // รอยแยกแผ่นดินวิ่งจากผู้ใช้ไปถึงศัตรู แล้วหินพุ่งขึ้น
+      const gy0 = ay + 20, gy1 = ty + 18, k = cl(t / 0.55), pts = [];
+      for (let i = 0; i <= 10; i++) { const q = (i / 10) * k; pts.push([ax + (tx - ax) * q + (i % 2 ? 3 : -3), gy0 + (gy1 - gy0) * q + (i % 2 ? -2 : 2)]); }
+      line('#3a2a1a', 3, pts); line('#8a5a34', 1, pts);
+      if (hit) for (let i = 0; i < 4; i++) em(prop, tx + (i - 1.5) * 9, ty + 16 - Math.sin(cl(hit * 2 - i * 0.2) * Math.PI) * 26, 10, i);
+    } else if (kind === 'rocket') {   // จรวดพุ่งขึ้นฟ้าจากผู้ใช้ แล้วตกลงใส่ศัตรูระเบิดตูม
+      if (t < 0.4) { const k = t / 0.4; em(prop, ax + (right ? 6 : -6), ay - k * 90, o.big ? 18 : 14, -0.8); for (let i = 0; i < 4; i++) dot(i % 2 ? '#f2a03a' : '#fff2a8', ax + (right ? 6 : -6) + Math.sin(i + now / 40) * 2, ay - k * 90 + 12 + i * 5, 2.5 - i * 0.4); }
+      else if (t < 0.6) { const k = (t - 0.4) / 0.2; em(prop, tx, ty - 90 + k * 90, o.big ? 18 : 14, 2.4); }
+      else { const h = (t - 0.6) / 0.4; ctx.globalAlpha = 1 - h; dot('#f2a03a', tx, ty, 6 + h * 26); dot('#fff2a8', tx, ty, 3 + h * 14); burst(tx, ty, h, '#f2a03a'); if (o.text) say(o.text, tx, ty - 34, 1 - h); ctx.globalAlpha = 1; }
     } else if (kind === 'dark') {
       ctx.globalAlpha = 0.75 * Math.sin(Math.min(1, t) * Math.PI); ctx.fillStyle = '#05060f'; ctx.fillRect(0, 0, 240, 160); ctx.globalAlpha = 1;
       em(prop, tx, ty - 26, 14, 0, false, 1 - t); say('ไฟดับ!', tx, ty - 40, Math.sin(t * Math.PI));
     }
     ctx.globalAlpha = 1;
     if (o.zzz && t > 0.45) for (let i = 0; i < 3; i++) say('z', tx + 10 + i * 6, ty - 14 - i * 7 - (t - 0.45) * 20, 1 - cl((t - 0.85) * 6));
-    if (o.text && kind !== 'self' && kind !== 'on' && t > 0.4) say(o.text, tx, ty - 28, 1 - cl((t - 0.85) * 6));
+    if (o.text && !['self', 'on', 'snipe', 'rocket', 'rush'].includes(kind) && t > 0.4) say(o.text, tx, ty - 28, 1 - cl((t - 0.85) * 6));
   }
   const SIG_NOTES = { '🎵': 1, '🎶': 1, '💕': 1, '🍃': 1 };
   function drawFx(ctx, now) {
@@ -405,7 +460,65 @@
     }
     ctx.restore();
   }
-  G.battleFx = (side, type, cat, ago = 0, id) => { V.fx = { side, type, cat, id, t0: performance.now() - ago }; };   // เล่นเอฟเฟกต์ท่า (ใช้ในฉากเนื้อเรื่องได้)
+  G.battleFx = (side, type, cat, ago = 0, id) => { V.fx = { side, type, cat, id, t0: performance.now() - ago }; startAct(side, type, cat, id, ago); };
+  // ---------- ท่าทางตัวละคร: ผู้ใช้ท่าขยับตามท่า (พุ่ง กระโดด หมุน ขว้าง ร่าย ตะโกน หายตัว เล็ง ฟัน) ฝ่ายโดนตีถูกกระแทกถอย ----------
+  function startAct(side, type, cat, id, ago) {
+    const dur = (G.settings.fast ? 0.5 : 1) * (SIG[id] ? 760 : 560);
+    V.act = { side, type, m: G.motionFor(id, cat), t0: performance.now() - (ago || 0), dur };
+  }
+  const ease = (v) => (v <= 0 ? 0 : v >= 1 ? 1 : v * v * (3 - 2 * v));
+  function pose(side, now) {
+    const P = { dx: 0, dy: 0, rot: 0, sx: 1, sy: 1, alpha: 1, ghost: false, aura: null };
+    const breathe = Math.sin(now / 380 + (side === 'p' ? 0 : 1.7));
+    P.sy = 1 + breathe * 0.025; P.sx = 1 - breathe * 0.012;   // หายใจขยับตัวเบาๆ ตลอด
+    const a = V.act;
+    if (a && a.side === side) {
+      const t = (now - a.t0) / a.dur;
+      if (t >= 1) V.act = null;
+      else {
+        const [vx, vy] = side === 'p' ? [116, -46] : [-116, 46], S = Math.sin, PI = Math.PI;
+        const go = (k) => { P.dx = vx * k; P.dy = vy * k; };
+        switch (a.m) {
+          case 'rush': case 'dashx': {
+            const out = a.m === 'dashx' ? 0.25 : 0.42, k = t < out ? ease(t / out) : t < out + 0.18 ? 1 : 1 - ease((t - out - 0.18) / (1 - out - 0.18));
+            go(k * 0.78); P.ghost = true;
+            if (t > out && t < out + 0.14) { P.sx *= 1.18; P.sy *= 0.86; }
+            if (a.m === 'dashx' && (t < 0.05 || (t > out - 0.03 && t < out + 0.03))) P.alpha = 0.5;
+            break; }
+          case 'jump': case 'stomp': {
+            const up = a.m === 'stomp' ? 44 : 34, k = Math.min(1, t / 0.7);
+            P.dy = -S(k * PI) * up; P.dx = vx * 0.1 * S(k * PI);
+            if (t > 0.68 && t < 0.86) { P.sx *= 1.22; P.sy *= 0.8; }
+            if (t < 0.12) { P.sx *= 1.12; P.sy *= 0.88; }
+            break; }
+          case 'spin': P.rot = ease(t) * PI * 4 * (side === 'p' ? 1 : -1); P.dy = -S(t * PI) * 10; break;
+          case 'throw':
+            if (t < 0.3) { const k = t / 0.3; go(-0.05 * k); P.rot = -0.25 * k; }
+            else if (t < 0.5) { const k = (t - 0.3) / 0.2; go(-0.05 + 0.13 * k); P.rot = -0.25 + 0.45 * k; }
+            else { const k = ease((t - 0.5) / 0.5); go(0.08 * (1 - k)); P.rot = 0.2 * (1 - k); }
+            break;
+          case 'cast': P.dy = -S(t * PI) * 7; P.aura = a.type; break;
+          case 'recoil': P.aura = a.type; if (t < 0.4) P.dy = -S((t / 0.4) * PI / 2) * 5; else { const k = (t - 0.4) / 0.6; go(-0.07 * S(Math.min(1, k * 2) * PI / 2) * (1 - k)); P.dy = -5 * (1 - k); } break;
+          case 'shout': if (t < 0.85) P.dx = S(now / 22) * 2.5; P.sx *= 1 + 0.1 * S(t * PI); P.sy *= 1 + 0.1 * S(t * PI); break;
+          case 'bounce': P.dy = -Math.abs(S(t * PI * 3)) * 11 * (1 - t * 0.4); if (Math.abs(S(t * PI * 3)) < 0.15) { P.sx *= 1.12; P.sy *= 0.9; } P.aura = a.type; break;
+          case 'slash': { const k = t < 0.35 ? ease(t / 0.35) : t < 0.55 ? 1 : 1 - ease((t - 0.55) / 0.45); go(0.36 * k); P.rot = (t < 0.45 ? -0.3 : 0.45) * k * (side === 'p' ? 1 : -1); P.ghost = t < 0.5; break; }
+          case 'vanish': P.alpha = 1 - S(t * PI) * 0.92; P.dy = -S(t * PI) * 4; break;
+          case 'aim':
+            if (t < 0.55) { go(-0.02 * ease(t / 0.2)); P.sy *= 0.93; P.sx *= 1.04; }
+            else { const k = (t - 0.55) / 0.45; go(-0.02 - 0.07 * S(Math.min(1, k * 3) * PI / 2) * (1 - k)); P.rot = -0.18 * (1 - k) * (side === 'p' ? 1 : -1); }
+            break;
+          default: { const k = S(Math.min(1, t / 0.5) * PI); go(0.09 * k); }   // lunge
+        }
+      }
+    }
+    const kn = V.knock;
+    if (kn && kn.side === side) {
+      const tk = (now - kn.t0) / (G.settings.fast ? 160 : 280);
+      if (tk >= 1) V.knock = null;
+      else { const [vx, vy] = side === 'p' ? [116, -46] : [-116, 46], k = Math.sin(tk * Math.PI) * (G.settings.calm ? 0.03 : 0.07); P.dx -= vx * k; P.dy -= vy * k; P.sx *= 1 + 0.12 * Math.sin(tk * Math.PI); P.sy *= 1 - 0.1 * Math.sin(tk * Math.PI); P.rot += (side === 'p' ? -0.15 : 0.15) * Math.sin(tk * Math.PI); }
+    }
+    return P;
+  }   // เล่นเอฟเฟกต์ท่า (ใช้ในฉากเนื้อเรื่องได้)
   G.drawBattle = function (ctx) {
     if (!V.active) return;
     const night = G.isNight();
@@ -417,17 +530,28 @@
     const now = performance.now();
     const calm = G.settings.calm;   // ลดการสั่นจอ/แฟลช
     const shakeX = (side) => (V.shake && V.shake.side === side ? Math.sin((V.shake.t += 1) * 1.6) * (V.shake.t < 14 ? (calm ? 1 : 3) : 0) : 0);
-    const lungeX = (side) => (V.lunge && V.lunge.side === side ? Math.sin(Math.min(Math.PI, (V.lunge.t += 0.25))) * 8 * (side === 'p' ? 1 : -1) : 0);
+
     // หมดแรง: คนนั่งทรุดหอบแฮ่กๆ (ไม่มีภาพบาดเจ็บ) ผี/สัตว์ค่อยๆ จางหายเป็นควัน
     const draw = (id, x, y, flip, faint, side) => {
       if (!id) return;
       const sit = faint ? G.sitSprite(id) : null;
       if (faint >= 1 && !sit) return;
+      const P = faint ? { dx: 0, dy: 0, rot: 0, sx: 1, sy: 1, alpha: 1 } : pose(side, now);
+      const moving = P.dx || P.dy || P.rot;
+      // ภาพติดตาตอนพุ่ง/ฟัน และออร่าตอนร่ายพลัง
+      if (P.ghost && V.act) for (let i = 3; i >= 1; i--) {
+        const g = pose.call(null, side, now - i * 45); ctx.save(); ctx.globalAlpha = 0.16 * (4 - i);
+        if (flip) { ctx.translate(x + 48 + g.dx, y + g.dy); ctx.scale(-3, 3); } else { ctx.translate(x + g.dx, y + g.dy); ctx.scale(3, 3); }
+        ctx.drawImage(G.sprite(id), 0, 0); ctx.restore();
+      }
+      if (P.aura) { const [ca] = FXC[P.aura] || FXC.normal; ctx.save(); ctx.globalAlpha = 0.35 + 0.15 * Math.sin(now / 60); ctx.fillStyle = ca; ctx.beginPath(); ctx.ellipse(x + 24 + P.dx, y + 30 + P.dy, 26, 30, 0, 0, 7); ctx.fill(); ctx.restore(); }
       ctx.save();
-      ctx.beginPath(); ctx.rect(x - 4, y - 10, 60, 58); ctx.clip();
+      if (!moving) { ctx.beginPath(); ctx.rect(x - 4, y - 10, 60, 58); ctx.clip(); }
       const pant = sit && faint > 0.5 ? Math.floor(now / 260) % 2 : 0;
-      if (flip) { ctx.translate(x + 48 + lungeX(side) + shakeX(side), y + pant); ctx.scale(-3, 3); }
-      else { ctx.translate(x + lungeX(side) + shakeX(side), y + pant); ctx.scale(3, 3); }
+      ctx.globalAlpha = P.alpha;
+      if (flip) { ctx.translate(x + 48 + P.dx + shakeX(side), y + pant + P.dy); ctx.scale(-3, 3); }
+      else { ctx.translate(x + P.dx + shakeX(side), y + pant + P.dy); ctx.scale(3, 3); }
+      ctx.translate(8, 16); ctx.rotate(P.rot); ctx.scale(P.sx, P.sy); ctx.translate(-8, -16);
       if (side === 'f' && V.wobble) { const a = Math.sin(now / 90) * 0.15; ctx.translate(8, 16); ctx.rotate(a); ctx.translate(-8, -16); }
       if (sit) {
         if (faint < 0.5) { ctx.globalAlpha = 1; ctx.drawImage(G.sprite(id), 0, faint * 6); }   // ทรุดลง
