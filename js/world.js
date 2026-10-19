@@ -30,6 +30,7 @@
 
   function hash(x, y) { let h = (x * 374761393 + y * 668265263) ^ 0x5bd1e995; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967296; }
 
+  const TREEC = { '#': ['#2a4a22', '#3f6b34', '#5a8a45', '#7fae5c'], P: ['#16291a', '#24402a', '#335a38', '#4f7a4a'] };   // สีพุ่มไม้: ขอบ เนื้อ ไฮไลต์ แสง
   const tileCache = {};
   // var = ตัวเลือกเพิ่ม เช่น ผนังด้านหน้า/บน พื้นของแผนที่ เฟรมน้ำ
   function tileCanvas(ch, x, y, frame, vr) {
@@ -41,7 +42,14 @@
     const g = c.getContext('2d');
     const R = (col, a, b, w, h) => { g.fillStyle = col; g.fillRect(a, b, w, h); };
     const O = (col, cx, cy, rx, ry) => { g.fillStyle = col; g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, 7); g.fill(); };
-    const grass = () => { R('#9caf55', 0, 0, 16, 16); const s = hash(v, 7); R('#879d48', (s * 13) | 0, 3, 1, 2); R('#b6c46a', ((s * 7) | 0) + 6, 10, 1, 1); R('#879d48', 11, ((s * 9) | 0) + 4, 1, 2); };
+    const grass = () => {   // หญ้าหลายโทน: แผ่นสว่าง กอหญ้า ดอกจิ๋ว ก้อนกรวด
+      R('#9caf55', 0, 0, 16, 16); const s = hash(v, 7), s2 = hash(7, v);
+      O('#a5b75d', 3 + s * 9, 4 + s2 * 8, 4, 2.2);
+      const tuft = (a, b) => { R('#7f9640', a, b, 1, 2); R('#7f9640', a + 2, b, 1, 2); R('#b8c870', a + 1, b - 1, 1, 2); };
+      tuft(((s * 13) | 0) % 12, 3); tuft(((s2 * 11) | 0) % 12 + 1, 11);
+      if (v === 3) { R('#f2efe4', 11, 7, 1, 1); R('#f2d24b', 12, 7, 1, 1); R('#f2efe4', 13, 7, 1, 1); R('#f2efe4', 12, 6, 1, 1); }
+      if (v === 2) { R('#8a8478', 4, 13, 2, 1); R('#b8b0a0', 4, 12, 2, 1); }
+    };
     const pave = () => { R('#cbbfa8', 0, 0, 16, 16); R('#b5a88e', 0, 7, 16, 1); R('#b5a88e', 0, 15, 16, 1); R('#b5a88e', (v % 2) * 8 + 3, 0, 1, 7); R('#b5a88e', (v % 2) * 8 + 11 - 8 * (v % 2), 8, 1, 7); };
     const water = () => { R('#4f8fb0', 0, 0, 16, 16); R('#7cb6cf', (frame * 5 + v * 3) % 12, 4, 4, 1); R('#7cb6cf', (frame * 3 + 8 + v) % 12, 11, 3, 1); };
     const wood = () => { R('#b8875a', 0, 0, 16, 16); for (let i = 3; i < 16; i += 4) R('#a07448', 0, i, 16, 1); R('#a07448', (v * 5) % 16, 0, 1, 3); R('#a07448', (v * 7 + 8) % 16, 4, 1, 3); };
@@ -56,6 +64,19 @@
       R('#efe6d6', 0, 0, 16, 16); R('#e2d6c0', 0, 0, 16, 1); R('#e2d6c0', 0, 0, 1, 16);
       g.strokeStyle = '#d6c8ae'; g.lineWidth = 1; g.beginPath(); g.moveTo(2 + v * 2, 2); g.quadraticCurveTo(8, 6 + v, 14 - v, 13); g.stroke();
       if ((x + y) % 2 === 0) { R('#c9a45a', 0, 0, 2, 1); R('#c9a45a', 0, 0, 1, 2); }
+    };
+    const lotus = (night) => {   // ใบบัวมีรอยแหว่ง + ดอกตามช่อง: ชมพูบาน ขาวบาน ตูม (กลางคืนหุบเป็นตูมหมด)
+      const pad = (cx, cy, r, a) => {
+        O('#3a6e36', cx, cy + 0.6, r, r * 0.62); O('#5f9a50', cx, cy, r, r * 0.6); O('#7fb860', cx - r * 0.35, cy - r * 0.2, r * 0.38, r * 0.2);
+        g.fillStyle = '#4f8fb0'; g.beginPath(); g.moveTo(cx, cy); g.lineTo(cx + Math.cos(a - 0.3) * r * 1.05, cy + Math.sin(a - 0.3) * r * 0.65); g.lineTo(cx + Math.cos(a + 0.3) * r * 1.05, cy + Math.sin(a + 0.3) * r * 0.65); g.closePath(); g.fill();
+      };
+      pad(6, 10, 5, 0.5); pad(12.5, 5, 3, 2.6);
+      if (v === 3) return;
+      if (night || v === 2) { O('#3a6e36', 6, 9, 0.6, 2); O('#d8608c', 6, 6, 1.7, 2.7); O('#f2a8c4', 5.4, 5.2, 0.8, 1.5); return; }
+      const col = v === 1 ? ['#ffffff', '#ece6dc', '#cfc6b6'] : ['#f8b0cc', '#e86a98', '#c04478'];
+      O(col[2], 3.4, 7.4, 2.2, 1.2); O(col[2], 8.6, 7.4, 2.2, 1.2);
+      O(col[1], 4.4, 6, 1.5, 2.5); O(col[1], 7.6, 6, 1.5, 2.5); O(col[0], 6, 5.2, 1.5, 2.8);
+      O('#f2d24b', 6, 7.3, 1.3, 0.8);
     };
     const fl = vr || '';
     const floor = () => (fl.startsWith('F-') ? tilefl() : fl.startsWith('F{') ? darkfl() : fl.startsWith('Fn') ? netfl() : fl.startsWith('F*') ? marble() : wood());
@@ -72,10 +93,11 @@
         R('#d9455a', 7, 5, 2, 1); break;
       case '#': case 'P': {
         grass();
-        const dark = ch === 'P';
-        g.fillStyle = dark ? '#24402a' : '#3f6b34'; g.beginPath(); g.arc(8, 7, 7, 0, 7); g.fill();
-        g.fillStyle = dark ? '#335a38' : '#5a8a45'; g.beginPath(); g.arc(6, 5, 3.5, 0, 7); g.fill();
-        R('#5a3a22', 7, 13, 2, 3);
+        const dark = ch === 'P', c = TREEC[ch];   // ทรงพุ่มสามชั้น: ขอบเข้ม เนื้อใบ ไฮไลต์แดดจากซ้ายบน
+        O('rgba(30,50,20,0.35)', 9, 14.5, 6, 1.8);
+        R('#5a3a22', 7, 11, 2, 5); R('#7a5230', 7, 11, 1, 5);
+        O(c[0], 8, 7, 7.6, 6.9); O(c[1], 8, 6.5, 6.8, 6.1); O(c[2], 6.5, 5, 4, 3.4); O(c[2], 10.8, 7.8, 2.6, 2); O(c[3], 5.4, 3.9, 1.8, 1.3); O(c[3], 10.2, 6.8, 1, 0.8);
+        R(c[0], 3 + v, 8, 1, 1); R(c[0], 11, 4 + (v % 2), 1, 1); R(c[0], 7 + (v % 2), 10, 1, 1);
         if (dark && v === 1) R('#c5482b', 6, 11, 4, 1);
         break; }
       case 'w':
@@ -88,7 +110,7 @@
           R('#c9a87a', (v * 5) % 12 + 2, 13, 2, 1); break;
         }
         water();
-        if (vr === 'lotus') { O('#4f8a45', 7, 9, 5, 3); O('#5f9a50', 11, 6, 3, 2); O('#f2a0c0', 7, 7, 2, 2.5); R('#fff2f6', 7, 5, 1, 1); }
+        if (vr && vr.startsWith('lotus')) lotus(vr === 'lotusn');
         break;
       case 'T':
         if (vr === 'dry') { R('#a89a50', 0, 0, 16, 16); for (let i = 0; i < 5; i++) { R('#8a7a3a', i * 3 + 1, 6 + (i % 2) * 3, 1, 6); R('#c9b86a', i * 3 + 1, 5 + (i % 2) * 3, 1, 2); } R('#8a7a3a', 0, 15, 16, 1); break; }
@@ -128,7 +150,7 @@
       case 'l': pave(); R('#3a3f48', 7, 3, 2, 13); R('#3a3f48', 5, 2, 6, 2); R('#fff2a8', 6, 4, 4, 1); R('#2a2a2a', 6, 14, 4, 2); break;
       case 'j': pave(); R('#8a6440', 1, 7, 14, 2); R('#8a6440', 1, 10, 14, 2); R('#3a3f48', 2, 12, 1, 3); R('#3a3f48', 13, 12, 1, 3); R('#6b4a2f', 1, 4, 14, 2); break;
       case 'z': pave(); for (const [xx, col] of [[1, '#c5482b'], [8, '#2b3f8a']]) { O('#2a2a2a', xx + 1, 12, 2, 2); O('#2a2a2a', xx + 5, 12, 2, 2); R(col, xx, 7, 6, 4); R('#2a2a2a', xx + 4, 5, 1, 3); R('#b8bcc4', xx + 3, 5, 3, 1); } break;
-      case 'i': water(); O('#4f8a45', 8, 9, 6, 4); O('#f2a0c0', 8, 7, 2, 3); R('#fff2f6', 8, 5, 1, 1); break;
+      case 'i': water(); lotus(vr === 'night'); break;
       case '!': if (vr === 'clock') {   // หอนาฬิกาวงเวียนตัวอำเภอ
           pave(); R('#c9bea8', 4, 6, 8, 10); R('#e6dcc8', 5, 6, 6, 9); R('#a63a2a', 3, 1, 10, 5); R('#86281c', 3, 5, 10, 1); O('#f4f4ec', 8, 9, 2.5, 2.5); R('#2a2a2a', 8, 7, 1, 2); R('#2a2a2a', 8, 9, 2, 1); R('#d9b25a', 7, 0, 2, 1); break; }
         pave(); R('#8f949e', 3, 11, 10, 5); R('#b8bcc4', 3, 11, 10, 1); g.fillStyle = '#d9b25a'; g.beginPath(); g.arc(8, 6, 5, 0, 7); g.fill();
@@ -529,10 +551,31 @@
   // ---------- รายละเอียดทับช่อง (วาดทุกเฟรม ไม่แคช เพราะขึ้นกับช่องข้างๆ และเวลา) ----------
   const TALL = '#PJ&hHCUNQ(D%RrAMmKkcsBW6789]),|`$@z^SI!';   // ของสูงที่ทอดเงาลงช่องข้างล่าง/ขวา
   const WATERS = 'wi';
+  const ROOFS = 'RrAMK', WALLS = 'Hhm';
   const GROUND = '.:fTgveda;{_-+L0O2x1345=ฌต';
   function decor(ctx, ch, x, y, sx, sy, frame, nightLit, lamps) {
     const at = (dx, dy) => tileAt(x + dx, y + dy);
     const R = (c, a, b, w, h) => { ctx.fillStyle = c; ctx.fillRect(sx + a, sy + b, w, h); };
+    const O = (c, a, b, rx, ry) => { ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(sx + a, sy + b, rx, ry, 0, 0, 7); ctx.fill(); };
+    if (ch === '#' || ch === 'P') {   // ต้นไม้ติดกันเป็นผืนป่า: เติมพุ่มเชื่อมช่องขวา/ล่าง ไม่เป็นลูกบอลเรียงตาราง
+      const c = TREEC[ch], r = at(1, 0) === ch, d = at(0, 1) === ch;
+      if (d) { O(c[0], 8, 15, 7.2, 4.6); O(c[1], 8, 14.4, 6.2, 3.9); }
+      if (r) { O(c[0], 16, 7, 5, 6.3); O(c[1], 16, 6.5, 4.3, 5.5); O(c[2], 15, 4.6, 2, 1.5); }
+      if (r && d && at(1, 1) === ch) { O(c[1], 16, 15, 5.2, 4.4); O(c[2], 15, 13.6, 1.6, 1.1); }
+      return;
+    }
+    if (ROOFS.includes(ch)) {   // หลังคา: สันหลังคาสว่าง ชายคาเข้ม เงาชายคาตกลงผนัง ขอบจั่ว
+      const rf = (t) => ROOFS.includes(t);
+      if (!rf(at(0, -1))) { R('rgba(255,240,200,0.3)', 0, 0, 16, 2); R('rgba(0,0,0,0.12)', 0, 2, 16, 1); }
+      if (!rf(at(-1, 0))) { R('rgba(255,240,200,0.16)', 1, 0, 2, 16); R('rgba(20,12,8,0.4)', 0, 0, 1, 16); }
+      if (!rf(at(1, 0))) { R('rgba(0,0,0,0.2)', 12, 0, 3, 16); R('rgba(20,12,8,0.45)', 15, 0, 1, 16); }
+      if (!rf(at(0, 1))) {
+        R('rgba(255,230,190,0.2)', 0, 12, 16, 1); R('rgba(20,12,8,0.5)', 0, 13, 16, 3);
+        if (WALLS.includes(at(0, 1))) { R('rgba(20,16,30,0.3)', 0, 16, 16, 3); R('rgba(20,16,30,0.14)', 0, 19, 16, 2); }
+      }
+      return;
+    }
+    if (WALLS.includes(ch) && !WALLS.includes(at(0, 1)) && at(0, 1) !== 'D') { R('rgba(0,0,0,0.22)', 0, 14, 16, 2); R('rgba(255,255,255,0.08)', 0, 13, 16, 1); }   // ฐานผนัง
     if (WATERS.includes(ch) && tileVariant(ch, x, y) !== 'mud') {   // ขอบน้ำ: หาดทรายบางๆ + ฟองคลื่นขยับ
       const land = (t) => !WATERS.includes(t) && t !== '0';
       const f = (frame + x + y) % 2;
@@ -600,13 +643,14 @@
     if (ch === '(') return tileAt(x, y - 1) !== '(' && tileAt(x, y - 1) !== ')' ? 'top' : tileAt(x, y + 1) !== '(' && tileAt(x, y + 1) !== ')' ? 'base' : '';
     if (ch === 'Z') { const o = objAt(x, y); return o && G.state.flags['sw_' + o.arg] ? 'on' : ''; }
     if (ch === 'Y') { const l = onMap('lamps', x, y); return l && G.state.flags['lamp_' + l.i] ? 'on' : ''; }
+    if (ch === 'i') return G.isNight() ? 'night' : '';
     if (ch === 'ถ') return G.state.flags.forest_healed ? 'grown' : '';
     // ก่อนชนะคางคก ทุ่งแล้ง: ข้าวเหลือง หนองน้ำงวดเหลือแต่โคลนแตกระแหงที่ขอบ / หลังฝนตก มีบัวขึ้น
     if ((ch === 'T' || ch === 'w') && !W.def.indoor && W.map !== 'kku') {
       const rained = G.state.flags.boss1_done;
       if (ch === 'T') return rained ? '' : 'dry';
       if (!rained) return [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => !'w0'.includes(tileAt(x + dx, y + dy))) ? 'mud' : '';
-      return hash(x * 3, y * 5) < 0.18 ? 'lotus' : '';
+      return hash(x * 3, y * 5) < 0.18 ? (G.isNight() ? 'lotusn' : 'lotus') : '';
     }
     return '';
   }
@@ -682,6 +726,7 @@
       if (G.isNight() || blackout || dk >= 0.3) for (const [lx, ly, r] of lamps) glow(lx, ly, r, 'rgba(255,236,160,0.38)');
       ctx.globalCompositeOperation = 'source-over';
     }
+    if (W.amb && W.amb.bugs.length && !G.mapShot) drawBugs(ctx, cx, cy);
     if (!G.mapShot) ctx.drawImage(vignette(), 0, 0);   // mapShot = ถ่ายภาพแมพเต็มแผ่นตอนทดสอบ
   };
 
@@ -718,7 +763,7 @@
   };
   const CAR_COLS = ['#d9455a', '#3a7fb0', '#f4f4ec', '#2a2a33', '#e8c034', '#5f9a50'];
   function makeAmbient() {
-    const A = { fish: [], leaves: [], cars: [], walkers: [], lanes: [], trees: [], ripples: [], clouds: [] };
+    const A = { fish: [], leaves: [], cars: [], walkers: [], lanes: [], trees: [], ripples: [], clouds: [], bugs: [] };
     const rows = W.rows, H = rows.length, Wd = rows[0].length, out = !W.def.indoor;
     const water = [];
     for (let y = 0; y < H; y++) for (let x = 0; x < Wd; x++) {
@@ -751,6 +796,10 @@
           A.walkers.push({ x, y, dir: 'down', look, wait: 30 + G.rng() * 90, mv: null }); break;
         }
       }
+      // แมลงประกอบฉาก: หิ่งห้อยตามพงหญ้า/ป่า (กลางคืน) แมลงปอเหนือน้ำ ผีเสื้อตามดอกไม้ (กลางวัน)
+      const spots = (set) => { const out2 = []; for (let y = 0; y < H; y++) for (let x = 0; x < Wd; x++) if (set.includes(rows[y][x])) out2.push([x, y]); return out2; };
+      const add = (list, n, kind) => { for (let i = 0; i < n && list.length; i++) { const [x, y] = list[Math.floor(G.rng() * list.length)]; A.bugs.push({ x: x * TS + 8, y: y * TS + 8, ph: G.rng() * 6.28, kind, col: ['#f2d24b', '#f4f4ec', '#e88aa8', '#7fc6f0'][i % 4] }); } };
+      add(spots('TgvP#ถ'), 22, 'firefly'); add(water, Math.min(5, water.length >> 2), 'dragonfly'); add(spots('fJ'), 5, 'butterfly');
       for (let i = 0; i < 3; i++) A.clouds.push({ x: G.rng() * Wd * TS, y: G.rng() * H * TS, r: 40 + G.rng() * 40, v: 0.08 + G.rng() * 0.08 });
     }
     return A;
@@ -858,6 +907,32 @@
         const x = c.x - cx, y = c.y - cy; if (x < -c.r || x > 240 + c.r || y < -c.r || y > 160 + c.r) continue;
         const g = ctx.createRadialGradient(x, y, c.r * 0.2, x, y, c.r); g.addColorStop(0, 'rgba(20,30,60,0.12)'); g.addColorStop(1, 'rgba(20,30,60,0)');
         ctx.fillStyle = g; ctx.fillRect(x - c.r, y - c.r, c.r * 2, c.r * 2);
+      }
+    }
+  }
+  // แมลงวาดหลังความมืด หิ่งห้อยจึงเรืองแสงชัดตอนกลางคืน
+  function drawBugs(ctx, cx, cy) {
+    const t = performance.now(), night = G.isNight(), rain = G.raining();
+    for (const b of W.amb.bugs) {
+      if (b.kind === 'firefly' ? !night : night || rain) continue;
+      let x, y;
+      if (b.kind === 'firefly') { x = b.x + Math.sin(t * 0.0006 + b.ph) * 14 + Math.sin(t * 0.0017 + b.ph * 2) * 4; y = b.y + Math.cos(t * 0.0008 + b.ph * 1.3) * 9; }
+      else if (b.kind === 'dragonfly') { const k = t * 0.0011 + b.ph; x = b.x + Math.sin(k) * 30 + Math.sin(k * 3.1) * 6; y = b.y + Math.sin(k * 1.7) * 12; }
+      else { x = b.x + Math.sin(t * 0.0005 + b.ph) * 20; y = b.y + Math.sin(t * 0.0013 + b.ph) * 8 - 6 - Math.abs(Math.sin(t * 0.004 + b.ph)) * 4; }
+      x = Math.round(x - cx); y = Math.round(y - cy);
+      if (x < -6 || x > 246 || y < -6 || y > 166) continue;
+      if (b.kind === 'firefly') {
+        const glow = 0.5 + 0.5 * Math.sin(t * 0.004 + b.ph * 3); if (glow < 0.15) continue;
+        ctx.fillStyle = `rgba(200,255,120,${glow * 0.3})`; ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill();
+        ctx.fillStyle = `rgba(240,255,190,${glow})`; ctx.fillRect(x, y, 1, 1);
+      } else if (b.kind === 'dragonfly') {
+        const f = Math.floor(t / 40) % 2; ctx.fillStyle = '#2f6fb0'; ctx.fillRect(x - 2, y, 4, 1); ctx.fillStyle = '#5fe0f0'; ctx.fillRect(x + 2, y, 1, 1);
+        ctx.fillStyle = 'rgba(230,245,255,0.75)'; ctx.fillRect(x - 1, y - 1 - f, 1, 1); ctx.fillRect(x + 1, y - 1 - f, 1, 1); ctx.fillRect(x - 1, y + 1 + f, 1, 1); ctx.fillRect(x + 1, y + 1 + f, 1, 1);
+        ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.fillRect(x - 1, y + 7, 3, 1);
+      } else {
+        const open = Math.floor(t / 120 + b.ph) % 2; ctx.fillStyle = b.col;
+        if (open) { ctx.fillRect(x - 2, y - 1, 2, 2); ctx.fillRect(x + 1, y - 1, 2, 2); } else { ctx.fillRect(x - 1, y - 1, 1, 2); ctx.fillRect(x + 1, y - 1, 1, 2); }
+        ctx.fillStyle = '#3a2a20'; ctx.fillRect(x, y - 1, 1, 2);
       }
     }
   }
