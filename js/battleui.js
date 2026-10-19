@@ -8,7 +8,7 @@
     const f = b.foe, m = b.me, fsp = G.DATA.species[f.sp], msp = G.DATA.species[m.sp];
     const expPct = Math.min(100, ((m.exp - G.expFor(m.lv)) / (G.expFor(m.lv + 1) - G.expFor(m.lv))) * 100);
     return `
-      <div class="panel bpanel foe-panel"><div class="bname">${f.name} ${G.ui.typeTag(fsp.type)} <span class="lv">Lv${f.lv}</span></div>
+      <div class="panel bpanel foe-panel"><div class="bname">${f.shiny ? '<span class="k-shiny">✨</span>' : ''}${f.name} ${G.ui.typeTag(fsp.type)} <span class="lv">Lv${f.lv}</span></div>
         ${G.ui.hpBar(V.fhp, f.stats.hp)}${G.ui.statusTag(f.status)}${b.isWild() && G.state.dex[f.sp] === 2 ? '<span class="tag got">เคยชวนแล้ว</span>' : ''}</div>
       <div class="panel bpanel me-panel"><div class="bname">${m.name} ${G.ui.typeTag(msp.type)} <span class="lv">Lv${m.lv}</span></div>
         ${G.ui.hpBar(V.php, m.stats.hp)}<div class="hpnum">${Math.max(0, Math.round(V.php))}/${m.stats.hp} ${G.ui.statusTag(m.status)}</div>
@@ -137,6 +137,7 @@
       V.fSprite = G.monLook(b.foe);
       await G.ui.say(`${opt.trainerName} ส่ง ${b.foe.name} ออกมา!`, null, { battle: true, auto: 600 });
     }
+    if (b.foe.shiny) { G.sfx('power'); V.sparkle = performance.now(); await G.ui.say('✨ ตัวนี้สีไม่เหมือนตัวอื่น... ผีสีพิเศษ! หายากมากๆ ชวนให้ได้นะ!', null, { battle: true }); }
     V.pSprite = G.monLook(b.me); render(b); G.sfx('send');
     await G.ui.say(`ไปเลย ${b.me.name}!`, null, { battle: true, auto: 500 });
     if (V.onSend) await V.onSend(b);
@@ -164,6 +165,10 @@
     if (result === 'recruit') {
       const m = b.foe; m.status = null;
       G.state.dex[m.sp] = 2;
+      if (m.shiny) (S.shinyDex = S.shinyDex || {})[m.sp] = 1;
+      S.chain = S.chain && S.chain.sp === m.sp ? { sp: m.sp, n: S.chain.n + 1 } : { sp: m.sp, n: 1 };   // ชวนชนิดเดิมต่อเนื่อง เพิ่มโอกาสสีพิเศษ
+      await G.ui.dexReward();
+      if (S.chain.n >= 2) G.showToast(`ชวน${G.DATA.species[m.sp].name}ต่อเนื่อง ${S.chain.n} ตัว · โอกาสเจอสีพิเศษเพิ่มขึ้น!`);
       if (S.party.length < 6) { S.party.push(m); await G.ui.say(`${m.name} เข้าแก๊งแล้ว!`, null, { battle: true }); }
       else { S.storage.push(m); await G.ui.say(`ทีมเต็มแล้ว ${m.name} ไปรออยู่ในคลังแก๊ง (เถียงนาตาสี/คอมหอพัก)`, null, { battle: true }); }
     }
@@ -694,6 +699,7 @@
     }
     ctx.restore();
   }
+  G.battleTurn = () => (V.active && V.b ? V.b.turn : 0);
   G.battleFx = (side, type, cat, ago = 0, id) => { V.fx = { side, type, cat, id, t0: performance.now() - ago }; startAct(side, type, cat, id, ago); };
   // ---------- ท่าทางตัวละคร: ผู้ใช้ท่าขยับตามท่า (พุ่ง กระโดด หมุน ขว้าง ร่าย ตะโกน หายตัว เล็ง ฟัน) ฝ่ายโดนตีถูกกระแทกถอย ----------
   function startAct(side, type, cat, id, ago) {
@@ -850,6 +856,11 @@
     if (G.raining() && !['indoor', 'kku_shop', 'ramen'].includes(V.bg) && G.drawRain) G.drawRain(ctx, now);
     for (const s of ['p', 'f']) if (V.faint && V.faint[s] > 0 && V.faint[s] < 1) V.faint[s] = Math.min(1, V.faint[s] + 0.06);
     draw(V.fSprite, 154, 20, false, V.faint ? V.faint.f : 0, 'f');
+    if (V.sparkle && now - V.sparkle < 2200) {   // ผีสีพิเศษ: ประกายดาววิบวับรอบตัว
+      const t = (now - V.sparkle) / 2200;
+      for (let i = 0; i < 6; i++) { const a = i * 1.05 + t * 5, r = 18 + t * 14, x = 178 + Math.cos(a) * r, y = 44 + Math.sin(a) * r * 0.8, s = 1 + Math.abs(Math.sin(t * 20 + i)) * 2;
+        ctx.fillStyle = `rgba(255,248,200,${1 - t})`; ctx.fillRect(x - s, y, s * 2 + 1, 1); ctx.fillRect(x, y - s, 1, s * 2 + 1); }
+    }
     draw(V.pSprite, 38, 66, true, V.faint ? V.faint.p : 0, 'p');
     drawFx(ctx, now);
     if (V.critFlash > 0) { ctx.fillStyle = `rgba(255,240,180,${V.critFlash / (calm ? 40 : 14)})`; ctx.fillRect(0, 0, 240, 160); V.critFlash--; }

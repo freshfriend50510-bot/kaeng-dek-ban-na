@@ -452,8 +452,9 @@
           <li>ถ้าผีหลับหรือชาอยู่ ชวนง่ายขึ้นมาก · สู้ไม่ไหวเลือก <b>หนี</b> ได้</li></ul>`);
       }
       // ผีอ่อนกว่ามาก (และเคยชวนแล้ว): ไล่ไปได้เลยไม่ต้องเข้าฉากสู้ ทั้งแก๊งได้ EXP แบบ Let's Go
+      const shiny = !G.isPerson(sp) && G.rng() < G.shinyOdds(sp, S().map);
       const lead = S().party.find((m) => m.hp > 0);
-      if (G.settings.quickWild !== false && lead && G.state.dex[sp] === 2 && lead.lv >= lv + 8 && !G.DATA.species[sp].kind.match(/eng|med/)) {
+      if (!shiny && G.settings.quickWild !== false && lead && G.state.dex[sp] === 2 && lead.lv >= lv + 8 && !G.DATA.species[sp].kind.match(/eng|med/)) {
         const foe = G.DATA.species[sp].name;
         const i = await G.ui.ask(`${foe} Lv${lv} โผล่มา... แต่ดูกลัว${lead.name}จนตัวสั่น`, '', [`ไล่ไปเลย (ได้ EXP)`, 'สู้ตามปกติ'], { cls: 'small' });
         if (i === 0) {
@@ -463,7 +464,8 @@
           return;
         }
       }
-      const r = await G.runBattle([G.spawn(sp, lv, { taken: takenNames() })], { kind: 'wild' });
+      const foeMon = G.spawn(sp, lv, { taken: takenNames() }); if (shiny) foeMon.shiny = true;
+      const r = await G.runBattle([foeMon], { kind: 'wild' });
       if (r === 'lose') await blackout();
     },
     async follower_talk(m) {
@@ -495,7 +497,7 @@
     async vendor() { await say(F().gym1_done ? 'ตั้งแต่แก๊งพี่ออสซี่เลิกคุมตลาด ลูกชิ้นขายดีขึ้นเท่าตัว!' : 'ตลาดนัดตำบลคึกคักทุกวันเสาร์ แต่ช่วงนี้แก๊งพี่ออสซี่มาเดินคุม ใครก็ไม่กล้าเข้าร้านราเมง', 'พ่อค้าลูกชิ้น'); },
     async vendor2() {
       await say('หมูปิ้งร้อนๆ จ้า ผีสางชอบนัก!', 'แม่ค้าหมูปิ้ง');
-      await G.ui.shop(['rice_pork', 'herb', 'herb_big', 'holy_water'], 'แม่ค้าหมูปิ้ง');
+      await G.ui.shop(['rice_pork', 'khaotommat', 'khanomkrok', 'plara', 'herb', 'herb_big', 'holy_water'], 'แม่ค้าหมูปิ้ง');
     },
     async curtain_wrong(ct) {
       G.sfx('bump');
@@ -795,9 +797,16 @@
       for (const l of lines) await say(l);
     },
     async vending() { await say('ตู้กดน้ำ แสงไฟเรืองๆ ตอนกลางคืน'); await G.ui.shop(['soda', 'gamer_drink'], 'ตู้กดน้ำ'); },
+    async hidden_item(h) {
+      F()[G.hidFlag(h)] = true; G.sfx('buy');
+      const where = { field: 'ในกอข้าว', phong: 'ในพงอ้อ', city: 'ใต้ม้านั่ง', donputa: 'ใต้กองใบไม้', kku: 'หลังพุ่มไม้' }[S().map] || 'ซุกอยู่ตรงนี้';
+      await say(`เจอ${G.DATA.items[h.item].name}ซ่อนอยู่${where}!`); await give(h.item, 1);
+      const left = (G.DATA.world.hidden || []).filter((k) => !F()[G.hidFlag(k)]).length;
+      if (left && left % 5 === 0) await say(`(ยังมีของซ่อนอยู่ทั่วอีสานอีก ${left} ชิ้น สังเกตประกายวิบวับบนพื้นนะ)`);
+    },
     async amulet(n) {   // แผงเครื่องราง: ของถือ (ของลงธาตุขายหลังได้ตรายิม 2)
       await say(F().gym2_done ? 'ของดีทุกชิ้น ยายทำเองกับมือ ถือไว้ติดตัวสู้ผีสางได้สบาย' : 'ตะกรุด ผ้าประเจียด ลูกประคำ... ได้ตรายิมที่สองเมื่อไร ยายจะเอาของลงธาตุมาขายให้ด้วย', n.name);
-      await G.ui.shop(['kratib', 'takrut', 'prajiad', 'rosary'].concat(F().gym2_done ? ['termite_soil', 'new_battery', 'kite_string', 'pakhaoma'] : []), n.name);
+      await G.ui.shop(['kratib', 'takrut', 'prajiad', 'rosary', 'everstone', 'yadong'].concat(F().gym2_done ? ['termite_soil', 'new_battery', 'kite_string', 'pakhaoma'] : []), n.name);
     },
     async meatball(n) { await say('ลูกชิ้นทอดไม้ละห้าบาท จิ้มแจ่วเผ็ดๆ ซื้อเยอะลดให้!', n.name); await G.ui.shop(['meatball', 'rice_pork', 'soda'], n.name); },
     // มินิเกม: ทายลูกศรให้ทัน (ตู้เกมอาเขต) / ยิงลูกโป่งตามสี (ซุ้มถนนคนเดิน)

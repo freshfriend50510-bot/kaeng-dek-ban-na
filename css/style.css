@@ -286,3 +286,5 @@ table.moves td, table.moves th { padding: calc(var(--u) * 0.5) calc(var(--u) * 2
 .evo-panel { left: 25%; right: 25%; top: 18%; bottom: 18%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--u) * 3); }
 .evo-cv { width: calc(var(--u) * 64); height: calc(var(--u) * 64); image-rendering: pixelated; }
 .evo-hint { font-size: 0.7em; opacity: .7; }
+.k-shiny { color: #fff2a8; text-shadow: 0 0 4px #f2d24b; margin-right: .2em; }
+.nb-where { color: #9fd8f0; } .nb-evo { color: #f2d24b; }

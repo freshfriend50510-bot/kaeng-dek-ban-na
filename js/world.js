@@ -337,6 +337,7 @@
     W.map = id; W.rows = G.DATA.maps[id]; W.moving = null; W.fmove = null;
     W.def = G.DATA.world.maps[id];
     if (!W.def.indoor) (S.visited = S.visited || {})[id] = 1;   // ที่ที่เคยมาแล้ว ใช้เดินทางเร็วได้
+    if (!W.def.indoor && S.newsDay !== G.gameDay()) { const ob = G.outbreak(); S.newsDay = G.gameDay(); if (ob) setTimeout(() => G.showToast(`📢 หอกระจายข่าว: วันนี้${G.DATA.species[ob.sp].name}ระบาดที่${G.DATA.world.maps[ob.map].name}!`), 900); }
     G.refreshNpcs();
     // คนเดินตามโผล่ข้างหลังเรา
     const [dx, dy] = DIRS[S.dir] || [0, 1];
@@ -465,7 +466,8 @@
     else if (W.def.encounter && (W.def.encTiles || 'Tgv').includes(here) && G.rng() < (W.def.encRate || 0.14)) {
       const table = G.DATA.encounters[W.map];
       const night = G.isNight(), wet = G.raining();
-      const weight = (e) => (night ? e.night : e.day) * (wet && G.DATA.species[e.sp].type === 'water' ? 2.5 : 1);   // ฝนตก ผีน้ำออกมาเยอะ
+      const ob = G.outbreak();
+      const weight = (e) => Math.max(night ? e.night : e.day, ob && ob.map === W.map && ob.sp === e.sp ? 10 : 0) * (wet && G.DATA.species[e.sp].type === 'water' ? 2.5 : 1) * (ob && ob.map === W.map && ob.sp === e.sp ? 6 : 1);   // ฝนตก ผีน้ำออกมาเยอะ · ผีระบาด ×6
       const roll = G.rng() * table.reduce((a, e) => a + weight(e), 0);
       let acc = 0;
       for (const e of table) {
@@ -506,6 +508,9 @@
     return null;
   };
 
+  const hidFlag = (h) => `hid_${h.map}_${h.x}_${h.y}`;
+  G.hidFlag = hidFlag;
+  const hiddenAt = (x, y) => (G.DATA.world.hidden || []).find((h) => h.map === W.map && h.x === x && h.y === y && !G.state.flags[hidFlag(h)]);
   G.world.interact = function () {
     const S = G.state;
     const near = G.world.nearby();
@@ -519,6 +524,8 @@
       return;
     }
     const [dx, dy] = DIRS[S.dir], t = tileAt(S.x + dx, S.y + dy);
+    const hid = hiddenAt(S.x + dx, S.y + dy) || hiddenAt(S.x, S.y);   // ของซ่อนบนพื้น (มีประกายวิบวับ)
+    if (hid) { G.runScript('hidden_item', hid); return; }
     if (t === 'w' || t === 'i') G.runScript('water');
     else if (t === 'b') G.runScript('well');
   };
@@ -529,6 +536,16 @@
   G.period = () => { const h = Math.floor(G.state.time / 60) % 24; return h >= 5 && h < 9 ? 'morning' : h >= 9 && h < 16 ? 'day' : h >= 16 && h < 19 ? 'evening' : 'night'; };
   G.PERIOD_TH = { morning: 'เช้า', day: 'กลางวัน', evening: 'เย็น', night: 'กลางคืน' };
   G.raining = () => G.state.rainLeft > 0 && !W.def.indoor;
+  // ผีระบาด: วันละหนึ่งแมพหนึ่งชนิด (เฉพาะแมพที่เคยไป) ออกบ่อย ×6 และโอกาสสีพิเศษ ×3 · ประกาศทางหอกระจายข่าว
+  G.gameDay = () => Math.floor((G.state.playMs || 0) / 1440000);
+  G.outbreak = function () {
+    const S = G.state, d = G.gameDay(), E = G.DATA.encounters;
+    const maps = Object.keys(E).filter((m) => (S.visited || {})[m] && E[m].length > 1 && G.DATA.world.maps[m] && !G.DATA.world.maps[m].indoor);
+    if (!maps.length || d < 1) return null;
+    const map = maps[Math.floor(hash(d, 7) * maps.length)], list = E[map].filter((e) => !G.isPerson(e.sp));
+    if (!list.length) return null;
+    return { map, sp: list[Math.floor(hash(d, 13) * list.length)].sp };
+  };
   // สภาพอากาศตามแผนที่/เวลา/วัน: หมอกเช้าตามทุ่งและริมน้ำ แดดจ้าเที่ยง ฝุ่น PM ในเมืองตอนกลางวัน (ใช้ในฉากต่อสู้ด้วย)
   G.fieldWeather = function () {
     if (!W.def || W.def.indoor || G.raining()) return null;
@@ -717,6 +734,12 @@
     }
     actors.sort((a, b) => a.y - b.y).forEach((a) => a.draw());
     if (W.amb) drawAmbientHigh(ctx, cx, cy);
+    for (const h of G.DATA.world.hidden || []) {   // ของซ่อน: ประกายวิบวับเป็นระยะ
+      if (h.map !== W.map || S.flags[hidFlag(h)]) continue;
+      const ph = (performance.now() / 1000 + hash(h.x, h.y) * 4) % 3.2; if (ph > 0.45) continue;
+      const gx = h.x * TS - cx + 8, gy = h.y * TS - cy + 9, r = 1 + Math.sin((ph / 0.45) * Math.PI) * 3;
+      ctx.fillStyle = 'rgba(255,255,230,0.95)'; ctx.fillRect(gx - r, gy, r * 2 + 1, 1); ctx.fillRect(gx, gy - r, 1, r * 2 + 1); ctx.fillRect(gx, gy, 1, 1);
+    }
     // หญ้าบังขา
     const here = tileAt(S.x, S.y);
     if ('Tgv'.includes(here) && !W.moving) { ctx.fillStyle = here === 'T' ? '#6e9b3a' : here === 'v' ? '#7a9a4a' : '#5f8a3a'; ctx.fillRect(S.x * TS - cx + 2, S.y * TS - cy + 11, 12, 5); }

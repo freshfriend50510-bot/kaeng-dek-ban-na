@@ -373,7 +373,7 @@
 
   // ---------- กระเป๋า ----------
   let lastTab = null;
-  const BAG_TABS = [['ยา', ['heal', 'healall', 'cure']], ['เพิ่มเลเวล', ['exp', 'lvup']], ['ของกินชวน', ['recruit', 'repel']], ['ของถือ', ['held']], ['ของสำคัญ', ['tm', 'key', 'kit']]];
+  const BAG_TABS = [['ยา', ['heal', 'healall', 'cure', 'mint']], ['เพิ่มเลเวล', ['exp', 'lvup']], ['ของกินชวน', ['recruit', 'repel']], ['ของถือ', ['held']], ['ของสำคัญ', ['tm', 'key', 'kit']]];
   const SOURCE = { tm_wind_blade: 'รางวัลชนะยิม 1 พี่ออสซี่', tm_short_circuit: 'รางวัลชนะยิม 2 พี่เฟรนด์', tm_mud_therapy: 'รางวัลชนะยิม 3 พี่บูม', first_aid: 'พี่บูมให้หลังกลับใจ', rod: 'ลุงเปลี่ยนให้เป็นค่าหาไส้เดือน', porridge: 'ซื้อจากตลาดเช้าตัวอำเภอ', yantra: 'หลวงตามอบให้หลังฝนตก', goggles: 'พ่อแอมให้ (แว่นสมัยเรียนวิศวะ)' };
   const BADGES = [['gym1', 'ตราผ้าโพก', 'พี่ออสซี่ · ร้านราเมงลมทุ่ง', 'เปิดทางรถสองแถวไป มข.'], ['gym2', 'ตราเฟือง', 'พี่เฟรนด์ · โรงช็อปวิศวะ มข.', 'เปิดสะพานข้ามลำน้ำพอง'],
     ['gym3', 'ตราหูฟัง', 'พี่บูม · คลินิกหลังโรงพยาบาลอำเภอ', 'เฒ่าจ้ำอนุญาตให้เข้าดอนปู่ตา'], ['gym4', 'ตราไม้เรียว', 'พี่ต้นน้ำ · ห้องสมุดโรงเรียนมัธยม', '—']];
@@ -383,7 +383,7 @@
   const chanceOf = (foe, id) => {
     const it = G.DATA.items[id]; if (!foe || !it || it.kind !== 'recruit') return null;
     const eng = G.isPerson(foe), fits = it.for === (eng ? G.DATA.species[foe.sp].kind : 'ghost');
-    return Math.min(100, Math.round((G.recruitValue(foe, it.value * (fits ? 1 : 0.5)) / 256) * 100));
+    return Math.min(100, Math.round((G.recruitValue(foe, it.value * (fits ? 1 : 0.5) * G.recruitSit(id, foe, (G.battleTurn ? G.battleTurn() : 0) + 1)) / 256) * 100));
   };
   G.ui.bagScreen = function (opt = {}) {
     const chance = (id) => chanceOf(opt.foe, id);
@@ -470,6 +470,15 @@
         await G.ui.say(`${m.name} กิน${it.name} อร่อยมาก!`);
         await G.ui.giveExp(m, it.kind === 'exp' ? it.value : G.expFor(Math.min(100, m.lv + it.value)) - m.exp);
       }
+      else if (it.kind === 'mint') {   // ยาดองเปลี่ยนนิสัย
+        const t = await G.ui.partyMenu({ pick: true, title: `ให้ใครดื่ม${it.name}?` });
+        if (t < 0) continue;
+        const m = S.party[t], keys = Object.keys(G.NATURES);
+        const k = await G.ui.choose(keys.map((n) => G.natureText({ nature: n })), { title: `นิสัยใหม่ของ ${m.name} (ตอนนี้: ${G.natureText(m)})`, cls: 'small' });
+        if (k < 0) continue;
+        m.nature = keys[k]; G.refreshStats(m); S.bag[ids[i]]--; G.sfx('heal');
+        await G.ui.say(`${m.name} ดื่ม${it.name}แล้วนิสัยเปลี่ยนเป็น ${G.natureText(m)}!`);
+      }
       else if (it.kind === 'kit') {   // กระเป๋าปฐมพยาบาล: วันละครั้ง (นับวันจากเวลาเล่นในเกม)
         const day = Math.floor((S.playMs || 0) / (1440 * 1000));
         if (S.kitDay === day) { await G.ui.say('วันนี้ใช้กระเป๋าปฐมพยาบาลไปแล้ว พรุ่งนี้ค่อยใช้ใหม่นะ'); continue; }
@@ -483,7 +492,7 @@
   // ---------- วิวัฒนาการ: evo = "ร่างใหม่:เลเวล[:night|rain|flag]" ----------
   G.evoReady = function (m) {
     const ev = (G.DATA.species[m.sp].evo || '').split(':');
-    if (!ev[0] || m.lv < +ev[1] || m.noEvo === m.lv) return null;
+    if (!ev[0] || m.lv < +ev[1] || m.noEvo === m.lv || m.held === 'everstone') return null;
     const c = ev[2];
     if (c === 'night' ? !G.isNight() : c === 'rain' ? !G.raining() : c ? !G.state.flags[c] : false) return null;
     return ev[0];
@@ -508,6 +517,15 @@
       push(m2); G.sfx('power'); requestAnimationFrame(step);
     });
   }
+  // ชวนผีครบทุกชนิด → ตะกรุดนำโชค (เจอสีพิเศษ ×3)
+  G.ui.dexReward = async function () {
+    const S = G.state, sp = G.DATA.species;
+    if (S.bag.lucky_charm) return;
+    const ghosts = Object.keys(sp).filter((k) => sp[k].kind === 'ghost');
+    if (!ghosts.every((k) => S.dex[k] === 2)) return;
+    S.bag.lucky_charm = 1; G.sfx('level');
+    await G.ui.say('สมุดบันทึกผีครบทุกชนิดแล้ว! หลวงตาฝากตะกรุดนำโชคมาให้ ต่อไปจะเจอผีสีพิเศษบ่อยขึ้นสามเท่า');
+  };
   G.ui.tryEvolve = async function (m) {
     const to = G.evoReady(m); if (!to) return;
     const tsp = G.DATA.species[to], old = m.name, nick = m.name !== G.DATA.species[m.sp].name;
@@ -516,6 +534,7 @@
     m.sp = to; if (!nick) m.name = tsp.name;
     G.refreshStats(m); G.state.dex[to] = 2;
     await G.ui.say(`ยินดีด้วย! ${old} เปลี่ยนร่างเป็น ${tsp.name} แล้ว!`);
+    await G.ui.dexReward();
     for (const [lv, mid] of tsp.learnset) if (lv <= m.lv && lv > (m.lv - 1) && !m.moves.some((s) => s.id === mid)) await G.ui.learnMove(m, mid);
   };
   // ---------- EXP นอกการต่อสู้ (ของกินเพิ่มเลเวล) ----------
@@ -660,8 +679,18 @@
       const st = stateOf(k), t = inTeam(k), b = inBox(k);
       const tags = (st ? `<span class="tag nb-st${st}">${LABEL[st]}</span>` : '') + (t ? `<span class="tag nb-team">ในทีม ${t}</span>` : '') + (b ? `<span class="tag nb-box">ในคลัง ${b}</span>` : '');
       const desc = st === 0 ? 'ยังไม่เคยเจอ' : st === 1 ? 'เคยเห็นแวบๆ ต้องลองสู้ดูถึงจะรู้มากกว่านี้' : esc(sp[k].desc);
+      // ที่อยู่: แมพ ช่วงเวลา ความหายาก · เส้นทางวิวัฒนาการ · สีพิเศษที่เคยชวนได้
+      const where = st ? Object.entries(G.DATA.encounters).map(([mp, list]) => {
+        const e = list.find((x) => x.sp === k); if (!e) return '';
+        const pct = (key) => { const tot = list.reduce((a2, x) => a2 + x[key], 0); return tot ? Math.round((e[key] / tot) * 100) : 0; };
+        const d = pct('day'), n = pct('night'), r = Math.max(d, n), rare = r >= 25 ? 'เจอบ่อย' : r >= 12 ? 'พอเจอได้' : r > 0 ? 'หายาก' : '';
+        return rare ? `${G.DATA.world.maps[mp] ? G.DATA.world.maps[mp].name : mp} (${d && n ? 'ทั้งวัน' : d ? 'กลางวัน' : 'กลางคืน'} · ${rare})` : '';
+      }).filter(Boolean).join(' · ') : '';
+      const ev = (sp[k].evo || '').split(':'), evo = st >= 2 && ev[0] ? `เปลี่ยนร่างที่ Lv${ev[1]}${ev[2] ? ' ' + (G.EVO_HINT[ev[2]] || '') : ''} → ${S.dex[ev[0]] ? sp[ev[0]].name : '???'}` : '';
+      const from = Object.keys(sp).find((b2) => (sp[b2].evo || '').split(':')[0] === k);
+      const shinyT = (S.shinyDex || {})[k] ? '<span class="tag k-shiny">✨ สีพิเศษ</span>' : '';
       return `<div class="nb-row st${st}"><canvas width="16" height="16" data-sprite="${st ? sp[k].look : ''}"></canvas>
-        <div><b>${st ? esc(sp[k].name) : '???'}</b> ${st >= 2 ? G.ui.typeTag(sp[k].type) : ''}<br>${tags}<br><small>${desc}</small></div></div>`;
+        <div><b>${st ? esc(sp[k].name) : '???'}</b> ${st >= 2 ? G.ui.typeTag(sp[k].type) : ''}<br>${tags}${shinyT}<br><small>${desc}</small>${where ? `<br><small class="nb-where">📍 ${esc(where)}</small>` : st && from ? `<br><small class="nb-where">📍 ได้จากการเปลี่ยนร่างของ${S.dex[from] ? esc(sp[from].name) : 'ผีบางชนิด'}</small>` : ''}${evo ? `<br><small class="nb-evo">✦ ${esc(evo)}</small>` : ''}</div></div>`;
     };
     const ghosts = ids.filter((k) => sp[k].kind === 'ghost'), engs = ids.filter((k) => sp[k].kind === 'eng'), meds = ids.filter((k) => sp[k].kind === 'med');
     const count = (list) => [1, 2, 3].map((n) => list.filter((k) => stateOf(k) >= n).length);

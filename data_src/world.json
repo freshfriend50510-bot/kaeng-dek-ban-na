@@ -4690,5 +4690,217 @@
    "script": "naga_pond",
    "label": "หนองน้ำใต้ดอน"
   }
+ ],
+ "hidden": [
+  {
+   "map": "village",
+   "x": 13,
+   "y": 9,
+   "item": "herb"
+  },
+  {
+   "map": "village",
+   "x": 1,
+   "y": 24,
+   "item": "rice_ball"
+  },
+  {
+   "map": "village",
+   "x": 1,
+   "y": 9,
+   "item": "holy_water"
+  },
+  {
+   "map": "village",
+   "x": 8,
+   "y": 24,
+   "item": "kratib"
+  },
+  {
+   "map": "field",
+   "x": 27,
+   "y": 19,
+   "item": "herb"
+  },
+  {
+   "map": "field",
+   "x": 19,
+   "y": 20,
+   "item": "rice_ball"
+  },
+  {
+   "map": "field",
+   "x": 28,
+   "y": 10,
+   "item": "rice_pork"
+  },
+  {
+   "map": "field",
+   "x": 1,
+   "y": 20,
+   "item": "termite_soil"
+  },
+  {
+   "map": "field",
+   "x": 28,
+   "y": 1,
+   "item": "herb"
+  },
+  {
+   "map": "market",
+   "x": 22,
+   "y": 1,
+   "item": "herb"
+  },
+  {
+   "map": "market",
+   "x": 22,
+   "y": 14,
+   "item": "holy_water"
+  },
+  {
+   "map": "market",
+   "x": 1,
+   "y": 14,
+   "item": "pakhaoma"
+  },
+  {
+   "map": "market",
+   "x": 1,
+   "y": 1,
+   "item": "rice_ball"
+  },
+  {
+   "map": "kku",
+   "x": 41,
+   "y": 19,
+   "item": "herb_big"
+  },
+  {
+   "map": "kku",
+   "x": 10,
+   "y": 1,
+   "item": "coupon"
+  },
+  {
+   "map": "kku",
+   "x": 42,
+   "y": 31,
+   "item": "new_battery"
+  },
+  {
+   "map": "kku",
+   "x": 33,
+   "y": 21,
+   "item": "egg_ping"
+  },
+  {
+   "map": "phong",
+   "x": 22,
+   "y": 5,
+   "item": "herb_big"
+  },
+  {
+   "map": "phong",
+   "x": 6,
+   "y": 17,
+   "item": "saline"
+  },
+  {
+   "map": "phong",
+   "x": 27,
+   "y": 1,
+   "item": "kite_string"
+  },
+  {
+   "map": "phong",
+   "x": 7,
+   "y": 1,
+   "item": "egg_ping"
+  },
+  {
+   "map": "phong",
+   "x": 38,
+   "y": 1,
+   "item": "kratib"
+  },
+  {
+   "map": "amphoe",
+   "x": 42,
+   "y": 6,
+   "item": "sangkaya"
+  },
+  {
+   "map": "amphoe",
+   "x": 11,
+   "y": 1,
+   "item": "saline"
+  },
+  {
+   "map": "amphoe",
+   "x": 3,
+   "y": 18,
+   "item": "khao_ji"
+  },
+  {
+   "map": "amphoe",
+   "x": 1,
+   "y": 4,
+   "item": "takrut"
+  },
+  {
+   "map": "city",
+   "x": 30,
+   "y": 26,
+   "item": "khao_ji"
+  },
+  {
+   "map": "city",
+   "x": 34,
+   "y": 38,
+   "item": "rosary"
+  },
+  {
+   "map": "city",
+   "x": 58,
+   "y": 29,
+   "item": "egg_ping"
+  },
+  {
+   "map": "city",
+   "x": 4,
+   "y": 3,
+   "item": "prajiad"
+  },
+  {
+   "map": "city",
+   "x": 4,
+   "y": 27,
+   "item": "herb_big"
+  },
+  {
+   "map": "donputa",
+   "x": 32,
+   "y": 9,
+   "item": "rosary"
+  },
+  {
+   "map": "donputa",
+   "x": 13,
+   "y": 21,
+   "item": "termite_soil"
+  },
+  {
+   "map": "donputa",
+   "x": 5,
+   "y": 19,
+   "item": "khao_lam"
+  },
+  {
+   "map": "donputa",
+   "x": 22,
+   "y": 6,
+   "item": "khao_ji"
+  }
  ]
 }

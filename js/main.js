@@ -120,6 +120,8 @@
     s.dex = s.dex && typeof s.dex === 'object' ? s.dex : {}; s.fought = s.fought && typeof s.fought === 'object' ? s.fought : {};
     s.money = num(s.money, 0, 9999999, 0); s.time = num(s.time, 0, 1439, 420); s.playMs = Math.max(0, Number(s.playMs) || 0); s.rainLeft = Math.min(600, Math.max(0, Number(s.rainLeft) || 0));
     s.repel = num(s.repel, 0, 999, 0); s.steps = Math.max(0, Number(s.steps) || 0);
+    s.chain = s.chain && D.species[s.chain.sp] ? { sp: s.chain.sp, n: num(s.chain.n, 0, 999, 0) } : null;
+    s.shinyDex = s.shinyDex && typeof s.shinyDex === 'object' ? s.shinyDex : {}; s.newsDay = Number(s.newsDay) || 0;
     const bag = {};
     for (const [k, v] of Object.entries(s.bag || {})) { if (!D.items[k]) { fix(); continue; } const n = num(v, 0, 999, 0); if (n) bag[k] = n; }
     s.bag = bag;
@@ -128,7 +130,8 @@
       m.lv = num(m.lv, 1, 100, 5);
       m.ivs = m.ivs && typeof m.ivs === 'object' ? m.ivs : {};
       for (const k of ['hp', 'atk', 'def', 'spa', 'spd', 'spe']) m.ivs[k] = num(m.ivs[k], 0, 31, 15);
-      if (!G.NATURES[m.nature]) m.nature = 'easy';   // เซฟเก่าไม่มีนิสัย = สบายๆ (ค่าเท่าเดิม)
+      if (!G.NATURES[m.nature]) m.nature = 'easy';
+      m.shiny = m.shiny === true; if (m.noEvo != null) m.noEvo = num(m.noEvo, 1, 100, 1);   // เซฟเก่าไม่มีนิสัย = สบายๆ (ค่าเท่าเดิม)
       m.stats = G.calcStats(m.sp, m.lv, m.ivs, m.nature);
       m.exp = Math.max(G.expFor(m.lv), Math.min(G.expFor(m.lv + 1) - 1, Number(m.exp) || 0));
       m.hp = num(m.hp, 0, m.stats.hp, m.stats.hp);

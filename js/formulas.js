@@ -129,9 +129,17 @@
     return k;
   };
 
+  // โอกาสผีสีพิเศษ: พื้นฐาน 1/200 · ชวนชนิดเดิมต่อเนื่อง +25%/ตัว (สูงสุด ×5) · ผีระบาด ×3 · ตะกรุดนำโชค ×3
+  G.shinyOdds = function (sp, onMap) {
+    const S = G.state || {}, ch = S.chain && S.chain.sp === sp ? Math.min(16, S.chain.n) : 0;
+    const ob = G.outbreak && G.outbreak();
+    return (1 / 200) * (1 + ch * 0.25) * (ob && ob.sp === sp && ob.map === onMap ? 3 : 1) * ((S.bag || {}).lucky_charm ? 3 : 1);
+  };
   G.expGain = (foe, trainer) => Math.floor((G.DATA.species[foe.sp].baseexp * foe.lv) / 7 * (trainer ? 1.5 : 1));
 
   // โอกาสชวนผีสางเข้าแก๊ง (สูตรเดียวกับอัตราจับรุ่น III-IV)
+  // ของกินชวนตามสถานการณ์ (แบบบอลพิเศษ): ข้าวต้มมัดกลางคืน ขนมครกเทิร์นแรก ปลาร้าบองผีน้ำ
+  G.recruitSit = (id, foe, turn) => ({ khaotommat: G.isNight && G.isNight() ? 3 : 1, khanomkrok: turn <= 1 ? 4 : 1, plara: G.DATA.species[foe.sp].type === 'water' ? 3 : 1 })[id] || 1;
   G.recruitValue = function (mon, foodMult) {
     const R = G.DATA.species[mon.sp].catch;
     const M = mon.stats.hp, H = mon.hp;

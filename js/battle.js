@@ -524,7 +524,9 @@
         const fits = it.for === (eng ? kind : 'ghost');
         ev.push({ t: 'msg', text: eng ? `ยื่น${it.name}ให้ ${this.foe.name}...` : `ถวาย${it.name}ให้ ${this.foe.name}...` });
         if (!fits) ev.push({ t: 'msg', text: eng ? `${this.foe.name}ทำหน้างงๆ ไม่ค่อยอยากได้${it.name}...` : `ผีสางงงๆ กับ${it.name}...` });
-        const a = G.recruitValue(this.foe, it.value * (fits ? 1 : 0.5));
+        const sit = G.recruitSit(id, this.foe, this.turn);
+        if (sit > 1) ev.push({ t: 'msg', text: `${it.name}ถูกใจ${this.foe.name}มาก!` });
+        const a = G.recruitValue(this.foe, it.value * (fits ? 1 : 0.5) * sit);
         ev.push({ t: 'recruit_try' });
         if (this.rng() * 256 < a) {
           ev.push({ t: 'msg', text: eng ? `${this.foe.name} กินจนอิ่ม แล้วขอเข้าแก๊งด้วยคน!` : `${this.foe.name} กินอย่างอร่อย แล้วขอตามมาเข้าแก๊ง!` });
