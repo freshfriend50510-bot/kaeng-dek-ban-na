@@ -402,7 +402,8 @@
     }
     if (!G.world.passable(nx, ny)) { if (!W.bumpCD) { G.sfx('bump'); W.bumpCD = 14; } return; }
     const bike = S.biking && !W.def.indoor;
-    startMove(nx, ny, bike ? 0.34 : run ? 0.25 : 0.125, false);
+    const k = [0.75, 1, 1.3][G.settings.walkSpeed ?? 1];   // ตั้งค่าความเร็วเดิน ช้า/กลาง/เร็ว
+    startMove(nx, ny, (bike ? 0.24 : run ? 0.16 : 0.09) * k, false);
   };
   // ---------- คลิกเพื่อเดิน: หาเส้นทาง BFS ไปช่องที่คลิก (คลิกคน/ป้าย/ประตู = เดินไปข้างๆ แล้วคุย/เข้า) ----------
   G.world.pathTo = function (tx, ty) {
