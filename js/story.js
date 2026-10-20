@@ -438,8 +438,59 @@
         await say('ฝากเอาข้าวห่อไก่ย่างไปให้ตาสีที่เถียงนาหน่อยได้ไหมจ๊ะ แกเฝ้าผีให้ทั้งวันคงหิวแย่', 'แม่เติ้ล');
         await startQuest('s_lunch');
       }
+      if (F().boss1_done && (await G.ui.ask('อยากให้แม่ทำอาหารอีสานให้ไหม? เอาวัตถุดิบที่ผีทำหล่นมาให้แม่สิ', 'แม่เติ้ล', ['ทำอาหาร', 'คุยเฉยๆ'])) === 0) { await SCRIPTS.cook_menu(); return; }
       if (F().boss1_done) { await say('ส้มตำแม่เติ้ลแซ่บที่สุดในหมู่บ้าน! วันนี้มีข้าวเหนียวหมูปิ้งด้วยนะ', 'แม่เติ้ล'); await G.ui.shop(['rice_pork', 'herb', 'herb_big'], 'แม่เติ้ล'); }
       else await say('ส้มตำปลาร้าต้องรอฝนตกก่อน มะละกอแห้งหมดแล้ว', 'แม่เติ้ล');
+    },
+    // ครัวแม่เติ้ล: วัตถุดิบจากผีป่า → อาหารบัฟ 150 ก้าว (ทีละอย่าง)
+    async cook_menu() {
+      const R = [
+        ['แกงหน่อไม้', { bamboo_shoot: 2, snail: 1 }, 'exp', 'EXP ×1.5'], ['ก้อยไข่มดแดง', { red_ant_egg: 2, phak_wan: 1 }, 'shiny', 'เจอผีสีพิเศษ ×2'],
+        ['หมกหอยขม', { snail: 2, bamboo_shoot: 1 }, 'lure', 'เจอผีบ่อยขึ้น ×1.5'], ['จิ้งหรีดทอด', { cricket: 2, phak_wan: 1 }, 'money', 'เงินรางวัล ×1.5'],
+        ['ข้าวเหนียวแจ่วบอง', { bamboo_shoot: 1, red_ant_egg: 1, snail: 1, cricket: 1 }, 'feast', 'ฟื้นทีมเต็ม + สนิทกันมากขึ้น'],
+      ];
+      const I = G.DATA.items, has = (need) => Object.entries(need).every(([k, n]) => (S().bag[k] || 0) >= n);
+      const i = await G.ui.choose(R.map(([nm, need, , fx]) => ({ label: nm, sub: fx, disabled: !has(need) })), { title: 'ครัวแม่เติ้ล', cls: 'bag',
+        info: (k) => 'ใช้ ' + Object.entries(R[k][1]).map(([id, n]) => `${I[id].name} ×${n} (มี ${S().bag[id] || 0})`).join(' · ') + (R[k][2] !== 'feast' ? ' · ได้ผล 150 ก้าว' : '') });
+      if (i < 0) return;
+      const [nm, need, kind, fx] = R[i];
+      for (const [k, n] of Object.entries(need)) S().bag[k] -= n;
+      G.sfx('heal');
+      if (kind === 'feast') { G.heal(); S().party.forEach((m) => G.addFriend(m, 8)); await say(`{happy}${nm}ร้อนๆ มาแล้ว! กินกันทั้งแก๊ง ทุกคนอิ่มแปล้ แข็งแรงเต็มที่ แล้วก็สนิทกันขึ้นอีก`, 'แม่เติ้ล'); return; }
+      S().buff = { kind, steps: 150 };
+      await say(`{happy}${nm}เสร็จแล้ว! กินแล้วไปลุยต่อ (${fx} อีก 150 ก้าว)`, 'แม่เติ้ล');
+    },
+    async trade(n) {   // แลกผีกับ NPC: ตัวที่ได้มา EXP ×1.5
+      const T = { trade_tom: { want: 'kongkoi', give: 'krahang', lv: 12, name: 'เจ้าแหลม', flag: 'trade_tom', hi: 'อยากได้ผีกองกอยมาเลี้ยงจัง! เอาผีกระหังของต้อมไปแลกไหม? ต้อมตั้งชื่อว่าเจ้าแหลม' },
+        trade_city: { want: 'phong', give: 'nangngueak', lv: 26, name: 'น้องเงือก', flag: 'trade_city', hi: 'พี่สะสมผีแสงไฟ ขาดแต่ผีโพง! แลกกับนางเงือกน้อยของพี่ไหม ชื่อน้องเงือก' } }[n.id];
+      if (F()[T.flag]) { await say('เลี้ยงเจ้าตัวนั้นดีๆ นะ มันชอบคนใจดี', n.name); return; }
+      const idx = S().party.findIndex((m) => m.sp === T.want);
+      await say(T.hi, n.name);
+      if (idx < 0) { await say(`(ต้องมี${G.DATA.species[T.want].name}อยู่ในทีม)`); return; }
+      if (!(await G.ui.confirm(`แลก${S().party[idx].name}กับ${T.name}ไหม?`, n.name))) return;
+      const got = G.makeMon(T.give, T.lv, { nature: 'random', name: T.name }); got.traded = true; got.friend = 120;
+      S().party.splice(idx, 1, got); F()[T.flag] = true; G.state.dex[T.give] = 2; G.sfx('level');
+      await say(`แลกกันแล้ว! ${T.name}มาอยู่กับแก๊ง (ผีที่ได้จากการแลกได้ EXP ×1.5)`);
+    },
+    async raid_den(o) {   // ลานผียักษ์: วันละแมพ บอสเลือดสองเท่า มีโล่ ชนะแล้วชวนได้
+      const key = 'raid_' + G.gameDay();
+      if (G.raidMap() !== S().map || F()[key]) { await say('ลานดินว่างเปล่า มีรอยเท้าใหญ่ๆ ทิ้งไว้... (ผียักษ์จะมาวันละที่ ดูแสงม่วงวนเหนือลาน)'); return; }
+      const E = G.DATA.encounters[S().map] || [], sp0 = E.length ? E[Math.floor(G.rng() * E.length)].sp : 'pob';
+      const evo = (G.DATA.species[sp0].evo || '').split(':')[0], sp = evo || sp0, lv = Math.min(100, Math.max(...S().party.map((m) => m.lv)) + 3);
+      await G.ui.sayAll([`{shock}แสงม่วงพุ่งขึ้นจากลาน... ${G.DATA.species[sp].name}ตัวยักษ์ปรากฏตัว!`, 'ผียักษ์มีพลังเยอะกว่าปกติสองเท่า และจะตั้งโล่วิญญาณเมื่อเลือดลด']);
+      if (!(await G.ui.confirm('สู้กับผียักษ์ไหม?'))) return;
+      const boss = G.makeMon(sp, lv, { ivs: 25, nature: 'random' }); boss.stats.hp *= 2; boss.hp = boss.stats.hp;
+      const r = await G.runBattle([boss], { kind: 'boss', trainerName: `${G.DATA.species[sp].name}ยักษ์`, trainerLook: G.DATA.species[sp].look, ai: 2, raid: true, money: 800 });
+      if (r === 'lose') { await blackout(); return; }
+      if (r !== 'win') return;
+      F()[key] = true;
+      const ings = Object.keys(G.DATA.items).filter((k) => G.DATA.items[k].kind === 'ingr');
+      for (let k = 0; k < 3; k++) { const ig = ings[Math.floor(G.rng() * ings.length)]; S().bag[ig] = (S().bag[ig] || 0) + 1; }
+      await say('ผียักษ์สลายเป็นละอองแสง ทิ้งวัตถุดิบไว้ 3 ชิ้น!');
+      if (await G.ui.confirm(`${G.DATA.species[sp].name}ตัวจริงที่ซ่อนอยู่ข้างในเดินออกมา อยากเข้าแก๊งด้วย ชวนไหม?`)) {
+        const m = G.makeMon(sp, Math.max(5, lv - 5), { nature: 'random' }); if (S().party.length < 6) S().party.push(m); else S().storage.push(m); G.state.dex[sp] = 2; G.sfx('level');
+        await say(`${m.name}เข้าแก๊งแล้ว!${S().party.includes(m) ? '' : ' (ทีมเต็ม ไปรออยู่ในคลังแก๊ง)'}`);
+      }
     },
     async ter_yai() {
       if (!F().yai_gift) { await say('เต๋ออออ! กลับมากินข้าว! ...อ้าว ไม่ใช่เต๋อ เอ้า เอาข้าวเหนียวไปกินแทนก็ได้', 'ยายเต๋อ'); await give('rice_ball', 3); F().yai_gift = true; }
@@ -823,6 +874,69 @@
       await say(`เจอ${G.DATA.items[h.item].name}ซ่อนอยู่${where}!`); await give(h.item, 1);
       const left = (G.DATA.world.hidden || []).filter((k) => !F()[G.hidFlag(k)]).length;
       if (left && left % 5 === 0) await say(`(ยังมีของซ่อนอยู่ทั่วอีสานอีก ${left} ชิ้น สังเกตประกายวิบวับบนพื้นนะ)`);
+    },
+    // ---------- หลังจบเกม: ศึกแชมป์อีสาน (สี่หัวหน้าติดกัน) · หอท้าสู้ · พญาคันคาก ----------
+    async champ_host(n) {
+      if (!F().champ_intro) {
+        await G.ui.sayAll(['{happy}ศึกแชมป์อีสาน! พี่ออสซี่ พี่เฟรนด์ พี่บูม และม่อน ตกลงกันแล้วว่าจะสู้กับน้องๆ อีกครั้ง แบบเต็มกำลัง',
+          'สู้ติดกันสี่คน ระหว่างคู่พักใช้ยาในกระเป๋าได้ แต่ไม่มีพักฟื้นฟรีนะ', 'ทีมของทุกคนเลเวล 50 ขึ้นไป ผีในทีมก็เปลี่ยนร่างแล้วด้วย เตรียมตัวให้ดี'], n.name);
+        F().champ_intro = true;
+      }
+      if (!(await G.ui.confirm(F().champ_done ? 'ท้าศึกแชมป์อีสานอีกรอบไหม?' : 'พร้อมเข้าศึกแชมป์อีสานไหม?', n.name))) return;
+      const L = [
+        ['พี่ออสซี่', 'ossie', () => [G.makeMon('krahang2', 50, { ivs: 26 }), G.makeMon('phong2', 50, { ivs: 26 }), G.makeMon('takhon2', 51, { ivs: 26 }), G.makeMon('ossie', 53, { ivs: 31 })], 'ramen', 'ดาบไม้ไผ่ของพี่ยังคมอยู่นะ!'],
+        ['พี่เฟรนด์', 'friend', () => [G.makeMon('eng_elec', 52, { ivs: 26, name: 'น้องโวลต์', look: 'eng:eng_elec:1' }), G.makeMon('eng_mech', 52, { ivs: 26, name: 'น้องต้น', look: 'eng:eng_mech:0' }), G.makeMon('wheelchair2', 53, { ivs: 26 }), G.makeMon('friend', 55, { ivs: 31 })], 'kku_shop', 'เฟืองทุกตัวหมุนเต็มรอบแล้ว มาเลย!'],
+        ['พี่บูม', 'boom', () => [G.makeMon('taehak2', 54, { ivs: 26 }), G.makeMon('pusom2', 54, { ivs: 26 }), G.makeMon('nurseghost2', 55, { ivs: 26 }), G.makeMon('boom', 57, { ivs: 31 })], 'clinic', 'ตรวจร่างกายเสร็จแล้ว พร้อมผ่าตัดใหญ่!'],
+        ['พี่ม่อน', 'mon', () => [G.makeMon('raysie', 57, { ivs: 28 }), G.makeMon('neeon', 57, { ivs: 28 }), G.makeMon('sagejae', 58, { ivs: 28 }), G.makeMon('renuna', 58, { ivs: 28 }), G.makeMon('ohmen', 59, { ivs: 28 }), G.makeMon('jettjung', 61, { ivs: 31 })], 'arena', 'รอบนี้พี่ไม่ออมมือแล้วนะ GG ตั้งแต่ยังไม่เริ่ม!'],
+      ];
+      for (let i = 0; i < L.length; i++) {
+        const [name, look, mk, bg, line] = L[i];
+        await say(`{happy}${line}`, name);
+        const r = await G.runBattle(mk(), { kind: 'master', trainerName: name, trainerLook: look, ai: 2, potions: i === 3 ? 2 : 1, money: 3000 + i * 1000, bg });
+        if (r !== 'win') { G.heal(); await say(`${name}: เก่งขึ้นเยอะแล้ว แต่ยังไม่พอ! ฝึกมาใหม่นะ`, n.name); await say('(ทีมได้พักฟื้นที่ห้องพักนักแข่งแล้ว)'); return; }
+        if (i < L.length - 1) {
+          const c = await G.ui.ask(`ชนะ${name}แล้ว! คู่ต่อไป: ${L[i + 1][0]}`, n.name, ['สู้ต่อเลย', 'ฟื้นทีมด่วนก่อน (ใช้ยาในกระเป๋า)']);
+          if (c === 1) await G.ui.quickHeal();
+        }
+      }
+      G.sfx('level'); F().champ_done = true; G.refreshNpcs();
+      for (const m of S().party) { m.ribbons = [...new Set([...(m.ribbons || []), 'champ'])]; G.addFriend(m, 30); }
+      (S().hof = S().hof || []).push({ day: G.gameDay(), team: S().party.map((m) => ({ name: m.name, sp: m.sp, lv: m.lv, shiny: !!m.shiny })) });
+      await G.ui.panel(`<div class="intro"><b>🏆 หอเกียรติยศ · แชมป์อีสาน</b><br><br>${S().party.map((m) => `<canvas width="16" height="16" data-sprite="${G.monLook(m)}" style="width:3em;height:3em;image-rendering:pixelated"></canvas> ${m.name} Lv${m.lv}`).join('<br>')}<br><br>ทุกคนในทีมได้ริบบิ้นแชมป์อีสาน</div>`);
+      if (!S().bag.bangfai_mini) { await say('ม่อนยื่นบั้งไฟจิ๋วทองคำให้ "ตำนานว่าถ้าจุดที่หนองใหญ่ พญาคันคากจะขึ้นมาดู"', n.name); await give('bangfai_mini', 1); }
+    },
+    async tower_host(n) {
+      await say(`หอท้าสู้วาโลแลนด์! สู้ติดกันไม่พัก ทุก 5 ชนะมีรางวัล สถิติสูงสุดของน้อง: ${S().towerBest || 0} ชนะติด`, n.name);
+      if (!(await G.ui.confirm('เริ่มท้าสู้ไหม? (ทีมจะฟื้นเต็มก่อนแต่ละคู่)', n.name))) return;
+      const POOL = ['phrai2', 'kongkoi2', 'pob2', 'krahang2', 'phong2', 'pret2', 'nangngueak2', 'takhian2', 'taehak2', 'krasue2', 'takhon2', 'pusom2', 'nurseghost2', 'wheelchair2', 'raysie', 'neeon', 'brimlung', 'vaipa', 'killjoy', 'sovanoi'];
+      const NAMES = [['นักแข่งสายผี', 'henchman2'], ['หมอลำซิ่ง', 'vendor'], ['นักศึกษาวิศวะปีสี่', 'student1'], ['คุณครูนักสะสม', 'teacher'], ['ป้าแม่ค้าสายโหด', 'samorn'], ['สตรีมเมอร์สายวาโล', 'agent_jett'], ['ลุงคนขับสองแถว', 'driver'], ['พระธุดงค์ผ่านทาง', 'novice']];
+      const RW = ['khao_lam', 'rosary', 'takrut', 'prajiad', 'kratib', 'termite_soil', 'new_battery', 'kite_string', 'pakhaoma', 'naga_scale'];
+      const L = Math.max(50, ...S().party.map((m) => m.lv));
+      let streak = 0;
+      for (;;) {
+        G.heal();
+        const [tn, tl] = NAMES[Math.floor(G.rng() * NAMES.length)], lv = Math.min(100, L - 2 + Math.floor(streak / 5));
+        const team = [0, 1, 2].map(() => G.makeMon(POOL[Math.floor(G.rng() * POOL.length)], lv + G.rng.int(0, 2), { ivs: Math.min(31, 18 + streak), nature: 'random' }));
+        const r = await G.runBattle(team, { kind: 'trainer', trainerName: `${tn} (คู่ที่ ${streak + 1})`, trainerLook: tl, ai: 2, money: 300 });
+        if (r !== 'win') break;
+        streak++;
+        if (streak % 5 === 0) { const it = RW[Math.floor(G.rng() * RW.length)]; await say(`ชนะติด ${streak} คู่! รางวัลจากหอ`, n.name); await give(it, 1); }
+        if (streak === 20) for (const m of S().party) m.ribbons = [...new Set([...(m.ribbons || []), 'tower'])];
+        if ((await G.ui.ask(`ชนะติด ${streak} คู่แล้ว!`, n.name, ['สู้ต่อ', 'พักก่อน (เก็บสถิติ)'])) === 1) break;
+      }
+      G.heal(); S().towerBest = Math.max(S().towerBest || 0, streak);
+      await say(`จบรอบนี้ที่ ${streak} ชนะติด · สถิติสูงสุด ${S().towerBest}`, n.name);
+    },
+    async phaya(n) {
+      if (F().phaya_day === G.gameDay()) { await say('ผิวหนองนิ่งสนิท... พญาคันคากคงกลับไปพักแล้ว พรุ่งนี้ค่อยมาใหม่'); return; }
+      if (!S().bag.bangfai_mini) { await say('มีคางคกตัวใหญ่สวมมงกุฎทองนั่งนิ่งอยู่กลางหนอง... มันไม่สนใจเราเลย'); return; }
+      await G.ui.sayAll(['จุดบั้งไฟจิ๋วทองคำ... ฟู่ววว ตูม!', '{shock}ฟ้าร้องครืนๆ น้ำในหนองกระเพื่อม พญาคันคากลืมตาขึ้นมา',
+        'อ๊บ... เจ้าคือเด็กที่ชนะคางคกเจ้าหนองกับแชมป์ทั้งสี่สินะ ข้าคือพญาคันคาก ผู้ที่เคยรบชนะพญาแถนจนฟ้าส่งฝนให้แผ่นดินอีสาน', 'มาเถิด! ให้ข้าดูว่าใจเจ้าแข็งพอจะเดินเคียงข้างข้าไหม!'], n.name);
+      G.markSeen('phayakhankak');
+      const r = await G.runBattle([G.makeMon('phayakhankak', 60, { ivs: 31, nature: 'random' })], { kind: 'wild', ai: 2, bg: 'field' });
+      if (r === 'recruit') { F().phaya_done = true; G.refreshNpcs(); await say('{happy}พญาคันคากยอมเดินทางไปกับแก๊งเด็กบ้านนาแล้ว! ฝนจะตกตามทางที่พวกเจ้าไป'); }
+      else if (r === 'lose') await blackout();
+      else { F().phaya_day = G.gameDay(); await say('พญาคันคากกระโดดกลับลงหนองไป... พรุ่งนี้ค่อยจุดบั้งไฟเรียกใหม่'); }
     },
     async amulet(n) {   // แผงเครื่องราง: ของถือ (ของลงธาตุขายหลังได้ตรายิม 2)
       await say(F().gym2_done ? 'ของดีทุกชิ้น ยายทำเองกับมือ ถือไว้ติดตัวสู้ผีสางได้สบาย' : 'ตะกรุด ผ้าประเจียด ลูกประคำ... ได้ตรายิมที่สองเมื่อไร ยายจะเอาของลงธาตุมาขายให้ด้วย', n.name);

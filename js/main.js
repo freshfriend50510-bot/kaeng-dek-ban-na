@@ -122,6 +122,8 @@
     s.repel = num(s.repel, 0, 999, 0); s.steps = Math.max(0, Number(s.steps) || 0);
     s.chain = s.chain && D.species[s.chain.sp] ? { sp: s.chain.sp, n: num(s.chain.n, 0, 999, 0) } : null;
     s.shinyDex = s.shinyDex && typeof s.shinyDex === 'object' ? s.shinyDex : {}; s.newsDay = Number(s.newsDay) || 0;
+    s.research = s.research && typeof s.research === 'object' ? s.research : {}; s.towerBest = num(s.towerBest, 0, 9999, 0); s.hof = Array.isArray(s.hof) ? s.hof.slice(-20) : [];
+    s.buff = s.buff && ['exp', 'shiny', 'lure', 'money'].includes(s.buff.kind) ? { kind: s.buff.kind, steps: num(s.buff.steps, 0, 999, 0) } : null;
     const bag = {};
     for (const [k, v] of Object.entries(s.bag || {})) { if (!D.items[k]) { fix(); continue; } const n = num(v, 0, 999, 0); if (n) bag[k] = n; }
     s.bag = bag;
@@ -131,7 +133,7 @@
       m.ivs = m.ivs && typeof m.ivs === 'object' ? m.ivs : {};
       for (const k of ['hp', 'atk', 'def', 'spa', 'spd', 'spe']) m.ivs[k] = num(m.ivs[k], 0, 31, 15);
       if (!G.NATURES[m.nature]) m.nature = 'easy';
-      m.shiny = m.shiny === true; m.friend = num(m.friend, 0, 255, 70); if (m.noEvo != null) m.noEvo = num(m.noEvo, 1, 100, 1);   // เซฟเก่าไม่มีนิสัย = สบายๆ (ค่าเท่าเดิม)
+      m.shiny = m.shiny === true; m.traded = m.traded === true; m.ribbons = Array.isArray(m.ribbons) ? m.ribbons.filter((r) => typeof r === 'string').slice(0, 8) : []; m.friend = num(m.friend, 0, 255, 70); if (m.noEvo != null) m.noEvo = num(m.noEvo, 1, 100, 1);   // เซฟเก่าไม่มีนิสัย = สบายๆ (ค่าเท่าเดิม)
       m.stats = G.calcStats(m.sp, m.lv, m.ivs, m.nature);
       m.exp = Math.max(G.expFor(m.lv), Math.min(G.expFor(m.lv + 1) - 1, Number(m.exp) || 0));
       m.hp = num(m.hp, 0, m.stats.hp, m.stats.hp);
@@ -299,8 +301,43 @@
       return start(null, free);
     }
   }
+  // ฉากหน้าแรก: ฟ้ายามเย็นอีสาน ทุ่งข้าวไหว ต้นตาล สิมไกลๆ บั้งไฟพุ่ง หิ่งห้อย ผีน้อยแอบมอง
+  function titleScene() {
+    const cv = document.querySelector('#title-bg'); if (!cv) return;
+    const x = cv.getContext('2d'); x.imageSmoothingEnabled = false;
+    const R = (c, a, b, w, h) => { x.fillStyle = c; x.fillRect(a, b, w, h); };
+    const rockets = [];
+    const loop = (now) => {
+      if (G.scene !== 'title' || document.querySelector('#title').classList.contains('gone')) return;
+      const t = now / 1000;
+      const sky = x.createLinearGradient(0, 0, 0, 100); sky.addColorStop(0, '#2a2f6b'); sky.addColorStop(0.45, '#c86a5a'); sky.addColorStop(0.8, '#f2b36a'); sky.addColorStop(1, '#f8d890');
+      x.fillStyle = sky; x.fillRect(0, 0, 240, 160);
+      for (let i = 0; i < 18; i++) { const sx = (i * 53) % 240, sy = (i * 29) % 40; x.fillStyle = `rgba(255,255,230,${0.3 + 0.3 * Math.sin(t * 2 + i)})`; x.fillRect(sx, sy, 1, 1); }   // ดาวดวงแรก
+      const sun = x.createRadialGradient(170, 92, 4, 170, 92, 30); sun.addColorStop(0, '#fff2c0'); sun.addColorStop(0.4, 'rgba(255,200,120,.8)'); sun.addColorStop(1, 'rgba(255,160,90,0)'); x.fillStyle = sun; x.fillRect(130, 52, 80, 80);
+      for (let i = 0; i < 4; i++) { const cx = ((i * 80 + t * (4 + i)) % 320) - 40, cy = 18 + i * 9; x.fillStyle = 'rgba(255,220,200,.35)'; x.beginPath(); x.ellipse(cx, cy, 22, 4, 0, 0, 7); x.ellipse(cx + 12, cy - 3, 12, 4, 0, 0, 7); x.fill(); }
+      // สิมไกลๆ กับต้นตาล
+      x.fillStyle = '#5a3a5a'; x.fillRect(36, 84, 30, 14); x.beginPath(); x.moveTo(30, 86); x.lineTo(51, 72); x.lineTo(72, 86); x.fill(); x.fillRect(50, 66, 2, 7);
+      for (const [px, h] of [[96, 34], [112, 28], [200, 38], [222, 30], [12, 30]]) { x.fillStyle = '#3a2a3a'; x.fillRect(px, 100 - h, 2, h); for (let k = 0; k < 6; k++) { x.save(); x.translate(px + 1, 100 - h); x.rotate(k * 1.05 + Math.sin(t + px) * 0.05); x.fillRect(0, 0, 8, 1.5); x.restore(); } }
+      // ทุ่งข้าวไหวลม
+      R('#4f7a2a', 0, 98, 240, 62);
+      for (let i = 0; i < 80; i++) { const gx = (i * 37) % 240, gy = 100 + ((i * 13) % 58), sway = Math.sin(t * 1.6 + gx * 0.05) * 1.5; x.fillStyle = i % 3 ? '#8fae3a' : '#c9c45a'; x.fillRect(gx + sway, gy, 1, 4); x.fillRect(gx + sway + 1, gy - 1, 1, 2); }
+      R('#c47a4a', 104, 98, 32, 62); for (let y = 100; y < 160; y += 6) R('#b06a3e', 106 + ((y * 7) % 20), y, 3, 1);   // ทางดินแดงกลางทุ่ง
+      // บั้งไฟพุ่ง
+      if (G.rng() < 0.006 && rockets.length < 2) rockets.push({ x: 20 + G.rng() * 200, y: 100, v: 0.9 + G.rng() * 0.6 });
+      for (const r of rockets) { r.y -= r.v; for (let k = 0; k < 8; k++) { x.fillStyle = k < 3 ? '#fff2a8' : `rgba(220,220,230,${0.5 - k * 0.05})`; x.fillRect(r.x + Math.sin(k + t * 9) * (k * 0.3), r.y + 4 + k * 3, 2, 3); } R('#c5482b', r.x - 1, r.y - 4, 4, 6); }
+      for (let i = rockets.length - 1; i >= 0; i--) if (rockets[i].y < -10) rockets.splice(i, 1);
+      // หิ่งห้อย
+      for (let i = 0; i < 14; i++) { const fx = (i * 41 + Math.sin(t * 0.7 + i) * 14) % 240, fy = 110 + ((i * 17) % 44) + Math.cos(t + i) * 4, g = 0.5 + 0.5 * Math.sin(t * 3 + i * 2); x.fillStyle = `rgba(220,255,140,${g})`; x.fillRect(fx, fy, 1, 1); x.fillStyle = `rgba(200,255,120,${g * 0.25})`; x.fillRect(fx - 1, fy - 1, 3, 3); }
+      // ผีน้อยแอบมองจากกอข้าว
+      const peek = (id, px, py, ph) => { const up = Math.max(0, Math.sin(t * 0.8 + ph)) * 8; x.save(); x.beginPath(); x.rect(px - 2, py - 20, 22, 20); x.clip(); x.drawImage(G.sprite(id), px, py - up, 16, 16); x.restore(); };
+      peek('pob', 18, 142, 0); peek('phong', 196, 136, 2); peek('krasue', 150, 150, 4);
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
   async function titleMenu() {
     G.scene = 'title';
+    titleScene();
     const any = [1, 2, 3].some((n) => !G.slotSummary(n).empty);
     const found = G.allSaves();
     const opts = [];

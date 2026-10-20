@@ -230,12 +230,12 @@
   // ความสามารถติดตัว: ชื่อสั้น + คำอธิบาย (ตรรกะอยู่ใน battle.js)
   const AB_SHORT = { rage: 'บ้าพลัง', analyze: 'วิเคราะห์', eater: 'อิ่มแล้วสู้', quick: 'ดีดเปิดเกม', slick: 'ตัวลื่น', thick: 'หนังหนา', glutton: 'กินจุ', glider: 'ร่อนลม',
     static: 'ไฟฟ้าสถิต', tall: 'สูงชะลูด', songbird: 'เสียงหวาน', deeproot: 'รากลึก', guardian: 'เฝ้านา', levitate: 'ลอยตัว', torrent: 'พลังนาค', dancer: 'จังหวะตาโขน',
-    treasure: 'เฝ้าทรัพย์', nurse: 'ดูแลตัวเอง', diligent: 'ขยัน', firstaid: 'ปฐมพยาบาล', scary: 'หน้าดุ' };
+    treasure: 'เฝ้าทรัพย์', nurse: 'ดูแลตัวเอง', diligent: 'ขยัน', firstaid: 'ปฐมพยาบาล', scary: 'หน้าดุ', rainlord: 'เจ้าแห่งฝน' };
   G.AB_DESC = { rage: 'เลือดเหลือ 1/3 ท่าดินแรง ×1.5', analyze: 'ลงมือทีหลังศัตรู แรงขึ้น ×1.3', eater: 'ฟื้นพลัง 1/16 ทุกเทิร์น', quick: 'เทิร์นแรกได้ลงมือก่อน',
     slick: 'ฝนตก ความเร็ว ×1.5', thick: 'โดนท่ากายภาพเบาลง ×0.85', glutton: 'ชนะศัตรูแล้วฟื้นพลัง 1/4', glider: 'ท่าลม ×1.2', static: 'โดนตีกายภาพ 30% ทำให้คนตีชา',
     tall: 'โดนท่าดินเบาลงครึ่งหนึ่ง', songbird: 'ท่าเสียง (ร้องโหยหวน เพลง ว้าก) ×1.3', deeproot: 'ฟื้นพลัง 1/16 ทุกเทิร์น', guardian: 'ลงสนามแล้วป้องกัน +1',
     levitate: 'ไม่โดนท่าธาตุดินเลย', torrent: 'เลือดเหลือ 1/3 ท่าน้ำ ×1.5', dancer: 'จบเทิร์นความเร็ว +1 (สูงสุด +2)', treasure: 'อยู่ในทีม เงินรางวัล ×1.5',
-    nurse: 'จบเทิร์น 30% หายจากอาการผิดปกติ', diligent: 'ได้ EXP เพิ่ม 10%', firstaid: 'เลือดต่ำกว่าครึ่ง ฟื้นพลัง 1/12 ทุกเทิร์น', scary: 'ลงสนามแล้วโจมตีของศัตรู −1' };
+    nurse: 'จบเทิร์น 30% หายจากอาการผิดปกติ', diligent: 'ได้ EXP เพิ่ม 10%', firstaid: 'เลือดต่ำกว่าครึ่ง ฟื้นพลัง 1/12 ทุกเทิร์น', scary: 'ลงสนามแล้วโจมตีของศัตรู −1', rainlord: 'ลงสนามแล้วฝนตกทันที 5 เทิร์น' };
   G.AB_SHORT = AB_SHORT;
   const NAT_TH = { atk: 'โจมตี', def: 'ป้องกัน', spa: 'พิเศษ', spd: 'ป้องกันพิเศษ', spe: 'ความเร็ว' };
   G.natureText = (m) => { const n = G.NATURES[m.nature] || G.NATURES.easy; return n[1] ? `${n[0]} (+${NAT_TH[n[1]]} −${NAT_TH[n[2]]})` : n[0]; };
@@ -366,14 +366,14 @@
     return G.ui.panel(`
       <div class="info-head"><canvas class="info-sprite" width="16" height="16" data-sprite="${G.monLook(m)}"></canvas>
         <div><b>${esc(m.name)}</b> Lv${m.lv} ${G.ui.typeTag(sp.type)} ${G.ui.statusTag(m.status)} <small>${KIND_TH[sp.kind] || ''}${m.name !== sp.name && sp.kind !== 'eng' && sp.kind !== 'med' ? ' · ' + esc(sp.name) : ''}</small><br>
-        <small>${esc(sp.desc)}</small>${sp.ability ? `<br><small>ความสามารถ: ${esc(AB_SHORT[sp.ability] + ' — ' + G.AB_DESC[sp.ability])}</small>` : ''}<br><small>นิสัย: ${esc(G.natureText(m))} · ความสนิท ${'♥'.repeat(G.hearts(m)) || '—'}${G.hearts(m) >= 4 ? ' (สนิทมาก บางทีจะทนหมัดสุดท้ายได้)' : ''}</small>${m.held ? `<br><small>ถือ: ${esc(G.DATA.items[m.held].name)}</small>` : ''}</div></div>
+        <small>${esc(sp.desc)}</small>${sp.ability ? `<br><small>ความสามารถ: ${esc(AB_SHORT[sp.ability] + ' — ' + G.AB_DESC[sp.ability])}</small>` : ''}${(m.ribbons || []).length ? `<br><small>ริบบิ้น: ${m.ribbons.map((r) => ({ champ: '🏆 แชมป์อีสาน', tower: '🗼 หอท้าสู้ 20 ชนะ' }[r] || r)).join(' ')}</small>` : ''}${m.traded ? '<br><small>ได้มาจากการแลก (EXP ×1.5)</small>' : ''}<br><small>นิสัย: ${esc(G.natureText(m))} · ความสนิท ${'♥'.repeat(G.hearts(m)) || '—'}${G.hearts(m) >= 4 ? ' (สนิทมาก บางทีจะทนหมัดสุดท้ายได้)' : ''}</small>${m.held ? `<br><small>ถือ: ${esc(G.DATA.items[m.held].name)}</small>` : ''}</div></div>
       <div class="stats">HP ${m.hp}/${st.hp} · โจมตี ${st.atk} · ป้องกัน ${st.def} · พิเศษ ${st.spa} · ป้องกันพิเศษ ${st.spd} · ความเร็ว ${st.spe}</div>
       <table class="moves"><tr><th>ท่า</th><th>ธาตุ</th><th>พลัง</th><th>PP</th></tr>${moves}</table>`, 'mon-info');
   };
 
   // ---------- กระเป๋า ----------
   let lastTab = null;
-  const BAG_TABS = [['ยา', ['heal', 'healall', 'cure', 'mint']], ['เพิ่มเลเวล', ['exp', 'lvup']], ['ของกินชวน', ['recruit', 'repel']], ['ของถือ', ['held']], ['ของสำคัญ', ['tm', 'key', 'kit']]];
+  const BAG_TABS = [['ยา', ['heal', 'healall', 'cure', 'mint']], ['เพิ่มเลเวล', ['exp', 'lvup']], ['ของกินชวน', ['recruit', 'repel']], ['ของถือ', ['held']], ['วัตถุดิบ', ['ingr']], ['ของสำคัญ', ['tm', 'key', 'kit']]];
   const SOURCE = { tm_wind_blade: 'รางวัลชนะยิม 1 พี่ออสซี่', tm_short_circuit: 'รางวัลชนะยิม 2 พี่เฟรนด์', tm_mud_therapy: 'รางวัลชนะยิม 3 พี่บูม', first_aid: 'พี่บูมให้หลังกลับใจ', rod: 'ลุงเปลี่ยนให้เป็นค่าหาไส้เดือน', porridge: 'ซื้อจากตลาดเช้าตัวอำเภอ', yantra: 'หลวงตามอบให้หลังฝนตก', goggles: 'พ่อแอมให้ (แว่นสมัยเรียนวิศวะ)' };
   const BADGES = [['gym1', 'ตราผ้าโพก', 'พี่ออสซี่ · ร้านราเมงลมทุ่ง', 'เปิดทางรถสองแถวไป มข.'], ['gym2', 'ตราเฟือง', 'พี่เฟรนด์ · โรงช็อปวิศวะ มข.', 'เปิดสะพานข้ามลำน้ำพอง'],
     ['gym3', 'ตราหูฟัง', 'พี่บูม · คลินิกหลังโรงพยาบาลอำเภอ', 'เฒ่าจ้ำอนุญาตให้เข้าดอนปู่ตา'], ['gym4', 'ตราไม้เรียว', 'พี่ต้นน้ำ · ห้องสมุดโรงเรียนมัธยม', '—']];
@@ -689,7 +689,7 @@
       }).filter(Boolean).join(' · ') : '';
       const ev = (sp[k].evo || '').split(':'), evo = st >= 2 && ev[0] ? `เปลี่ยนร่างที่ Lv${ev[1]}${ev[2] ? ' ' + (G.EVO_HINT[ev[2]] || '') : ''} → ${S.dex[ev[0]] ? sp[ev[0]].name : '???'}` : '';
       const from = Object.keys(sp).find((b2) => (sp[b2].evo || '').split(':')[0] === k);
-      const shinyT = (S.shinyDex || {})[k] ? '<span class="tag k-shiny">✨ สีพิเศษ</span>' : '';
+      const shinyT = ((S.shinyDex || {})[k] ? '<span class="tag k-shiny">✨ สีพิเศษ</span>' : '') + (st ? `<span class="tag nb-star" title="ดาวการศึกษา">${'★'.repeat(G.researchStars(k))}${'☆'.repeat(3 - G.researchStars(k))}</span>` : '');
       return `<div class="nb-row st${st}"><canvas width="16" height="16" data-sprite="${st ? sp[k].look : ''}"></canvas>
         <div><b>${st ? esc(sp[k].name) : '???'}</b> ${st >= 2 ? G.ui.typeTag(sp[k].type) : ''}<br>${tags}${shinyT}<br><small>${desc}</small>${where ? `<br><small class="nb-where">📍 ${esc(where)}</small>` : st && from ? `<br><small class="nb-where">📍 ได้จากการเปลี่ยนร่างของ${S.dex[from] ? esc(sp[from].name) : 'ผีบางชนิด'}</small>` : ''}${evo ? `<br><small class="nb-evo">✦ ${esc(evo)}</small>` : ''}</div></div>`;
     };

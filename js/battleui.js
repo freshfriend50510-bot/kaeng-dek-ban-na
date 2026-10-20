@@ -162,7 +162,7 @@
     b.F.forEach((m, i) => { if (i <= b.fi) S.fought[m.sp] = 1; });   // สมุดบันทึก: เคยสู้แล้ว
     if (b.bonusMoney && result !== 'lose') { S.money += b.bonusMoney; await G.ui.say(`เหรียญที่เก็บได้ระหว่างสู้ ${b.bonusMoney} บาท`, null, { battle: true, auto: 700 }); }
     if (result === 'win' && opt.kind !== 'wild' && opt.money) {
-      const rich = S.party.some((m) => G.DATA.species[m.sp].ability === 'treasure'), got = Math.floor(opt.money * (rich ? 1.5 : 1));   // ปู่โสมเฝ้าทรัพย์ในทีม เงินรางวัล ×1.5
+      const rich = S.party.some((m) => G.DATA.species[m.sp].ability === 'treasure'), got = Math.floor(opt.money * (rich ? 1.5 : 1) * (G.buffOn('money') ? 1.5 : 1));   // ปู่โสมเฝ้าทรัพย์ในทีม เงินรางวัล ×1.5
       S.money += got;
       await G.ui.say(`ได้เงินรางวัล ${got} บาท${rich ? ' (ปู่โสมช่วยเฝ้าทรัพย์ ×1.5)' : ''}`, null, { battle: true, auto: 700 });
     }
@@ -181,6 +181,15 @@
     G.scene = 'world';
     G.music(G.world.def.music);
     S.party.forEach((m) => G.addFriend(m, result === 'win' ? (m.hp > 0 ? 3 : 1) : m.hp > 0 ? 0 : -2));   // ความสนิท
+    if (opt.kind === 'wild' && (result === 'win' || result === 'recruit')) {   // ดาวการศึกษาในสมุดบันทึก + ของตก
+      const rs = ((S.research = S.research || {})[b.foe.sp] = S.research[b.foe.sp] || { b: 0, c: 0 }), before = G.researchStars(b.foe.sp);
+      if (result === 'win') rs.b++; else rs.c++;
+      if (G.researchStars(b.foe.sp) === 3 && before < 3) { S.money += 500; G.showToast(`ศึกษา${G.DATA.species[b.foe.sp].name}ครบ ★★★ ได้ทุนวิจัย 500 บาท`); }
+      if (result === 'win' && !G.isPerson(b.foe) && G.rng() < 0.35) {
+        const ing = Object.keys(G.DATA.items).find((k) => G.DATA.items[k].kind === 'ingr' && G.DATA.items[k].for === G.DATA.species[b.foe.sp].type);
+        if (ing) { S.bag[ing] = (S.bag[ing] || 0) + 1; await G.ui.say(`${b.foe.name}ทำ${G.DATA.items[ing].name}หล่นไว้ เก็บไว้ทำอาหาร`, null, { battle: true, auto: 800 }); }
+      }
+    }
     if (result !== 'lose') for (const m of S.party.slice()) await G.ui.tryEvolve(m);   // วิวัฒนาการหลังจบการต่อสู้
     return result;
   };

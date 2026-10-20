@@ -595,6 +595,7 @@
     takhon2: ['takhon', { R: '#a02a3a', B: '#2a3a8a', G: '#2f7a3a' }, '#f2d24b'],
     pusom2: ['pusom', { Y: '#f2d24b', y: '#c9a42a', C: '#f8f0d8' }, '#f2d24b'],
     nurseghost2: ['nurseghost', { R: '#2f6fb0', W: '#f8fcff' }, '#d9455a'],
+    phayakhankak: ['toad', { G: '#3f8a4a', D: '#1f5a2a', Y: '#f2d24b', R: '#c5482b' }, '#f2d24b'],   // พญาคันคาก: คางคกเจ้าหนองสวมมงกุฎ
     wheelchair2: ['wheelchair', { B: '#2a2a33', b: '#d9455a', G: '#4fe0ff', g: '#2f8fb0' }, '#4fe0ff'],
   };
   for (const [id, [base, pal, crown]] of Object.entries(EVO_LOOK)) {

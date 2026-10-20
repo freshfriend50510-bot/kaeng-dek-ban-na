@@ -4031,6 +4031,76 @@
     "แผงเครื่องราง",
     "ของถือ · ตะกรุด · ผ้าประเจียด"
    ]
+  },
+  {
+   "id": "champ_host",
+   "name": "พี่หยก (พิธีกรศึกแชมป์)",
+   "map": "arena_lobby",
+   "x": 25,
+   "y": 6,
+   "look": "yok",
+   "dir": "left",
+   "script": "champ_host",
+   "showIf": "game_clear",
+   "tag": [
+    "ศึกแชมป์อีสาน",
+    "ท้าสี่หัวหน้า"
+   ]
+  },
+  {
+   "id": "tower_host",
+   "name": "กรรมการหอท้าสู้",
+   "map": "arena_lobby",
+   "x": 2,
+   "y": 6,
+   "look": "guard",
+   "dir": "right",
+   "script": "tower_host",
+   "showIf": "game_clear",
+   "tag": [
+    "หอท้าสู้",
+    "ชนะติดกันรับรางวัล"
+   ]
+  },
+  {
+   "id": "phaya",
+   "name": "พญาคันคาก",
+   "map": "field",
+   "x": 20,
+   "y": 15,
+   "look": "phayakhankak",
+   "dir": "down",
+   "script": "phaya",
+   "showIf": "champ_done",
+   "hideIf": "phaya_done"
+  },
+  {
+   "id": "trade_tom",
+   "name": "เด็กชายต้อม",
+   "map": "village",
+   "x": 9,
+   "y": 13,
+   "look": "student1",
+   "dir": "down",
+   "script": "trade",
+   "tag": [
+    "แลกผี",
+    "ต้อมอยากได้ผีกองกอย"
+   ]
+  },
+  {
+   "id": "trade_city",
+   "name": "พี่ฝ้าย นักสะสมผี",
+   "map": "city",
+   "x": 30,
+   "y": 29,
+   "look": "student2",
+   "dir": "down",
+   "script": "trade",
+   "tag": [
+    "แลกผี",
+    "อยากได้ผีโพง"
+   ]
   }
  ],
  "rides": [
@@ -4689,6 +4759,55 @@
    "y": 5,
    "script": "naga_pond",
    "label": "หนองน้ำใต้ดอน"
+  },
+  {
+   "map": "field",
+   "x": 28,
+   "y": 8,
+   "script": "raid_den",
+   "label": "ลานผียักษ์"
+  },
+  {
+   "map": "village",
+   "x": 11,
+   "y": 20,
+   "script": "raid_den",
+   "label": "ลานผียักษ์"
+  },
+  {
+   "map": "phong",
+   "x": 23,
+   "y": 6,
+   "script": "raid_den",
+   "label": "ลานผียักษ์"
+  },
+  {
+   "map": "kku",
+   "x": 21,
+   "y": 24,
+   "script": "raid_den",
+   "label": "ลานผียักษ์"
+  },
+  {
+   "map": "amphoe",
+   "x": 30,
+   "y": 26,
+   "script": "raid_den",
+   "label": "ลานผียักษ์"
+  },
+  {
+   "map": "city",
+   "x": 31,
+   "y": 10,
+   "script": "raid_den",
+   "label": "ลานผียักษ์"
+  },
+  {
+   "map": "donputa",
+   "x": 20,
+   "y": 9,
+   "script": "raid_den",
+   "label": "ลานผียักษ์"
   }
  ],
  "hidden": [

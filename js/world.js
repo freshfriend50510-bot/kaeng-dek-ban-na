@@ -435,6 +435,7 @@
   G.world.afterStep = function () {
     const S = G.state;
     if (S.biking && W.def.indoor) S.biking = false;   // เข้าตึกแล้วจอดจักรยาน
+    if (S.buff && S.buff.steps > 0 && --S.buff.steps === 0) G.showToast('ฤทธิ์อาหารหมดแล้ว');
     S.steps++;
     if (S.steps % 48 === 0 && S.party[0]) G.addFriend(S.party[0], 1);   // เพื่อนที่เดินนำ สนิทขึ้นเรื่อยๆ
     if (S.repel > 0) { S.repel--; if (S.repel === 0) G.runScript('repel_end'); }
@@ -466,7 +467,7 @@
     }
     // สุ่มเจอผีสางในนาข้าว / น้องวิศวะในหญ้ารก
     if (W.encCD > 0) W.encCD--;   // เพิ่งสู้ไป เดินได้อีกสักพักก่อนเจอตัวใหม่
-    else if (W.def.encounter && (W.def.encTiles || 'Tgv').includes(here) && G.rng() < (W.def.encRate || 0.14)) {
+    else if (W.def.encounter && (W.def.encTiles || 'Tgv').includes(here) && G.rng() < (W.def.encRate || 0.14) * (G.buffOn('lure') ? 1.5 : 1)) {
       const table = G.DATA.encounters[W.map];
       const night = G.isNight(), wet = G.raining();
       const ob = G.outbreak();
@@ -541,6 +542,13 @@
   G.raining = () => G.state.rainLeft > 0 && !W.def.indoor;
   // ผีระบาด: วันละหนึ่งแมพหนึ่งชนิด (เฉพาะแมพที่เคยไป) ออกบ่อย ×6 และโอกาสสีพิเศษ ×3 · ประกาศทางหอกระจายข่าว
   G.gameDay = () => Math.floor((G.state.playMs || 0) / 1440000);
+  // อาหารบัฟจากครัวแม่เติ้ล: exp · shiny · lure · money นับตามก้าวเดิน
+  G.buffOn = (k) => { const b = G.state && G.state.buff; return !!(b && b.kind === k && b.steps > 0); };
+  // ลานผียักษ์: วันละหนึ่งแมพ (เฉพาะแมพที่เคยไป)
+  G.raidMap = function () {
+    const dens = (G.DATA.world.objects || []).filter((o) => o.script === 'raid_den' && (G.state.visited || {})[o.map]);
+    return dens.length && G.gameDay() >= 1 ? dens[Math.floor(hash(G.gameDay(), 31) * dens.length)].map : null;
+  };
   G.outbreak = function () {
     const S = G.state, d = G.gameDay(), E = G.DATA.encounters;
     const maps = Object.keys(E).filter((m) => (S.visited || {})[m] && E[m].length > 1 && G.DATA.world.maps[m] && !G.DATA.world.maps[m].indoor);
@@ -746,6 +754,12 @@
     }
     actors.sort((a, b) => a.y - b.y).forEach((a) => a.draw());
     if (W.amb) drawAmbientHigh(ctx, cx, cy);
+    if (G.raidMap() === W.map && !S.flags['raid_' + G.gameDay()]) for (const o of G.DATA.world.objects || []) {   // ลานผียักษ์วันนี้: แสงม่วงวนเหนือจุด
+      if (o.script !== 'raid_den' || o.map !== W.map) continue;
+      const gx = o.x * TS - cx + 8, gy = o.y * TS - cy + 8, t = performance.now() / 300;
+      const g2 = ctx.createRadialGradient(gx, gy, 2, gx, gy, 16); g2.addColorStop(0, 'rgba(200,120,255,0.7)'); g2.addColorStop(1, 'rgba(120,40,200,0)'); ctx.fillStyle = g2; ctx.fillRect(gx - 16, gy - 16, 32, 32);
+      for (let i = 0; i < 4; i++) { ctx.fillStyle = '#f0d8ff'; ctx.fillRect(Math.round(gx + Math.cos(t + i * 1.57) * 9), Math.round(gy - 4 + Math.sin(t + i * 1.57) * 4), 1, 1); }
+    }
     for (const h of G.DATA.world.hidden || []) {   // ของซ่อน: ประกายวิบวับเป็นระยะ
       if (h.map !== W.map || S.flags[hidFlag(h)]) continue;
       const ph = (performance.now() / 1000 + hash(h.x, h.y) * 4) % 3.2; if (ph > 0.45) continue;

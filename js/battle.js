@@ -283,10 +283,16 @@
         for (; k < n && tgt.hp > 0; k++) {
           let crit = r() < Math.max(side === 'p' && easy ? 0.25 : 1 / 16, g.crit || 0);   // ฝั่งเราติดคริ 25% ในโหมดเก็บเวลเร็ว
           if (uv.focus) { crit = true; uv.focus = false; }
-          const { dmg, eff } = G.damage(user, tgt, hm, {
+          let { dmg, eff } = G.damage(user, tgt, hm, {
             crit, rand: r.int(85, 100), other,
             atkStage: phys ? uv.st.atk : uv.st.spa, defStage: phys ? tv.st.def : tv.st.spd,
           });
+          if (this.opt.raid && tside === 'f') {   // ผียักษ์: ข้ามเลือด 2/3 กับ 1/3 ครั้งแรกจะตั้งโล่ 3 เทิร์น ดาเมจเหลือ 35%
+            this.shield = this.shield || 0; this.raidPhase = this.raidPhase || 0;
+            if (this.shield > 0) { dmg = Math.max(1, Math.floor(dmg * 0.35)); }
+            const th = [2 / 3, 1 / 3][this.raidPhase];
+            if (th && tgt.hp - dmg < tgt.stats.hp * th) { this.raidPhase++; this.shield = 3; ev.push({ t: 'msg', text: `${tname} คำรามแล้วตั้งโล่วิญญาณ! (ดาเมจลดลงมาก 3 เทิร์น)` }); }
+          }
           const sash = tgt.held && G.DATA.items[tgt.held] && G.DATA.items[tgt.held].for === 'sash' && tgt.hp >= tgt.stats.hp && dmg >= tgt.hp;
           tgt.hp = Math.max(sash ? 1 : 0, tgt.hp - dmg); total += dmg;
           if (sash) { ev.push({ t: 'msg', text: `${tname} ยึด${G.DATA.items[tgt.held].name}ไว้ รอดมาได้ด้วยพลังเฮือกสุดท้าย!` }); tgt.held = null; }
@@ -397,6 +403,7 @@
         }
       }
       if (this.rain > 0 && --this.rain === 0) ev.push({ t: 'msg', text: 'ฝนกลางสนามหยุดแล้ว' });
+      if (this.shield > 0 && --this.shield === 0) ev.push({ t: 'msg', text: 'โล่วิญญาณของผียักษ์แตกแล้ว!' });
     }
 
     // ---------- ท่าไม้ตาย (เกจหมอลำ) ----------
@@ -412,6 +419,7 @@
       const m = side === 'p' ? this.me : this.foe, v = side === 'p' ? this.pv : this.fv;
       if (!m || m.hp <= 0) return;
       const ab = this.sp(m).ability;
+      if (ab === 'rainlord') { this.rain = 5; ev.push({ t: 'msg', text: `${this.label(side)} ร้องเรียกฝน ฟ้าส่งฝนลงมาทันที!` }); }
       if (ab === 'guardian') { v.st.def = Math.min(6, v.st.def + 1); ev.push({ t: 'msg', text: `${this.label(side)} ยืนเฝ้านา ป้องกันขึ้น!` }); }
       if (ab === 'scary') { const ov = side === 'p' ? this.fv : this.pv; ov.st.atk = Math.max(-6, ov.st.atk - 1); ev.push({ t: 'msg', text: `${this.label(side)} ทำหน้าน่ากลัว โจมตีของ${this.label(side === 'p' ? 'f' : 'p')}ลดลง!` }); }
     }
@@ -501,7 +509,7 @@
         if (!m || m.hp <= 0) return;
         const fought = this.participants.has(idx);
         if (!fought && !easy) return;
-        const g = Math.floor((fought ? gain : Math.floor(gain / 2)) * (this.sp(m).ability === 'diligent' ? 1.1 : 1));   // คนที่ไม่ได้ลงสนามได้ครึ่งหนึ่ง · ขยัน +10%
+        const g = Math.floor((fought ? gain : Math.floor(gain / 2)) * (this.sp(m).ability === 'diligent' ? 1.1 : 1) * (m.traded ? 1.5 : 1) * (G.buffOn && G.buffOn('exp') ? 1.5 : 1));   // ขยัน · ได้จากการแลก · อาหารบัฟ   // คนที่ไม่ได้ลงสนามได้ครึ่งหนึ่ง · ขยัน +10%
         m.exp += g;
         ev.push({ t: 'msg', text: `${m.name} ได้รับประสบการณ์ ${g}`, reward: true });
         while (m.lv < 100 && m.exp >= G.expFor(m.lv + 1)) {
