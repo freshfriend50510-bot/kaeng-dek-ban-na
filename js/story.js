@@ -54,7 +54,7 @@
 
   G.markSeen = (sp) => { if (!G.state.dex[sp]) G.state.dex[sp] = 1; };
   G.heal = () => { for (const m of [...S().party, ...S().storage]) { m.hp = m.stats.hp; m.status = null; m.moves.forEach((s) => { s.pp = G.DATA.moves[s.id].pp; }); } };
-  const give = async (id, n) => { S().bag[id] = (S().bag[id] || 0) + n; G.sfx('buy'); await say(`ได้รับ ${G.DATA.items[id].name}${G.DATA.items[id].kind === 'tm' ? '' : ' ×' + n}`); };
+  const give = async (id, n) => { S().bag[id] = (S().bag[id] || 0) + n; G.sfx('buy'); G.ui.history.push(['', `ได้รับ ${G.DATA.items[id].name}${G.DATA.items[id].kind === 'tm' ? '' : ' ×' + n}`]); await G.ui.itemGet(id, n); };
   const has = (sp) => [...S().party, ...S().storage].some((m) => m.sp === sp);
   const inParty = (sp) => S().party.some((m) => m.sp === sp);
   const recruit = (m) => { if (S().party.length < 6) S().party.push(m); else S().storage.push(m); G.state.dex[m.sp] = 2; };
@@ -298,7 +298,8 @@
       }
       await say('ร้านชำป้าสมร มีอะไรให้ช่วยจ๊ะ', 'ป้าสมร');
       const stock = ['rice_ball', 'herb', 'holy_water', 'magic_rice'];
-      if (F().boss1_done) stock.splice(1, 0, 'rice_pork');
+      if (F().boss1_done) stock.splice(1, 0, 'rice_pork', 'kafae');
+      if (F().gym1_done) stock.push('yahom');
       await G.ui.shop(stock, 'ป้าสมร');
       await say('ขอบใจหลายจ้า', 'ป้าสมร');
     },
@@ -324,6 +325,16 @@
     async novice(n) {   // ฝากเลี้ยงที่วัด: เดินไปเรื่อยๆ ลูกทีมที่ฝากไว้ได้ EXP เอง (สูงสุด 2 ตัว)
       const D = (S().daycare = S().daycare || []), nm = n ? n.name : 'เณรน้อย';
       const gain = (d) => Math.floor((S().steps - d.steps) * 8);
+      // ไข่ผี: มีผีฝากอยู่และเดินครบ 400 ก้าวนับจากฝาก/ไข่ใบก่อน เณรเจอไข่ในลานวัด (พกได้ 3 ใบ ไม่ได้จากคน เด็ก หรือผีในตำนาน)
+      const ghost = D.find((d) => G.canEgg(d.mon.sp));
+      if (ghost && S().steps - Math.max(ghost.steps, S().eggCheck || 0) >= 400 && (S().eggs || []).length < 3) {
+        S().eggCheck = S().steps;
+        const base = G.eggBase(ghost.mon.sp), mv = ghost.mon.moves[Math.floor(G.rng() * ghost.mon.moves.length)];
+        (S().eggs = S().eggs || []).push({ sp: base, steps: S().steps, move: mv && mv.id, from: ghost.mon.name });
+        S().bag.ghost_egg = S().eggs.length;
+        await G.ui.sayAll([`{shock}เมื่อเช้าเณรกวาดลานวัด เจอไข่ลายแปลกๆ อยู่ข้างๆ ${ghost.mon.name}!`, 'ฝากเด็กๆ ช่วยพกไว้หน่อยนะ เดินไปเรื่อยๆ เดี๋ยวก็ฟัก'], nm);
+        await G.ui.itemGet('ghost_egg', 1);
+      }
       const opts = ['ฝากลูกทีมไว้ที่วัด', ...D.map((d) => `รับ${d.mon.name}คืน (+${gain(d)} EXP)`), 'ไม่เป็นไร'];
       const i = await G.ui.ask(D.length ? `ลูกทีมที่ฝากไว้ช่วยกวาดลานวัดทุกวันเลย เดินไปเยอะๆ เขาก็เก่งขึ้นเอง` : 'ฝากลูกทีมไว้กับเณรได้นะ ช่วยงานวัดไปด้วย ฝึกตัวไปด้วย พี่เดินทางไกลแค่ไหน เขาก็เก่งขึ้นตามนั้น', nm, opts, { cls: 'small' });
       if (i === 0) {
@@ -338,6 +349,16 @@
         await say(`${d.mon.name}กลับมาแล้ว! ช่วยงานวัดจนสดชื่นเลย`, nm);
         if (g > 0) await G.ui.giveExp(d.mon, g);
       } else await say('หลวงตาบอกว่าถ้าตั้งใจไหว้พระ จิตใจจะสงบ สู้ผีก็ไม่กลัว', nm);
+    },
+    async egg_hatch(egg) {   // ไข่ผีฟัก: เลเวล 5 ได้ท่าของพ่อแม่ติดมาหนึ่งท่า โอกาสสีพิเศษ ×2
+      await G.ui.sayAll(['{shock}เอ๊ะ! ไข่ผีในกระเป๋าขยับดุ๊กดิ๊ก...', '...แตกแล้ว!']);
+      const m = G.makeMon(egg.sp, 5, { nature: 'random' });
+      if (egg.move && !m.moves.some((x) => x.id === egg.move) && G.DATA.moves[egg.move]) { const slot = { id: egg.move, pp: G.DATA.moves[egg.move].pp }; if (m.moves.length < 4) m.moves.push(slot); else m.moves[3] = slot; }
+      if (G.rng() < G.shinyOdds(egg.sp, G.state.map) * 2) m.shiny = true;
+      m.friend = 120; S().dex[egg.sp] = 2; if (m.shiny) (S().shinyDex = S().shinyDex || {})[egg.sp] = 1;
+      G.sfx('level'); G.stat('hatched');
+      await say(`${m.shiny ? '✨ ' : ''}${m.name} ฟักออกมาแล้ว!${egg.move ? ` ติดท่า${G.DATA.moves[egg.move].name}มาจาก${egg.from}ด้วย` : ''}`);
+      if (S().party.length < 6) S().party.push(m); else { S().storage.push(m); await say(`ทีมเต็ม ${m.name} ไปรออยู่ในคลังแก๊ง`); }
     },
     async altar() { await say('ไหว้พระสามครั้ง... จิตใจสงบลง ทุกคนสดชื่นขึ้น'); G.state.party.forEach((m) => { m.status = null; }); G.sfx('heal'); },
     async jam() {
@@ -597,7 +618,7 @@
     async vendor() { await say(F().gym1_done ? 'ตั้งแต่แก๊งพี่ออสซี่เลิกคุมตลาด ลูกชิ้นขายดีขึ้นเท่าตัว!' : 'ตลาดนัดตำบลคึกคักทุกวันเสาร์ แต่ช่วงนี้แก๊งพี่ออสซี่มาเดินคุม ใครก็ไม่กล้าเข้าร้านราเมง', 'พ่อค้าลูกชิ้น'); },
     async vendor2() {
       await say('หมูปิ้งร้อนๆ จ้า ผีสางชอบนัก!', 'แม่ค้าหมูปิ้ง');
-      await G.ui.shop(['rice_pork', 'khaotommat', 'khanomkrok', 'plara', 'herb', 'herb_big', 'holy_water'], 'แม่ค้าหมูปิ้ง');
+      await G.ui.shop(['rice_pork', 'khaotommat', 'khanomkrok', 'plara', 'herb', 'herb_big', 'holy_water', 'kafae', 'yahom'], 'แม่ค้าหมูปิ้ง');
     },
     async curtain_wrong(ct) {
       G.sfx('bump');
@@ -614,7 +635,7 @@
       if (r !== 'win') { await say('ยังอ่อนไปนะน้อง กลับไปฝึกแล้วค่อยมาใหม่', 'พี่ออสซี่'); await blackout(); return; }
       F().gym1_done = true; G.sfx('level');
       await G.ui.sayAll(['โอ้โห... แพ้เด็กจนได้', 'เอาไป ตราผ้าโพก หลักฐานว่าชนะยิมแรกแล้ว'], 'พี่ออสซี่');
-      await say('ได้รับ ตราผ้าโพก!');
+      await G.ui.gotPopup({ sprite: 'badge:gym1', name: 'ตราผ้าโพก', head: 'ได้รับตรายิม', rar: 'l', tag: 'ตรายิม', desc: 'ชนะพี่ออสซี่ ยิมแรกแห่งตลาดนัด', auto: 3200 });
       await say('แล้วก็นี่ ท่าลับของพี่ สอนให้เพื่อนธาตุลมในแก๊งได้ทุกคน', 'พี่ออสซี่');
       await give('tm_wind_blade', 1);
       await pickKid('member3_joined');
@@ -1002,7 +1023,7 @@
       else if (ok >= 4) { await say('{happy}เก่งมาก! เอาตุ๊กตาไปปลอบใจ... เอ้ย ไข่ปิ้ง!', n.name); await give('egg_ping', 1); }
       else await say(`ยิงโดน ${ok}/5 นัด ลองใหม่นะ!`, n.name);
     },
-    async cstore_shop(n) { await say('สวัสดีค่ะ ยินดีต้อนรับ รับถุงไหมคะ', n.name); await G.ui.shop(['sandwich', 'gamer_drink', 'soda', 'herb_big', 'saline', 'holy_water', 'magic_rice', 'rice_pork', 'coupon', 'sangkaya'], n.name); },
+    async cstore_shop(n) { await say('สวัสดีค่ะ ยินดีต้อนรับ รับถุงไหมคะ', n.name); await G.ui.shop(['sandwich', 'gamer_drink', 'soda', 'herb_big', 'saline', 'holy_water', 'yahom', 'yahom_big', 'kafae', 'namoy', 'magic_rice', 'rice_pork', 'coupon', 'sangkaya'], n.name); },
     async hotel_rest(n) {
       if (F().sausage_asked && !F().sausage_done) {
         await say('ไส้กรอกสิบไม้ส่งห้อง 304 เหรอคะ ห้องคุณม่อนน่ะค่ะ เขาสั่งทุกคืนเลย เดี๋ยวพี่เอาขึ้นไปให้นะคะ', n.name);
@@ -1202,7 +1223,7 @@
       await say('ข้าวต้มหมูสับ ข้าวต้มปลา ขายถึงเก้าโมงเช้าเท่านั้นนะจ๊ะ', n.name);
     },
     async bread(n) { await say('ขนมปังสังขยาเตาถ่าน! น้องพยาบาลกับน้องหมอชอบที่สุด ยื่นให้ทีไรยอมมาด้วยทุกที', n.name); await G.ui.shop(['sangkaya', 'rice_ball'], n.name); },
-    async hiatong(n) { await say('ร้านขายยาเฮียตง ยาดีราคาถูก ตั้งแต่รุ่นอากง!', n.name); await G.ui.shop(['saline', 'herb_big', 'holy_water', 'magic_rice', 'sangkaya'], n.name); },
+    async hiatong(n) { await say('ร้านขายยาเฮียตง ยาดีราคาถูก ตั้งแต่รุ่นอากง!', n.name); await G.ui.shop(['saline', 'herb_big', 'holy_water', 'yahom', 'yahom_big', 'kafae', 'namoy', 'magic_rice', 'sangkaya'], n.name); },
     async card() { F().card_found = true; G.refreshNpcs(); G.sfx('buy'); await say('เจอใบนัดหมอตกอยู่ใต้แผงขายผัก เขียนว่า "นางหอม นัดตรวจความดัน"'); },
     // ---------- โรงพยาบาลอำเภอ ----------
     async reception(n) {
@@ -1321,7 +1342,7 @@
       await say('แม่... ผมขอโทษนะครับ ที่ไม่เคยบอกใครว่าแม่ขายส้มตำ', n.name);
       await say('{happy}ไม่เป็นไรลูก แค่จำไว้ว่าเราเป็นหมอเพราะอยากช่วยคน ไม่ว่าคนจากไหน', 'แม่พี่บูม');
       await say('ครับแม่... เอาไป ตราหูฟัง', n.name);
-      await say('ได้รับ ตราหูฟัง!');
+      await G.ui.gotPopup({ sprite: 'badge:gym3', name: 'ตราหูฟัง', head: 'ได้รับตรายิม', rar: 'l', tag: 'ตรายิม', desc: 'ชนะพี่บูม หมอแห่งโรงพยาบาลอำเภอ', auto: 3200 });
       await say('แล้วก็ท่าลับ ทุบโคลนบำบัด สอนให้เพื่อนธาตุดินได้ทุกคน กับกระเป๋าปฐมพยาบาลของพี่ เดินทางไกลจะได้ไม่ต้องห่วง', n.name);
       await give('tm_mud_therapy', 1); await give('first_aid', 1);
       await say('พี่จะขึ้นไปตรวจน้องจ๋าเดี๋ยวนี้เลย', n.name);
@@ -1389,7 +1410,7 @@
       if (r !== 'win') { await say('เฟืองยังหมุนไม่ทันนะน้อง ไปฝึกมาใหม่', n.name); await blackout(); return; }
       F().gym2_done = true; G.sfx('level');
       await G.ui.sayAll(['...แพ้เด็กประถมอีกคนแล้วสินะ ออสซี่หัวเราะพี่แน่', 'เอาไป ตราเฟือง'], n.name);
-      await say('ได้รับ ตราเฟือง!');
+      await G.ui.gotPopup({ sprite: 'badge:gym2', name: 'ตราเฟือง', head: 'ได้รับตรายิม', rar: 'l', tag: 'ตรายิม', desc: 'ชนะพี่เฟรนด์ หัวโจกโรงช็อปวิศวะ', auto: 3200 });
       await say('แล้วก็ท่าลับของพี่ ช็อตวงจร สอนให้เพื่อนธาตุสายฟ้าได้ทุกคน', n.name);
       await give('tm_short_circuit', 1);
       await pickKid('member4_joined');

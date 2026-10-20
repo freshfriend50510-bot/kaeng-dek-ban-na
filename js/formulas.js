@@ -30,14 +30,14 @@
     stubborn: ['หัวแข็ง', 'def', 'spa'], kind: ['ใจดี', 'spd', 'atk'], diligent: ['ขยัน', 'atk', 'spd'], brave: ['ใจเด็ด', 'atk', 'def'],
   };
   G.randomNature = (rng) => { const k = Object.keys(G.NATURES); return k[Math.floor((rng || G.rng)() * k.length)]; };
-  G.calcStats = function (spId, lv, ivs, nature) {
+  G.calcStats = function (spId, lv, ivs, nature, ev) {   // ev = ค่าฝึกฝน (สูงสุด 252 ต่อค่า รวม 510) ทุก 4 แต้ม = ค่าพื้นฐาน +1
     const nt = G.NATURES[nature] || G.NATURES.easy;
     const sp = G.DATA.species[spId];
     const m = sp.kind === 'kid' ? G.stageMult(lv) : 1;
     const out = {};
     for (const k of STATS) {
       const b = Math.round(sp[k] * m);
-      const core = Math.floor(((2 * b + ivs[k]) * lv) / 100);
+      const core = Math.floor(((2 * b + ivs[k] + Math.floor(((ev && ev[k]) || 0) / 4)) * lv) / 100);
       out[k] = k === 'hp' ? core + lv + 10 : Math.floor((core + 5) * (nt[1] === k ? 1.1 : nt[2] === k ? 0.9 : 1));
     }
     return out;
@@ -87,7 +87,7 @@
 
   G.refreshStats = function (mon) {
     const old = mon.stats.hp;
-    mon.stats = G.calcStats(mon.sp, mon.lv, mon.ivs, mon.nature);
+    mon.stats = G.calcStats(mon.sp, mon.lv, mon.ivs, mon.nature, mon.ev);
     mon.hp = Math.min(mon.stats.hp, mon.hp + (mon.stats.hp - old));
   };
 
@@ -152,5 +152,20 @@
     const M = mon.stats.hp, H = mon.hp;
     const S = mon.status === 'slp' ? 2 : (mon.status === 'par' || mon.status === 'psn') ? 1.5 : 1;
     return Math.max(1, (((3 * M - 2 * H) * R * foodMult) / (3 * M)) * S);
+  };
+})(window.G = window.G || {});
+
+  // ไข่ผี: ฟักได้เฉพาะผี (ไม่ใช่คน เด็ก หัวโจก บอส หรือผีในตำนาน) ได้ร่างแรกเสมอ
+(function (G) {
+  G.eggBase = (sp) => { const from = Object.keys(G.DATA.species).find((k) => (G.DATA.species[k].evo || '').split(':')[0] === sp); return from ? G.eggBase(from) : sp; };
+  G.canEgg = (sp) => { const s = G.DATA.species[sp]; return !!s && s.kind === 'ghost' && !['phayakhankak'].includes(sp) && !G.isPerson({ sp }); };
+})(window.G = window.G || {});
+// ค่าฝึกฝน: ชนะศัตรูแล้วได้แต้มในค่าที่เด่นที่สุดของสายพันธุ์ศัตรู (ผีป่า 1 · ท้าสู้ 2)
+(function (G) {
+  G.addEv = function (m, foeSp, n) {
+    const sp = G.DATA.species[foeSp]; if (!sp) return;
+    const k = ['hp', 'atk', 'def', 'spa', 'spd', 'spe'].reduce((a, b) => (sp[b] > sp[a] ? b : a), 'hp');
+    const ev = (m.ev = m.ev || {}), tot = Object.values(ev).reduce((a, b) => a + b, 0);
+    const add = Math.min(n, 252 - (ev[k] || 0), 510 - tot); if (add > 0) ev[k] = (ev[k] || 0) + add;
   };
 })(window.G = window.G || {});

@@ -39,6 +39,7 @@
     for (const e of events) {
       switch (e.t) {
         case 'msg':
+          if (e.reward && G.settings.summary !== false) { if (e.exp) { const m = b.P[e.idx]; V.sum.exp.set(m, (V.sum.exp.get(m) || 0) + e.exp); } break; }   // เก็บไว้สรุปหน้าเดียวตอนจบ
           if (e.reward && skip) break;
           await G.ui.say(e.text, null, { battle: true, auto: 650, onDouble: e.reward ? () => { skip = true; } : null });
           break;
@@ -56,7 +57,7 @@
           if (e.side === 'p' && V.onSend) await V.onSend(b);
           if (e.side === 'f' && V.onFoeSend) await V.onFoeSend(b);
           break;
-        case 'level': ups.set(b.P[e.idx].name, e.lv); if (b.P[e.idx] === b.me) { V.php = b.me.hp; V.pSprite = G.monLook(b.me); render(b); } G.sfx('level'); break;
+        case 'level': if (G.settings.summary === false) ups.set(b.P[e.idx].name, e.lv); if (b.P[e.idx] === b.me) { V.php = b.me.hp; V.pSprite = G.monLook(b.me); render(b); } G.sfx('level'); break;
         case 'learn': await summary(); await learnMove(b.P[e.idx], e.move); break;   // สรุปเลเวลก่อนถามเรียนท่า
         case 'recruit_try': V.wobble = 0.001; G.sfx('wobble'); await wait(1300); V.wobble = 0; break;
       }
@@ -65,6 +66,14 @@
     render(b);
   }
 
+  // หน้าสรุปหลังชนะ: EXP เลเวลที่ขึ้น และเงินรางวัลในหน้าเดียว
+  function victorySummary(result) {
+    const S = G.state, rows = [...V.sum.exp].map(([m, g]) => {
+      const lv0 = V.sum.lv0.get(m) || m.lv, ex = Math.min(100, ((m.exp - G.expFor(m.lv)) / (G.expFor(m.lv + 1) - G.expFor(m.lv))) * 100);
+      return `<div class="vs-row"><canvas width="16" height="16" data-sprite="${G.monLook(m)}"></canvas><div class="vs-mid"><b>${m.name}</b>${m.lv > lv0 ? `<span class="vs-up">Lv${lv0} → Lv${m.lv} ▲</span>` : `<span class="vs-lv">Lv${m.lv}</span>`}<div class="expbar"><i style="width:${ex}%"></i></div></div><em>+${g} EXP</em></div>`; }).join('');
+    const money = S.money - V.sum.money0;
+    return G.ui.panel(`<div class="choice-title">${result === 'recruit' ? '🤝 ได้เพื่อนใหม่!' : '🏆 ชนะแล้ว!'}</div><div class="vs-list">${rows}</div>${money > 0 ? `<div class="vs-money">💰 +${money} บาท</div>` : ''}<div class="hint">Z ไปต่อ · ปิดหน้าสรุปได้ในตั้งค่า</div>`, 'vs-sheet');
+  }
   async function learnMove(mon, mid) {
     const mv = G.DATA.moves[mid];
     if (mon.moves.length < 4) {
@@ -97,7 +106,7 @@
         if (ult && i === m.moves.length) return { type: 'ult' };
         if (i >= 0) return { type: 'move', idx: i };
       } else if (top === 1) {
-        const id = await G.ui.bagMenu({ inBattle: true, foe: b.isWild() ? b.foe : null, filter: (it) => ['heal', 'cure', 'recruit', 'healall'].includes(it.kind) });
+        const id = await G.ui.bagMenu({ inBattle: true, foe: b.isWild() ? b.foe : null, filter: (it) => ['heal', 'cure', 'recruit', 'healall', 'revive', 'pp'].includes(it.kind) });
         if (!id) continue;
         const it = G.DATA.items[id];
         if (it.kind === 'recruit') {
@@ -109,6 +118,8 @@
         if (t < 0) continue;
         const mon = G.state.party[t];
         if (it.kind === 'heal' && (mon.hp <= 0 || mon.hp >= mon.stats.hp)) { await G.ui.say('ใช้ตอนนี้ไม่ได้', null, { battle: true }); continue; }
+        if (it.kind === 'revive' && mon.hp > 0) { await G.ui.say(`${mon.name} ยังไม่หมดแรง`, null, { battle: true }); continue; }
+        if (it.kind === 'pp' && mon.moves.every((s) => s.pp >= G.DATA.moves[s.id].pp)) { await G.ui.say('แต้มท่าเต็มอยู่แล้ว', null, { battle: true }); continue; }
         if (it.kind === 'cure' && !mon.status && !(t === b.pi && b.pv.cnf)) { await G.ui.say('ไม่มีอาการผิดปกติ', null, { battle: true }); continue; }
         return { type: 'item', id, target: t };
       } else if (top === 2) {
@@ -134,7 +145,8 @@
     const b = new G.Battle(S.party, foes, opt);
     Object.assign(V, { active: true, b, php: b.me.hp, fhp: b.foe.hp, pghost: 0, fghost: 0, pops: [], lastCrit: false, lastEff: 1, faint: { p: 0, f: 0 }, shake: null, lunge: null, fx: null, wobble: 0,
       pSprite: null, fSprite: opt.kind === 'wild' ? G.monLook(b.foe) : (opt.trainerLook || G.monLook(b.foe)),
-      intro: 0, bg: opt.bg || G.world.def.bg || G.state.map, onSend: opt.onSend, onFoeSend: opt.onFoeSend });
+      intro: 0, bg: opt.bg || G.world.def.bg || G.state.map, onSend: opt.onSend, onFoeSend: opt.onFoeSend,
+      sum: { exp: new Map(), lv0: new Map(S.party.map((m) => [m, m.lv])), money0: S.money } });
     V.layer = document.createElement('div'); V.layer.className = 'battle-layer';
     document.querySelector('#ui').appendChild(V.layer);
     G.markSeen(b.foe.sp);
@@ -181,6 +193,7 @@
       if (S.party.length < 6) { S.party.push(m); await G.ui.say(`${m.name} เข้าแก๊งแล้ว!`, null, { battle: true }); }
       else { S.storage.push(m); await G.ui.say(`ทีมเต็มแล้ว ${m.name} ไปรออยู่ในคลังแก๊ง (เถียงนาตาสี/คอมหอพัก)`, null, { battle: true }); }
     }
+    if (result !== 'lose' && V.sum.exp.size && G.settings.summary !== false) await victorySummary(result);
     S.party.forEach((m) => { delete m._fainted; });
     V.layer.remove(); V.active = false;
     G.scene = 'world';

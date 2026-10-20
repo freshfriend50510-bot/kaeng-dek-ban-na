@@ -126,6 +126,7 @@
     s.research = s.research && typeof s.research === 'object' ? s.research : {}; s.towerBest = num(s.towerBest, 0, 9999, 0); s.hof = Array.isArray(s.hof) ? s.hof.slice(-20) : [];
     const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
     s.stats = obj(s.stats); s.ach = obj(s.ach); s.seenMaps = obj(s.seenMaps);
+    s.eggs = (Array.isArray(s.eggs) ? s.eggs : []).filter((e) => e && G.DATA.species[e.sp]).slice(0, 3).map((e) => ({ sp: e.sp, steps: Number(e.steps) || 0, move: G.DATA.moves[e.move] ? e.move : null, from: String(e.from || '') })); s.bag.ghost_egg = s.eggs.length; s.eggCheck = Number(s.eggCheck) || 0;
     if (!s.seenItems || typeof s.seenItems !== 'object') { s.seenItems = {}; for (const k in s.bag || {}) s.seenItems[k] = 1; }   // เซฟเก่า: ของที่มีอยู่แล้วไม่นับเป็นของใหม่
     s.buff = s.buff && ['exp', 'shiny', 'lure', 'money'].includes(s.buff.kind) ? { kind: s.buff.kind, steps: num(s.buff.steps, 0, 999, 0) } : null;
     const bag = {};
@@ -138,7 +139,8 @@
       for (const k of ['hp', 'atk', 'def', 'spa', 'spd', 'spe']) m.ivs[k] = num(m.ivs[k], 0, 31, 15);
       if (!G.NATURES[m.nature]) m.nature = 'easy';
       m.shiny = m.shiny === true; m.traded = m.traded === true; m.ribbons = Array.isArray(m.ribbons) ? m.ribbons.filter((r) => typeof r === 'string').slice(0, 8) : []; m.friend = num(m.friend, 0, 255, 70); if (m.noEvo != null) m.noEvo = num(m.noEvo, 1, 100, 1);   // เซฟเก่าไม่มีนิสัย = สบายๆ (ค่าเท่าเดิม)
-      m.stats = G.calcStats(m.sp, m.lv, m.ivs, m.nature);
+      if (m.ev && typeof m.ev === 'object') { const ev = {}; let tot = 0; for (const k of ['hp', 'atk', 'def', 'spa', 'spd', 'spe']) { const v = Math.min(num(m.ev[k], 0, 252, 0), 510 - tot); if (v) ev[k] = v; tot += v; } m.ev = ev; } else delete m.ev;
+      m.stats = G.calcStats(m.sp, m.lv, m.ivs, m.nature, m.ev);
       m.exp = Math.max(G.expFor(m.lv), Math.min(G.expFor(m.lv + 1) - 1, Number(m.exp) || 0));
       m.hp = num(m.hp, 0, m.stats.hp, m.stats.hp);
       if (!['par', 'slp', 'psn', 'brn', null].includes(m.status || null)) { fix(); m.status = null; } else m.status = m.status || null;
@@ -258,7 +260,7 @@
   G.press = function (k) {
     G.unlockAudio();
     if (G.ui.active()) { if (['map', 'bag', 'team', 'hud', 'quest', 'log', 'bike'].includes(k)) k = 'back';
-      if (k === 'photo') return; G.ui.key(k === 'menu' ? 'ok' : k); return; }
+      if (k === 'photo') return; G.ui.key(k); return; }
     if (G.scene !== 'world' || G.busy || G.world.moving || fading) return;
     if (k === 'ok') G.world.interact();
     else if (k === 'menu') G.runScript('_menu');
@@ -279,8 +281,25 @@
     S.biking = !S.biking; G.sfx(S.biking ? 'switch' : 'door'); G.showToast(S.biking ? '🚲 ขึ้นจักรยานแล้ว ปั่นเร็วขึ้นสองเท่า' : 'ลงจากจักรยานแล้ว');
   };
   G.applyTextSize = () => { document.documentElement.style.setProperty('--fs', [1, 1.15, 1.3][G.settings.textSize || 0]); document.body.classList.toggle('cb', !!G.settings.cbMode); };
+  // ตั้งปุ่มเอง: settings.keys = { การกระทำ: รหัสปุ่ม } ปุ่มที่ตั้งเองชนะปุ่มเริ่มต้น
+  const keyOf = (code) => { const c = G.settings.keys || {}; const own = Object.keys(c).find((a) => c[a] === code); return own || KEYMAP[code]; };
+  const keyName = (code) => ({ Space: 'Space', Enter: 'Enter', Escape: 'Esc', Backspace: 'Backspace', Tab: 'Tab', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→' }[code] || code.replace(/^Key|^Digit/, ''));
+  G.keyLabel = (act) => { const c = G.settings.keys || {}; const list = Object.keys(KEYMAP).filter((code) => KEYMAP[code] === act && !Object.values(c).includes(code)); if (c[act]) list.unshift(c[act]); return list.map(keyName).join(' / ') || '—'; };
+  G.rebind = (act) => new Promise((resolve) => {
+    const box = document.createElement('div'); box.className = 'panel sheet namebox';
+    box.innerHTML = `<div class="choice-title">กดปุ่มใหม่สำหรับ "${G.KEY_TH[act]}"</div><div class="hint">Esc = ยกเลิก</div>`;
+    document.querySelector('#ui').appendChild(box);
+    const on = (e) => {
+      e.preventDefault(); e.stopImmediatePropagation(); window.removeEventListener('keydown', on, true); box.remove();
+      if (e.code !== 'Escape') { const c = (G.settings.keys = G.settings.keys || {}); for (const a in c) if (c[a] === e.code) delete c[a]; c[act] = e.code; G.saveSettings(); G.sfx('buy'); }
+      for (const k in held) held[k] = false;
+      resolve();
+    };
+    window.addEventListener('keydown', on, true);
+  });
+  G.KEY_TH = { up: 'ขึ้น', down: 'ลง', left: 'ซ้าย', right: 'ขวา', ok: 'ตกลง/คุย', back: 'ยกเลิก/วิ่ง', menu: 'เมนูหลัก', bag: 'กระเป๋า', team: 'ทีม', map: 'แผนที่', quest: 'สมุดเควสต์', log: 'ประวัติข้อความ', bike: 'จักรยาน', photo: 'ถ่ายรูป', hud: 'ซ่อน/แสดงแถบ' };
   window.addEventListener('keydown', (e) => {
-    const k = KEYMAP[e.code]; if (!k) return;
+    const k = keyOf(e.code); if (!k) return;
     if (document.activeElement && document.activeElement.tagName === 'INPUT') { if (e.code === 'Enter') document.activeElement.blur(); return; }
     e.preventDefault();
     if (!e.repeat || ['up', 'down', 'left', 'right'].includes(k)) {
@@ -305,7 +324,7 @@
       else if (!now[k] && padPrev[k]) { held[k] = false; delete padPrev[k]; }
     }
   };
-  window.addEventListener('keyup', (e) => { const k = KEYMAP[e.code]; if (k) held[k] = false; });
+  window.addEventListener('keyup', (e) => { const k = keyOf(e.code); if (k) held[k] = false; });
   window.addEventListener('blur', () => { for (const k in held) held[k] = false; });
   // ปุ่มบนจอสัมผัส
   document.querySelectorAll('[data-key]').forEach((b) => {

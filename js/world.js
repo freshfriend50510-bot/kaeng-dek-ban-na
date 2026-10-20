@@ -475,6 +475,10 @@
     if (S.buff && S.buff.steps > 0 && --S.buff.steps === 0) G.showToast('ฤทธิ์อาหารหมดแล้ว');
     S.steps++;
     if (S.steps % 48 === 0 && S.party[0]) G.addFriend(S.party[0], 1);   // เพื่อนที่เดินนำ สนิทขึ้นเรื่อยๆ
+    if (S.eggs && S.eggs.length) {   // ไข่ผีฟักเมื่อเดินครบ 600 ก้าว
+      const e = S.eggs.find((k) => S.steps - k.steps >= 600);
+      if (e) { S.eggs.splice(S.eggs.indexOf(e), 1); S.bag.ghost_egg = S.eggs.length; G.runScript('egg_hatch', e); return; }
+    }
     if (S.repel > 0) { S.repel--; if (S.repel === 0) G.runScript('repel_end'); }
     const wp = warpAt(S.x, S.y);
     if (wp) { G.sfx('door'); G.fadeTo(() => G.loadMap(wp.to, wp.tx, wp.ty, wp.dir)).then(() => G.runScript('enter', wp.to)); return; }

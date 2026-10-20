@@ -511,7 +511,8 @@
         if (!fought && !easy) return;
         const g = Math.floor((fought ? gain : Math.floor(gain / 2)) * (this.sp(m).ability === 'diligent' ? 1.1 : 1) * (m.traded ? 1.5 : 1) * (G.buffOn && G.buffOn('exp') ? 1.5 : 1));   // ขยัน · ได้จากการแลก · อาหารบัฟ   // คนที่ไม่ได้ลงสนามได้ครึ่งหนึ่ง · ขยัน +10%
         m.exp += g;
-        ev.push({ t: 'msg', text: `${m.name} ได้รับประสบการณ์ ${g}`, reward: true });
+        if (fought && G.addEv) { G.addEv(m, this.foe.sp, this.isWild() ? 1 : 2); G.refreshStats(m); }   // ค่าฝึกฝน
+        ev.push({ t: 'msg', text: `${m.name} ได้รับประสบการณ์ ${g}`, reward: true, idx, exp: g });
         while (m.lv < 100 && m.exp >= G.expFor(m.lv + 1)) {
           const oldStage = G.growthStage(m.lv);
           m.lv++;
@@ -575,6 +576,12 @@
         m.hp = Math.min(m.stats.hp, m.hp + it.value);
         if (target === this.pi) ev.push({ t: 'hp', side: 'p', hp: m.hp });
         ev.push({ t: 'msg', text: `ใช้${it.name} ${m.name} ฟื้นพลัง` });
+      } else if (it.kind === 'revive') {   // ยาหอม: ฟื้นจากหมดแรง
+        m.hp = Math.max(1, Math.floor((m.stats.hp * it.value) / 100)); m.status = null; m._fainted = false;
+        ev.push({ t: 'msg', text: `ให้ ${m.name} ดม${it.name} ลุกขึ้นมาสู้ต่อได้แล้ว!` });
+      } else if (it.kind === 'pp') {   // เติมแต้มท่า
+        m.moves.forEach((s) => { s.pp = Math.min(G.DATA.moves[s.id].pp, s.pp + it.value); });
+        ev.push({ t: 'msg', text: `${m.name} ดื่ม${it.name} แต้มท่ากลับมาแล้ว!` });
       } else if (it.kind === 'cure') {
         m.status = null;
         if (target === this.pi) { this.pv.cnf = 0; ev.push({ t: 'status', side: 'p', status: null }); }

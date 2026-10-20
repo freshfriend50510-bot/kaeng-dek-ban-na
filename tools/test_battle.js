@@ -82,5 +82,17 @@ const hot = G.makeMon('bee', 30, { ivs: 15, nature: 'hot' }), flat = G.makeMon('
 ok(hot.stats.atk > flat.stats.atk && hot.stats.spa < flat.stats.spa && flat.nature === 'easy', 'นิสัยใจร้อนต้องโจมตีสูงขึ้น พิเศษลดลง');
 r9 = gm('mud_throw', (bb, a, f) => { f.sp = 'krasue'; }); ok(r9.f.hp === r9.f.stats.hp && r9.ev.some((e) => e.t === 'msg' && e.text.includes('ลอยตัว')), 'กระสือลอยตัวต้องไม่โดนท่าดิน');
 r9 = gm('buffalo_charge', (bb, a, f) => { a.lv = 100; G.refreshStats(a); f.held = 'prajiad'; }); ok(r9.f.hp === 1 && !r9.f.held, 'ผ้าประเจียดต้องรอด 1 HP แล้วหายไป');
+// ยาหอมชุบคนหมดแรง · กาแฟเติมแต้มท่า · ค่าฝึกฝนเพิ่มค่าพลัง
+{
+  G.state = { bag: { yahom: 1, kafae: 1 }, flags: {} };
+  const a = G.makeMon('bee', 20, { ivs: 15 }), c = G.makeMon('phrai', 15, { ivs: 15 }); c.hp = 0; a.moves[0].pp = 0;
+  const bt = new G.Battle([a, c], [G.makeMon('kongkoi', 5)], { kind: 'wild', seed: 3 });
+  const ev = []; bt.useItem('yahom', 1, ev); ok(c.hp === Math.floor(c.stats.hp / 2), 'ยาหอมชุบใจฟื้นครึ่งหลอด');
+  bt.useItem('kafae', 0, ev); ok(a.moves[0].pp === 10, 'กาแฟโบราณเติมแต้มท่า 10');
+  const atk0 = G.calcStats('bee', 100, a.ivs, 'easy').atk, atk1 = G.calcStats('bee', 100, a.ivs, 'easy', { atk: 252 }).atk;
+  ok(atk1 - atk0 === 63, 'ค่าฝึกฝน 252 ที่ Lv100 = +63');
+  const m = G.makeMon('bee', 10); for (let i = 0; i < 600; i++) G.addEv(m, 'krahang', 2);
+  ok(Object.values(m.ev).reduce((x, y) => x + y, 0) <= 510 && Math.max(...Object.values(m.ev)) <= 252, 'ค่าฝึกฝนไม่เกินเพดาน');
+}
 console.log(fails ? `ไม่ผ่าน ${fails} ข้อ` : 'ผ่านทุกข้อ');
 process.exit(fails ? 1 : 0);
