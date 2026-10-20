@@ -382,3 +382,15 @@ body.menu-open #toast { top: auto; bottom: calc(var(--u) * 2); z-index: 40; }
 .choice.mainmenu { width: calc(var(--u) * 210); }
 .choice-list.cols4 { grid-template-columns: repeat(4, 1fr); gap: calc(var(--u) * 2); }
 .choice-list.cols4 .choice-item.tile { min-height: calc(var(--u) * 24); }
+/* เรื่องที่ผ่านมา */
+.recap-sheet { left: calc(var(--u) * 30); right: calc(var(--u) * 30); top: calc(var(--u) * 16); bottom: auto; }
+.rc-team { display: flex; gap: calc(var(--u) * 2); flex-wrap: wrap; margin-bottom: calc(var(--u) * 2); }
+.rc-mon { display: flex; flex-direction: column; align-items: center; font-size: 0.7em; color: #c9cfe6; }
+.rc-mon canvas { width: calc(var(--u) * 20) !important; height: calc(var(--u) * 20) !important; }
+.rc-list { list-style: none; padding: 0; margin: 0 0 calc(var(--u) * 2); font-size: 0.85em; } .rc-list .ok { color: #9ad870; }
+.rc-now { background: rgba(217,178,90,.12); border-left: calc(var(--u)) solid var(--gold); padding: calc(var(--u) * 2) calc(var(--u) * 3); border-radius: calc(var(--u) * 1); }
+.rc-side { font-size: 0.75em; color: #b9c0dc; margin-top: calc(var(--u) * 2); }
+/* โหมดถ่ายรูป */
+body.photo #hud, body.photo #quest, body.photo #labels, body.photo #clock, body.photo #talk, body.photo #toast { display: none !important; }
+.photo-bar { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(var(--u) * 3); background: rgba(24,32,63,.85); padding: calc(var(--u) * 1.5) calc(var(--u) * 5); border-radius: calc(var(--u) * 3); font-size: 0.7em; white-space: nowrap; pointer-events: auto; }
+.photo-bar b { color: var(--gold); font-weight: normal; }

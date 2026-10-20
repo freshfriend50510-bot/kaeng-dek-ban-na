@@ -334,7 +334,7 @@
   G.loadMap = function (id, x, y, dir) {
     const S = G.state;
     S.map = id; S.x = x; S.y = y; if (dir) S.dir = dir;
-    W.map = id; W.rows = G.DATA.maps[id]; W.moving = null; W.fmove = null;
+    W.map = id; W.rows = G.DATA.maps[id]; W.moving = null; W.fmove = null; W.path = null; W.pathTarget = null;
     W.def = G.DATA.world.maps[id];
     (S.seenMaps = S.seenMaps || {})[id] = 1;
     const firstVisit = !W.def.indoor && !(S.visited || {})[id];
@@ -404,6 +404,40 @@
     const bike = S.biking && !W.def.indoor;
     startMove(nx, ny, bike ? 0.34 : run ? 0.25 : 0.125, false);
   };
+  // ---------- คลิกเพื่อเดิน: หาเส้นทาง BFS ไปช่องที่คลิก (คลิกคน/ป้าย/ประตู = เดินไปข้างๆ แล้วคุย/เข้า) ----------
+  G.world.pathTo = function (tx, ty) {
+    const S = G.state, cols = W.rows[0].length, rows = W.rows.length;
+    if (tx < 0 || ty < 0 || tx >= cols || ty >= rows || (tx === S.x && ty === S.y)) { W.path = null; return; }
+    const talk = npcAt(tx, ty) || signAt(tx, ty) || objAt(tx, ty), door = doorAt(tx, ty);
+    const goal = (x, y) => (talk ? Math.abs(x - tx) + Math.abs(y - ty) === 1 : x === tx && y === ty);
+    const ok = (x, y) => (door && x === tx && y === ty) || (G.world.passable(x, y) && !(talk && x === tx && y === ty));
+    const prev = new Map(), key = (x, y) => y * cols + x, q = [[S.x, S.y]];
+    prev.set(key(S.x, S.y), null);
+    let end = null;
+    while (q.length && prev.size < 6000) {
+      const [x, y] = q.shift();
+      if (goal(x, y) && !(x === S.x && y === S.y && !talk)) { end = [x, y]; break; }
+      for (const [d, [dx, dy]] of Object.entries(DIRS)) {
+        const nx = x + dx, ny = y + dy, k = key(nx, ny);
+        if (prev.has(k) || !ok(nx, ny) || (warpAt(nx, ny) && !(nx === tx && ny === ty))) continue;
+        prev.set(k, [x, y, d]); q.push([nx, ny]);
+      }
+    }
+    if (!end) { W.path = null; G.sfx('bump'); return; }
+    const dirs = [];
+    for (let c = end; prev.get(key(c[0], c[1])); ) { const p = prev.get(key(c[0], c[1])); dirs.unshift(p[2]); c = [p[0], p[1]]; }
+    if (talk) dirs.push({ face: dirOf(tx - end[0], ty - end[1]) });
+    W.path = dirs; W.pathTarget = { x: tx, y: ty, t0: W.anim };
+  };
+  G.world.followPath = function (run) {   // เรียกจาก main ทุกเฟรมเมื่อไม่ได้กดปุ่มทิศ
+    if (!W.path || !W.path.length) { W.path = null; W.pathTarget = null; return false; }
+    const d = W.path.shift();
+    if (typeof d === 'object') { G.state.dir = d.face; W.path = null; W.pathTarget = null; G.world.interact(); return true; }
+    const S = G.state, bx = S.x, by = S.y; G.world.tryMove(d, run);
+    if (!W.moving && S.x === bx && S.y === by && G.scene === 'world' && !G.busy) { W.path = null; W.pathTarget = null; }   // ติดอะไรอยู่ หยุด
+    return true;
+  };
+  G.world.cancelPath = () => { W.path = null; W.pathTarget = null; };
   G.world.enterDoor = function (door) {
     const F = G.state.flags;
     if (door.need && !door.need.every((f) => F[f])) { G.runScript(door.script || 'door_locked', door); return; }
@@ -730,6 +764,10 @@
       decor(ctx, W.rows[y][x], x, y, x * TS - cx, y * TS - cy, frame, nightLit, lamps);
     }
     if (W.amb) drawAmbientLow(ctx, cx, cy);
+    if (W.pathTarget) {   // จุดหมายที่คลิก: วงแหวนกะพริบ
+      const k = ((W.anim - W.pathTarget.t0) % 40) / 40, mx = W.pathTarget.x * TS - cx + 8, my = W.pathTarget.y * TS - cy + 12;
+      ctx.strokeStyle = `rgba(242,210,75,${(1 - k).toFixed(2)})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(mx, my, 3 + k * 5, 1.5 + k * 2.5, 0, 0, 7); ctx.stroke();
+    }
     // ตัวละคร เรียงตามแกน y
     const walking = !!W.moving;
     const step = walking ? (Math.floor(W.anim / 7) % 2) + 1 : 0;

@@ -197,6 +197,53 @@
     const blob = new Blob([text], { type: 'application/json' });
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click();
   };
+  // ---------- โหมดถ่ายรูป (P): ซ่อนแถบต่างๆ เลือกฟิลเตอร์ แล้วบันทึกเป็น PNG ×4 พร้อมกรอบและคำบรรยาย ----------
+  const PHOTO_FX = [['ปกติ', 'none'], ['ฟิล์มเก่า', 'sepia(0.75) contrast(1.05) saturate(0.9)'], ['ขาวดำ', 'grayscale(1) contrast(1.1)'], ['สีสด', 'saturate(1.45) contrast(1.06)'], ['ยามเย็น', 'sepia(0.3) saturate(1.3) hue-rotate(-12deg) brightness(1.04)']];
+  G.photoMode = function () {
+    if (G.scene !== 'world' || G.busy) return;
+    G.busy = true; document.body.classList.add('photo');
+    let fx = 0, frame = true;
+    const bar = document.createElement('div'); bar.className = 'photo-bar';
+    const game = document.querySelector('#game');
+    const draw = () => { game.style.filter = PHOTO_FX[fx][1]; bar.innerHTML = `📷 โหมดถ่ายรูป · ฟิลเตอร์: <b>${PHOTO_FX[fx][0]}</b> (← →) · กรอบ: <b>${frame ? 'เปิด' : 'ปิด'}</b> (↑↓) · Z ถ่าย · X ออก`; };
+    const close = () => { G.ui.closeTop(m); game.style.filter = ''; document.body.classList.remove('photo'); G.busy = false; };
+    const shoot = async () => {
+      const K = 4, pad = frame ? 40 : 0, cap = frame ? 56 : 0, c = document.createElement('canvas');
+      c.width = 240 * K + pad * 2; c.height = 160 * K + pad * 2 + cap;
+      const g = c.getContext('2d'); g.imageSmoothingEnabled = false;
+      if (frame) {   // กรอบลายผ้าขาวม้า
+        for (let y = 0; y < c.height; y += 16) for (let x = 0; x < c.width; x += 16) { g.fillStyle = ((x + y) / 16) % 2 ? '#b5502f' : '#f6eed8'; g.fillRect(x, y, 16, 16); }
+        g.fillStyle = '#24305e'; g.fillRect(pad - 8, pad - 8, 240 * K + 16, 160 * K + 16 + cap);
+      }
+      g.filter = PHOTO_FX[fx][1]; g.drawImage(G.screenBuf, pad, pad, 240 * K, 160 * K); g.filter = 'none';
+      if (frame) {
+        const S = G.state, h = Math.floor(S.time / 60) % 24, mi = Math.floor(S.time) % 60;
+        g.fillStyle = '#f6eed8'; g.font = 'bold 26px Itim, Tahoma, sans-serif'; g.textBaseline = 'middle';
+        g.fillText(`แก๊งเด็กบ้านนา · ${G.world.def.name}`, pad + 8, pad + 160 * K + cap / 2);
+        g.textAlign = 'right'; g.font = '22px Itim, Tahoma, sans-serif'; g.fillStyle = '#d9b25a';
+        g.fillText(`${S.name} · ${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')}`, pad + 240 * K - 8, pad + 160 * K + cap / 2);
+      }
+      G.sfx('buy'); const fl = document.querySelector('#fade'); fl.classList.add('flash'); setTimeout(() => fl.classList.remove('flash'), 180);
+      const blob = await new Promise((r) => c.toBlob(r, 'image/png')), filename = `kaengdekbanna-${G.state.map}-${Date.now() % 1000000}.png`;
+      let dl = null;
+      try { if (window.claude && window.claude.use) dl = await window.claude.use('downloads'); } catch (e) { dl = null; }
+      if (dl) { try { await dl.save({ filename, data: blob }); G.showToast('บันทึกรูปแล้ว'); } catch (e) { G.showToast(e && e.code === 'declined' ? 'ยกเลิกการบันทึกรูป' : 'หน้านี้บันทึกรูปไม่ได้'); } return; }
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); G.showToast('บันทึกรูปแล้ว');
+    };
+    const m = { el: bar, onKey: (k) => {
+      if (k === 'left' || k === 'right') { fx = (fx + (k === 'left' ? PHOTO_FX.length - 1 : 1)) % PHOTO_FX.length; G.sfx('tick'); draw(); }
+      else if (k === 'up' || k === 'down') { frame = !frame; G.sfx('tick'); draw(); }
+      else if (k === 'ok') shoot();
+      else if (k === 'back') close();
+    } };
+    G.ui.pushTop(m); draw();
+  };
+  // คลิกบนแผนที่ = เดินไปตรงนั้น
+  document.querySelector('#game').addEventListener('click', (e) => {
+    if (G.scene !== 'world' || !G.state || G.busy || G.ui.active() || !G.world.cam) return;
+    const r = e.currentTarget.getBoundingClientRect(), bx = ((e.clientX - r.left) / r.width) * 240, by = ((e.clientY - r.top) / r.height) * 160;
+    G.unlockAudio(); G.world.pathTo(Math.floor((bx + G.world.cam.cx) / 16), Math.floor((by + G.world.cam.cy) / 16));
+  });
   const importSave = () => new Promise((resolve) => {
     const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
     inp.onchange = () => { const f = inp.files[0]; if (!f) return resolve(null);
@@ -206,14 +253,16 @@
 
   // ---------- ปุ่ม ----------
   const KEYMAP = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
-    KeyZ: 'ok', Space: 'ok', KeyX: 'back', Escape: 'back', Backspace: 'back', Enter: 'menu', KeyM: 'map', KeyB: 'bag', KeyT: 'team', KeyQ: 'quest', Tab: 'hud', KeyL: 'log', KeyC: 'bike' };
+    KeyZ: 'ok', Space: 'ok', KeyX: 'back', Escape: 'back', Backspace: 'back', Enter: 'menu', KeyM: 'map', KeyB: 'bag', KeyT: 'team', KeyQ: 'quest', Tab: 'hud', KeyL: 'log', KeyC: 'bike', KeyP: 'photo' };
   const held = {};
   G.press = function (k) {
     G.unlockAudio();
-    if (G.ui.active()) { if (['map', 'bag', 'team', 'hud', 'quest', 'log', 'bike'].includes(k)) k = 'back'; G.ui.key(k === 'menu' ? 'ok' : k); return; }
+    if (G.ui.active()) { if (['map', 'bag', 'team', 'hud', 'quest', 'log', 'bike'].includes(k)) k = 'back';
+      if (k === 'photo') return; G.ui.key(k === 'menu' ? 'ok' : k); return; }
     if (G.scene !== 'world' || G.busy || G.world.moving || fading) return;
     if (k === 'ok') G.world.interact();
     else if (k === 'menu') G.runScript('_menu');
+    else if (k === 'photo') G.photoMode();
     else if (k === 'map') G.runScript('_map');
     else if (k === 'bag') G.runScript('_bag');
     else if (k === 'quest' && G.state.flags.intro_done) G.runScript('_quest');
@@ -406,6 +455,7 @@
     if (save) {
       G.state = save; G.resetAutosave();
       G.loadMap(save.map, save.x, save.y, save.dir); G.scene = 'world';
+      if (G.ui.recap) { G.busy = true; try { await G.ui.recap(); } finally { G.busy = false; } }   // สรุปเรื่องที่ผ่านมา
     } else {
       G.state = newState();
       const st = G.DATA.world.start;
@@ -441,7 +491,8 @@
         G.state.playMs += 1000 / 60;
         if (!G.busy && !G.ui.active() && !G.world.moving && !fading) {
           const dir = ['up', 'down', 'left', 'right'].find((d) => held[d]);
-          if (dir) G.world.tryMove(dir, G.settings.autoRun !== false ? !held.back : held.back);   // วิ่งตลอด: กด X ค้าง = เดินช้า
+          if (dir) { G.world.cancelPath(); G.world.tryMove(dir, G.settings.autoRun !== false ? !held.back : held.back); }   // วิ่งตลอด: กด X ค้าง = เดินช้า
+          else G.world.followPath(G.settings.autoRun !== false);   // เดินตามทางที่คลิกไว้
         }
         G.world.update();
         if (G.state.rainLeft > 0) G.state.rainLeft = Math.max(0, G.state.rainLeft - 1 / 60);

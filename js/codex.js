@@ -140,4 +140,18 @@
       G.ui.pushTop(m); render();
     });
   };
+  // ---------- เรื่องที่ผ่านมา: สรุปตอนโหลดเซฟ ----------
+  G.ui.recap = function () {
+    const mains = G.DATA.quests.filter((q) => q.kind === 'main'), done = mains.filter((q) => F()[q.done]);
+    const cur = mains.find((q) => !F()[q.done]), sides = G.DATA.quests.filter((q) => q.kind === 'side' && G.questState(q) === 'active');
+    if (!done.length) return Promise.resolve();
+    const ms = S().playMs || 0, hh = Math.floor(ms / 3600000), mm = Math.floor(ms / 60000) % 60;
+    const team = S().party.map((m) => `<span class="rc-mon"><canvas width="16" height="16" data-sprite="${esc(G.monLook(m))}"></canvas>Lv${m.lv}</span>`).join('');
+    return G.ui.panel(`<div class="choice-title">📖 เรื่องที่ผ่านมา...</div>
+      <div class="rc-team">${team}</div>
+      <ul class="rc-list">${done.slice(-3).map((q) => `<li class="ok">✓ ${esc(q.name)}</li>`).join('')}</ul>
+      ${cur ? `<div class="rc-now"><b>ตอนนี้:</b> ${esc(cur.name)}<br><small>${esc(cur.desc)}</small></div>` : '<div class="rc-now"><b>จบเรื่องหลักแล้ว!</b><br><small>ลองศึกแชมป์อีสานที่ล็อบบี้สนาม หอท้าสู้ และเก็บสมุดเรื่องเล่าให้ครบ</small></div>'}
+      ${sides.length ? `<div class="rc-side">เควสต์รองที่ค้างอยู่: ${sides.map((q) => esc(q.name)).join(' · ')}</div>` : ''}
+      <div class="hint">เล่นมาแล้ว ${hh} ชม. ${mm} นาที · กด Z เล่นต่อ</div>`, 'recap-sheet');
+  };
 })(window.G = window.G || {});
