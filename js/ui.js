@@ -215,9 +215,9 @@
   };
 
   // ---------- หลอด HP ----------
-  G.ui.hpBar = (hp, max) => {
-    const p = Math.max(0, hp / max);
-    return `<div class="hpbar"><i style="width:${(p * 100).toFixed(1)}%" class="${p < 0.2 ? 'red' : p < 0.5 ? 'yellow' : ''}"></i></div>`;
+  G.ui.hpBar = (hp, max, ghost) => {   // ghost = หลอดจางสีแดงค้างแสดงส่วนที่เพิ่งเสียไป
+    const p = Math.max(0, hp / max), g = ghost > hp ? Math.min(1, ghost / max) : 0;
+    return `<div class="hpbar">${g ? `<b style="width:${(g * 100).toFixed(1)}%"></b>` : ''}<i style="width:${(p * 100).toFixed(1)}%" class="${p < 0.2 ? 'red' : p < 0.5 ? 'yellow' : ''}"></i></div>`;
   };
   const STATUS = { par: 'ชา', slp: 'หลับ', psn: 'ท้องเสีย', brn: 'ไฟลวก' };
   G.ui.statusTag = (s) => (s ? `<span class="tag st-${s}">${STATUS[s]}</span>` : '');

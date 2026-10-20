@@ -363,3 +363,6 @@ body.cb .hpbar i.yellow { background-color: #e0b830; } body.cb .hpbar i.red { ba
 .mon-info table.moves small { font-size: 0.7em; color: #b9c0dc; }
 .mon-info .info-sprite { width: calc(var(--u) * 34) !important; height: calc(var(--u) * 34) !important; }
 .mon-info { top: calc(var(--u) * 6); bottom: calc(var(--u) * 6); }
+/* หลอดจาง: ส่วนที่เพิ่งเสียไป */
+.hpbar { position: relative; } .hpbar i { position: relative; z-index: 1; }
+.hpbar b { position: absolute; left: 0; top: 0; bottom: 0; background: #f2a0a0; opacity: 0.85; }

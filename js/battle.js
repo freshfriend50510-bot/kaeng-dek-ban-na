@@ -297,7 +297,7 @@
           tgt.hp = Math.max(sash ? 1 : 0, tgt.hp - dmg); total += dmg;
           if (sash) { ev.push({ t: 'msg', text: `${tname} ยึด${G.DATA.items[tgt.held].name}ไว้ รอดมาได้ด้วยพลังเฮือกสุดท้าย!` }); tgt.held = null; }
           else if (tgt.hp <= 0 && tside === 'p' && (tgt.friend || 0) >= 200 && r() < 0.15) { tgt.hp = 1; ev.push({ t: 'msg', text: `${tname} กัดฟันทนไว้ได้ เพราะไม่อยากให้เพื่อนผิดหวัง!` }); }   // ความสนิทสูง
-          ev.push({ t: 'hit', side: tside, eff });
+          ev.push({ t: 'hit', side: tside, eff, crit });
           ev.push({ t: 'hp', side: tside, hp: tgt.hp });
           if (crit) { ev.push({ t: 'crit', side: tside }); ev.push({ t: 'msg', text: side === 'p' ? 'คริติคอล! ตีเข้าจุดสำคัญเต็มๆ!' : 'โดนจุดสำคัญ!' }); }
           if (k === 0) { if (eff > 1) ev.push({ t: 'msg', text: 'ได้ผลดีมาก!' }); else if (eff < 1) ev.push({ t: 'msg', text: 'ไม่ค่อยได้ผล...' }); }

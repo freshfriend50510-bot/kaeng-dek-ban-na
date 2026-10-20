@@ -9,18 +9,23 @@
     const expPct = Math.min(100, ((m.exp - G.expFor(m.lv)) / (G.expFor(m.lv + 1) - G.expFor(m.lv))) * 100);
     return `
       <div class="panel bpanel foe-panel"><div class="bname">${f.shiny ? '<span class="k-shiny">✨</span>' : ''}${f.name} ${G.ui.typeTag(fsp.type)} <span class="lv">Lv${f.lv}</span></div>
-        ${G.ui.hpBar(V.fhp, f.stats.hp)}${G.ui.statusTag(f.status)}${b.isWild() && G.state.dex[f.sp] === 2 ? '<span class="tag got">เคยชวนแล้ว</span>' : ''}${['master', 'boss'].includes(b.opt.kind) ? gaugeHTML(b, 'f') : ''}</div>
+        ${G.ui.hpBar(V.fhp, f.stats.hp, V.fghost)}${G.ui.statusTag(f.status)}${b.isWild() && G.state.dex[f.sp] === 2 ? '<span class="tag got">เคยชวนแล้ว</span>' : ''}${['master', 'boss'].includes(b.opt.kind) ? gaugeHTML(b, 'f') : ''}</div>
       <div class="panel bpanel me-panel"><div class="bname">${m.name} ${G.ui.typeTag(msp.type)} <span class="lv">Lv${m.lv}</span></div>
-        ${G.ui.hpBar(V.php, m.stats.hp)}<div class="hpnum">${Math.max(0, Math.round(V.php))}/${m.stats.hp} ${G.ui.statusTag(m.status)}</div>
+        ${G.ui.hpBar(V.php, m.stats.hp, V.pghost)}<div class="hpnum">${Math.max(0, Math.round(V.php))}/${m.stats.hp} ${G.ui.statusTag(m.status)}</div>
         <div class="expbar"><i style="width:${expPct}%"></i></div>${gaugeHTML(b, 'p')}</div>`;
   }
   const gaugeHTML = (b, side) => `<div class="gauge ${b.ultReady(side) ? 'full' : ''} ${b.ultUsed[side] ? 'used' : ''}"><i style="width:${b.gauge[side]}%"></i><span>${b.ultUsed[side] ? 'ใช้ท่าไม้ตายแล้ว' : b.ultReady(side) ? '★ ท่าไม้ตายพร้อม!' : 'เกจหมอลำ'}</span></div>`;
   function render(b) { V.layer.innerHTML = panelsHTML(b); }
 
+  // หลอดพลัง: ลดเร็วแล้วหลอดจางค่อยตามลงมา + ตัวเลขดาเมจเด้งเหนือหัว
   async function tweenHp(b, side, to) {
-    const key = side === 'p' ? 'php' : 'fhp';
-    const from = V[key], steps = 14;
-    for (let i = 1; i <= steps; i++) { V[key] = from + ((to - from) * i) / steps; render(b); await wait(22); }
+    const key = side === 'p' ? 'php' : 'fhp', gk = side === 'p' ? 'pghost' : 'fghost';
+    const from = V[key], steps = 10, d = Math.round(to - from);
+    if (d) V.pops.push({ side, t0: performance.now(), text: (d > 0 ? '+' : '') + Math.abs(d), heal: d > 0, crit: V.lastCrit, eff: V.lastEff });
+    V.lastCrit = false; V.lastEff = 1;
+    V[gk] = d < 0 ? Math.max(V[gk] || 0, from) : 0;
+    for (let i = 1; i <= steps; i++) { V[key] = from + ((to - from) * i) / steps; render(b); await wait(20); }
+    if (d < 0) { const g0 = V[gk]; (async () => { await wait(260); for (let i = 1; i <= 10; i++) { V[gk] = g0 + (to - g0) * (i / 10); render(b); await wait(28); } V[gk] = 0; render(b); })(); }
   }
 
   // ข้อความ EXP/เลเวลอัป: กด Z สองครั้งติดกัน = ข้ามทั้งหมด แล้วสรุปเลเวลที่ขึ้นในบรรทัดเดียว
@@ -39,7 +44,7 @@
           break;
         case 'anim': if (e.id && e.id.startsWith('ult_')) { V.cutin = { t0: performance.now(), text: G.DATA.moves[e.id].name, side: e.side }; G.sfx('power'); await wait(900); }
           startAct(e.side, e.type, e.cat, e.id, 0); V.fx = { side: e.side, type: e.type, cat: e.cat, id: e.id, t0: performance.now() }; G.sfx(e.cat === 'status' ? 'status' : 'attack'); await wait(SIG[e.id] ? Math.round(durOf(e.id) * 0.566) : e.cat === 'status' ? 300 : 260); break;
-        case 'hit': V.shake = { side: e.side, t: 0 }; V.knock = { side: e.side, t0: performance.now() }; G.sfx(e.eff > 1 ? 'super' : 'hit'); await wait(200); break;
+        case 'hit': V.lastEff = e.eff || 1; V.lastCrit = !!e.crit; V.shake = { side: e.side, t: 0 }; V.knock = { side: e.side, t0: performance.now() }; G.sfx(e.eff > 1 ? 'super' : 'hit'); await wait(200); break;
         case 'crit': V.critFlash = 10; V.shake = { side: e.side, t: 0 }; G.sfx('super'); await wait(160); break;
         case 'hp': await tweenHp(b, e.side, e.hp); break;
         case 'status': render(b); break;
@@ -127,7 +132,7 @@
     G.scene = 'battle';
     S.party.forEach((m) => { m._fainted = false; });
     const b = new G.Battle(S.party, foes, opt);
-    Object.assign(V, { active: true, b, php: b.me.hp, fhp: b.foe.hp, faint: { p: 0, f: 0 }, shake: null, lunge: null, fx: null, wobble: 0,
+    Object.assign(V, { active: true, b, php: b.me.hp, fhp: b.foe.hp, pghost: 0, fghost: 0, pops: [], lastCrit: false, lastEff: 1, faint: { p: 0, f: 0 }, shake: null, lunge: null, fx: null, wobble: 0,
       pSprite: null, fSprite: opt.kind === 'wild' ? G.monLook(b.foe) : (opt.trainerLook || G.monLook(b.foe)),
       intro: 0, bg: opt.bg || G.world.def.bg || G.state.map, onSend: opt.onSend, onFoeSend: opt.onFoeSend });
     V.layer = document.createElement('div'); V.layer.className = 'battle-layer';
@@ -822,6 +827,16 @@
     }
     draw(V.pSprite, 38, 66, true, V.faint ? V.faint.p : 0, 'p');
     drawFx(ctx, now);
+    V.pops = (V.pops || []).filter((p) => now - p.t0 < 1100);
+    for (const p of V.pops) {   // ตัวเลขดาเมจ/ฟื้นพลัง ลอยขึ้นแล้วจาง
+      const k = (now - p.t0) / 1100, [x, y] = p.side === 'f' ? [178, 26] : [62, 72];
+      const big = p.crit || p.eff > 1, sz = big ? 14 : 11, bounce = k < 0.15 ? Math.sin((k / 0.15) * Math.PI) * 4 : 0;
+      ctx.globalAlpha = Math.min(1, (1 - k) * 3); ctx.font = `bold ${sz}px Itim, Tahoma, sans-serif`; ctx.textAlign = 'center';
+      ctx.lineWidth = 3; ctx.strokeStyle = '#1a1020'; const yy = y - k * 16 - bounce;
+      ctx.strokeText(p.text, x, yy); ctx.fillStyle = p.heal ? '#7ce07a' : p.crit ? '#ffe14a' : p.eff > 1 ? '#ff8a5a' : p.eff < 1 ? '#c8c8d8' : '#ffffff'; ctx.fillText(p.text, x, yy);
+      if (p.crit && k < 0.7) { ctx.font = 'bold 8px Itim, Tahoma, sans-serif'; ctx.strokeText('คริ!', x, yy - 12); ctx.fillStyle = '#ffe14a'; ctx.fillText('คริ!', x, yy - 12); }
+      ctx.globalAlpha = 1; ctx.textAlign = 'left';
+    }
     if (V.cutin) {   // ท่าไม้ตาย: แถบดำพาดจอ ชื่อท่าสีทองวิ่งเข้า
       const t = (now - V.cutin.t0) / 1100;
       if (t >= 1) V.cutin = null;
