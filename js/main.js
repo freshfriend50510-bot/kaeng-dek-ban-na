@@ -125,6 +125,7 @@
     s.shinyDex = s.shinyDex && typeof s.shinyDex === 'object' ? s.shinyDex : {}; s.newsDay = Number(s.newsDay) || 0;
     s.research = s.research && typeof s.research === 'object' ? s.research : {}; s.towerBest = num(s.towerBest, 0, 9999, 0); s.hof = Array.isArray(s.hof) ? s.hof.slice(-20) : [];
     const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+    if (s.flags && (s.flags.tr_wak1 || s.flags.gym2_done || s.flags.ungying_joined)) Object.assign(s.flags, { rumor_heard: true, lab_cleared: true, gear_story: true });   // เซฟเก่าที่ผ่านช่วงพี่ว้ากแล้ว ไม่ต้องย้อนทำเควสต์อุ๋งอิ๋งใหม่
     s.stats = obj(s.stats); s.ach = obj(s.ach); s.seenMaps = obj(s.seenMaps);
     s.eggs = (Array.isArray(s.eggs) ? s.eggs : []).filter((e) => e && G.DATA.species[e.sp]).slice(0, 3).map((e) => ({ sp: e.sp, steps: Number(e.steps) || 0, move: G.DATA.moves[e.move] ? e.move : null, from: String(e.from || '') })); s.bag.ghost_egg = s.eggs.length; s.eggCheck = Number(s.eggCheck) || 0;
     if (!s.seenItems || typeof s.seenItems !== 'object') { s.seenItems = {}; for (const k in s.bag || {}) s.seenItems[k] = 1; }   // เซฟเก่า: ของที่มีอยู่แล้วไม่นับเป็นของใหม่

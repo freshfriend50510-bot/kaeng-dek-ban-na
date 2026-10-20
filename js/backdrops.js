@@ -513,6 +513,20 @@
       ctx.fillStyle = '#9aa3ae'; for (let xx = 0; xx < W; xx += 40) ctx.fillRect(xx, 0, 3, 44);
     },
 
+    chemlab(c, P) {   // ห้องแล็บเคมี: ตู้ดูดควัน ชั้นขวดสาร โต๊ะแล็บ (ควันม่วงก่อนเคลียร์)
+      const { R, O } = tools(c);
+      R(0, 0, W, 72, '#e8eef0'); R(0, 56, W, 16, '#cfdcdc'); R(0, 54, W, 2, '#8aa8a8');
+      for (const x of [8, 182]) { R(x, 8, 50, 46, '#c8ccd0'); R(x + 3, 12, 44, 26, '#8ab0c0'); R(x + 3, 12, 44, 3, '#a8c8d8'); R(x, 40, 50, 3, '#9aa3ae'); R(x + 20, 2, 10, 7, '#9aa3ae'); }
+      R(80, 10, 80, 40, '#f4f4ec'); for (let y = 16; y < 48; y += 10) { R(80, y + 7, 80, 2, '#c8c0a8'); for (let x = 84; x < 156; x += 8) R(x, y + (x % 3), 5, 7 - (x % 3), ['#d9455a', '#5fb8e0', '#f2d24b', '#4fb05a', '#b08ae0'][(x / 8 + y) % 5 | 0]); }
+      tileFloor(c, 72, '#eef2f0', '#cfd8d4', 'rgba(255,255,255,0.45)');
+      R(20, 84, 70, 6, '#3a4a4a'); R(150, 84, 70, 6, '#3a4a4a'); R(22, 90, 3, 10, '#5a6a6a'); R(86, 90, 3, 10, '#5a6a6a'); R(152, 90, 3, 10, '#5a6a6a'); R(216, 90, 3, 10, '#5a6a6a');
+      for (const x of [40, 60, 170, 196]) { R(x, 76, 6, 8, 'rgba(190,230,255,0.85)'); R(x + 1, 80, 4, 4, ['#4fb05a', '#5fb8e0', '#e86a8a', '#f2d24b'][x % 4]); }
+    },
+    chemlab_anim(ctx, t, P) {   // ฟองในขวด + ควันม่วงจากตู้ (ก่อนเคลียร์ห้อง)
+      for (let i = 0; i < 6; i++) { const k = (t / 900 + i / 6) % 1; ctx.fillStyle = `rgba(255,255,255,${(0.7 * (1 - k)).toFixed(2)})`; ctx.fillRect([42, 62, 172, 198][i % 4] + (i % 2), 80 - k * 10, 1, 1); }
+      if (!P.flags.lab_cleared) for (let i = 0; i < 8; i++) { const k = (t / 3000 + i / 8) % 1, x = (i % 2 ? 207 : 33) + Math.sin(t / 700 + i) * 10, y = 40 - k * 40;
+        ctx.fillStyle = `rgba(150,80,190,${(0.35 * (1 - k)).toFixed(2)})`; ctx.beginPath(); ctx.arc(x, y, 6 + k * 12, 0, 7); ctx.fill(); }
+    },
     classroom(c, P) {
       const { R } = tools(c);
       R(0, 0, W, 72, '#e8e0c8'); R(0, 60, W, 12, '#c8b890');
@@ -564,7 +578,7 @@
     if (def && def.indoor) return { out: false, key: IN[m] ? m : ALIAS[m] || (def.floor === '-' ? 'shop' : 'wood') };
     return { out: true, key: OUT[m] ? m : 'village' };
   }
-  const flagKey = (f) => [f.boss1_done, f.forest_healed, f.xray_on].map((x) => (x ? 1 : 0)).join('');
+  const flagKey = (f) => [f.boss1_done, f.forest_healed, f.xray_on, f.lab_cleared].map((x) => (x ? 1 : 0)).join('');
 
   function build(sel, P) {
     const sky = mk(), land = mk(), lights = [];

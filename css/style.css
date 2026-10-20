@@ -411,3 +411,7 @@ body.photo #hud, body.photo #quest, body.photo #labels, body.photo #clock, body.
 @keyframes gp-spin { to { transform: translateY(-50%) rotate(360deg); } }
 .gp-txt small { display: block; font-size: 0.7em; color: #b9c0dc; } .gp-txt b { color: var(--gold); margin-right: calc(var(--u) * 2); } .gp-txt p { margin: calc(var(--u) * 1) 0 0; font-size: 0.75em; color: #d8dcef; }
 .got-pop.rar-r .gp-ray { background: repeating-conic-gradient(rgba(176,106,255,.22) 0 15deg, transparent 15deg 30deg); }
+/* ฉากย้อนความหลัง: ขอบจอมืดแบบฟิล์มเก่า */
+body.flashback #screen::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 5; box-shadow: inset 0 0 calc(var(--u) * 40) rgba(40,25,10,.75); }
+body.flashback .dialog { filter: sepia(0.35); }
+body.flashback #ui { z-index: 6; }

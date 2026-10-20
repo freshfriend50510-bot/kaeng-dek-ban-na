@@ -498,7 +498,7 @@
     // เทรนเนอร์มองเห็นเรา
     for (const n of W.npcs) {
       const tr = n.trainer;
-      if (!tr || S.flags[tr.flag]) continue;
+      if (!tr || S.flags[tr.flag] || (tr.need && !S.flags[tr.need])) continue;   // ยังไม่ถึงเวลา (เช่น พี่ว้ากต้องเห็นใบรับรองก่อน) ไม่วิ่งเข้ามาท้า
       const [dx, dy] = DIRS[n.dir];
       for (let i = 1; i <= tr.sight; i++) {
         const x = n.x + dx * i, y = n.y + dy * i;
@@ -842,6 +842,12 @@
     }
     if (W.amb && W.amb.bugs.length && !G.mapShot) drawBugs(ctx, cx, cy);
     if (!W.def.indoor && !G.mapShot) drawFestival(ctx, cx, cy);
+    if (W.map === 'chem_lab' && !G.state.flags.lab_cleared && !G.mapShot) {   // ควันพิษสีม่วงลอยวนในห้องแล็บ
+      const t = performance.now();
+      ctx.fillStyle = 'rgba(120,60,150,0.22)'; ctx.fillRect(0, 0, 240, 160);
+      for (let i = 0; i < 14; i++) { const x = ((i * 53 + t * 0.012 * (1 + (i % 3))) % 280) - 20, y = 20 + ((i * 37) % 110) + Math.sin(t * 0.001 + i) * 6, r = 14 + (i % 4) * 5;
+        ctx.fillStyle = `rgba(150,90,180,${(0.18 + 0.08 * Math.sin(t * 0.002 + i)).toFixed(2)})`; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); }
+    }
     if (!G.mapShot) ctx.drawImage(vignette(), 0, 0);   // mapShot = ถ่ายภาพแมพเต็มแผ่นตอนทดสอบ
   };
 

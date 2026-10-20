@@ -233,6 +233,13 @@
    "bg": "forest",
    "encRate": 0.1,
    "encTiles": "g"
+  },
+  "chem_lab": {
+   "name": "ห้องแล็บเคมี",
+   "music": "campus",
+   "indoor": true,
+   "floor": "-",
+   "bg": "chemlab"
   }
  },
  "warps": [
@@ -733,6 +740,15 @@
    "to": "village",
    "tx": 3,
    "ty": 2
+  },
+  {
+   "map": "chem_lab",
+   "x": 7,
+   "y": 8,
+   "to": "lecture",
+   "tx": 13,
+   "ty": 2,
+   "dir": "down"
   }
  ],
  "doors": [
@@ -1226,6 +1242,16 @@
    "lines": [
     "ประตูขึ้นเครื่อง Gate 1 · ต้องมีบัตรโดยสาร"
    ]
+  },
+  {
+   "map": "lecture",
+   "x": 13,
+   "y": 1,
+   "to": "chem_lab",
+   "tx": 7,
+   "ty": 7,
+   "label": "เข้าห้องแล็บเคมี",
+   "name": "ห้องแล็บเคมี"
   }
  ],
  "signs": [
@@ -2037,7 +2063,9 @@
     "sight": 3,
     "flag": "tr_wak1",
     "intro": "น้องงงงง! หยุดเดี๋ยวนี้! ใครอนุญาตให้เดินเข้าเขตโรงช็อป!",
-    "lose": "ก็... ใช้ได้นี่หว่า ผ่านไปได้ครึ่งทางแล้วนะน้อง"
+    "lose": "ก็... ใช้ได้นี่หว่า ผ่านไปได้ครึ่งทางแล้วนะน้อง",
+    "need": "gear_story",
+    "needText": "เด็กประถมจะเข้าโรงช็อปต้องมีใบรับรองความปลอดภัยจากผู้ช่วยสอนแล็บก่อน! ไม่มีก็กลับไป!"
    }
   },
   {
@@ -2065,7 +2093,9 @@
     "sight": 3,
     "flag": "tr_wak2",
     "intro": "เสียงไม่ดังพอ! ตะโกนชื่อคณะมาสิบรอบ! ...ไม่ทำเหรอ งั้นสู้!",
-    "lose": "เสียงพี่หายแล้ว... เข้าไปเถอะ พี่เฟรนด์รออยู่ในโรงช็อป"
+    "lose": "เสียงพี่หายแล้ว... เข้าไปเถอะ พี่เฟรนด์รออยู่ในโรงช็อป",
+    "need": "gear_story",
+    "needText": "เด็กประถมจะเข้าโรงช็อปต้องมีใบรับรองความปลอดภัยจากผู้ช่วยสอนแล็บก่อน! ไม่มีก็กลับไป!"
    }
   },
   {
@@ -2207,7 +2237,7 @@
   {
    "id": "ungying",
    "name": "อุ๋งอิ๋ง",
-   "map": "lecture",
+   "map": "chem_lab",
    "x": 13,
    "y": 3,
    "look": "ungying",
@@ -4436,13 +4466,6 @@
    "label": "อ่านกระดาน"
   },
   {
-   "map": "lecture",
-   "x": 14,
-   "y": 2,
-   "script": "chem_shelf",
-   "label": "ดูชั้นสารเคมี"
-  },
-  {
    "map": "kku",
    "x": 1,
    "y": 21,
@@ -4808,6 +4831,126 @@
    "y": 9,
    "script": "raid_den",
    "label": "ลานผียักษ์"
+  },
+  {
+   "map": "chem_lab",
+   "x": 1,
+   "y": 2,
+   "script": "reagent",
+   "label": "หยิบขวดสาร",
+   "color": "red"
+  },
+  {
+   "map": "chem_lab",
+   "x": 3,
+   "y": 2,
+   "script": "reagent",
+   "label": "หยิบขวดสาร",
+   "color": "blue"
+  },
+  {
+   "map": "chem_lab",
+   "x": 5,
+   "y": 2,
+   "script": "reagent",
+   "label": "หยิบขวดสาร",
+   "color": "yellow"
+  },
+  {
+   "map": "chem_lab",
+   "x": 12,
+   "y": 2,
+   "script": "reagent",
+   "label": "หยิบขวดสาร",
+   "color": "green"
+  },
+  {
+   "map": "chem_lab",
+   "x": 14,
+   "y": 2,
+   "script": "reagent",
+   "label": "หยิบขวดสาร",
+   "color": "purple"
+  },
+  {
+   "map": "chem_lab",
+   "x": 6,
+   "y": 1,
+   "script": "lab_board",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "chem_lab",
+   "x": 7,
+   "y": 1,
+   "script": "lab_board",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "chem_lab",
+   "x": 8,
+   "y": 1,
+   "script": "lab_board",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "chem_lab",
+   "x": 9,
+   "y": 1,
+   "script": "lab_board",
+   "label": "อ่านกระดาน"
+  },
+  {
+   "map": "chem_lab",
+   "x": 2,
+   "y": 1,
+   "script": "fume_hood",
+   "label": "ดูตู้ดูดควัน"
+  },
+  {
+   "map": "chem_lab",
+   "x": 3,
+   "y": 1,
+   "script": "fume_hood",
+   "label": "ดูตู้ดูดควัน"
+  },
+  {
+   "map": "chem_lab",
+   "x": 12,
+   "y": 1,
+   "script": "fume_hood",
+   "label": "ดูตู้ดูดควัน"
+  },
+  {
+   "map": "chem_lab",
+   "x": 13,
+   "y": 1,
+   "script": "fume_hood",
+   "label": "ดูตู้ดูดควัน"
+  },
+  {
+   "map": "kku_shop",
+   "x": 3,
+   "y": 1,
+   "script": "shop_note",
+   "label": "อ่านกระดาษบนผนัง",
+   "arg": 0
+  },
+  {
+   "map": "kku_shop",
+   "x": 5,
+   "y": 1,
+   "script": "shop_note",
+   "label": "อ่านกระดาษบนผนัง",
+   "arg": 1
+  },
+  {
+   "map": "kku_shop",
+   "x": 7,
+   "y": 1,
+   "script": "shop_note",
+   "label": "อ่านกระดาษบนผนัง",
+   "arg": 2
   }
  ],
  "hidden": [
