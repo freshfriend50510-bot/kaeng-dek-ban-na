@@ -125,7 +125,7 @@
     s.shinyDex = s.shinyDex && typeof s.shinyDex === 'object' ? s.shinyDex : {}; s.newsDay = Number(s.newsDay) || 0;
     s.research = s.research && typeof s.research === 'object' ? s.research : {}; s.towerBest = num(s.towerBest, 0, 9999, 0); s.hof = Array.isArray(s.hof) ? s.hof.slice(-20) : [];
     const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
-    s.stats = obj(s.stats); s.ach = obj(s.ach);
+    s.stats = obj(s.stats); s.ach = obj(s.ach); s.seenMaps = obj(s.seenMaps);
     if (!s.seenItems || typeof s.seenItems !== 'object') { s.seenItems = {}; for (const k in s.bag || {}) s.seenItems[k] = 1; }   // เซฟเก่า: ของที่มีอยู่แล้วไม่นับเป็นของใหม่
     s.buff = s.buff && ['exp', 'shiny', 'lure', 'money'].includes(s.buff.kind) ? { kind: s.buff.kind, steps: num(s.buff.steps, 0, 999, 0) } : null;
     const bag = {};

@@ -374,3 +374,7 @@ body.cb .hpbar i.yellow { background-color: #e0b830; } body.cb .hpbar i.red { ba
 .ach-bar { position: relative; height: calc(var(--u) * 4); background: var(--indigo-deep); border-radius: calc(var(--u) * 2); margin-top: calc(var(--u) * 1); overflow: hidden; }
 .ach-bar u { position: absolute; left: 0; top: 0; bottom: 0; background: #5fb8e0; text-decoration: none; } .ach-bar span { position: relative; font-size: 0.65em; padding-left: calc(var(--u) * 2); line-height: calc(var(--u) * 4); display: block; }
 .pn b { color: var(--gold); } .pn ul { margin: calc(var(--u) * 1) 0 calc(var(--u) * 3); padding-left: calc(var(--u) * 8); font-size: 0.85em; }
+/* สมุดเรื่องเล่า */
+.codex .bag-item.locked { opacity: 0.45; } .cx-q { display: inline-flex; width: calc(var(--u) * 16); height: calc(var(--u) * 16); align-items: center; justify-content: center; font-style: normal; color: #8a92b8; background: rgba(246,238,216,.06); border-radius: calc(var(--u) * 1.5); }
+.cx-detail { text-align: left; overflow-y: auto; } .cx-detail p { font-size: 0.85em; margin: calc(var(--u) * 1.5) 0; line-height: 1.45; }
+.mi-lore { font-size: 0.8em; color: #d8cfae; background: rgba(217,178,90,.08); padding: calc(var(--u) * 2); border-radius: calc(var(--u) * 1.5); }

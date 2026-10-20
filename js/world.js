@@ -336,7 +336,10 @@
     S.map = id; S.x = x; S.y = y; if (dir) S.dir = dir;
     W.map = id; W.rows = G.DATA.maps[id]; W.moving = null; W.fmove = null;
     W.def = G.DATA.world.maps[id];
+    (S.seenMaps = S.seenMaps || {})[id] = 1;
+    const firstVisit = !W.def.indoor && !(S.visited || {})[id];
     if (!W.def.indoor) (S.visited = S.visited || {})[id] = 1;   // ที่ที่เคยมาแล้ว ใช้เดินทางเร็วได้
+    if (firstVisit && S.follower && S.party[0] && G.kidLine) { const ln = G.kidLine(S.party[0], true); if (ln) setTimeout(() => G.showToast(`${S.party[0].name}: ${ln}`), 1600); }   // คนเดินตามพูดถึงที่ใหม่
     if (!W.def.indoor && S.newsDay !== G.gameDay()) { const ob = G.outbreak(); S.newsDay = G.gameDay(); if (ob) setTimeout(() => G.showToast(`📢 หอกระจายข่าว: วันนี้${G.DATA.species[ob.sp].name}ระบาดที่${G.DATA.world.maps[ob.map].name}!`), 900); }
     G.refreshNpcs();
     // คนเดินตามโผล่ข้างหลังเรา

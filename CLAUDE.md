@@ -4,7 +4,7 @@
 
 ## โครงสร้าง
 - `index.html` เปิดตรงๆ ได้ (file://) ใช้ classic script บน `window.G` ห้ามเปลี่ยนเป็น ES module
-- ลำดับ script: data, formulas, battle, sprites, audio, ui, world, backdrops, battleui, story, guide, hud, achieve, main
+- ลำดับ script: data, formulas, battle, sprites, audio, ui, world, backdrops, battleui, story, guide, hud, achieve, codex, main
 - `data_src/` (CSV/txt/json) → `python3 tools/build_data.py` → `js/data.js` ห้ามแก้ `js/data.js` ด้วยมือ
 - `js/battle.js` = ตรรกะล้วน คืน event list, `js/battleui.js` = เล่น event บนจอ
 - `js/story.js` = สคริปต์เนื้อเรื่อง (async), `js/guide.js` = เควสต์/ลูกศรนำทาง, `js/hud.js` = แผงทีม มินิแมพ แผนที่ใหญ่
@@ -31,5 +31,6 @@
 สีคำสำคัญ: `G.ui.colorize`/`colorHTML` ใน ui.js ระบายสีทุกข้อความใน say และ info ของตัวเลือกอัตโนมัติ (ชื่อจาก species/party/NPC พี่-น้อง-ลุง..., ท่า, ไอเท็ม, เงิน `บาท`, ธาตุ, สถานะ, ได้ผลดี/หมดแรง, "ชื่อเควสต์") คลาส `k-*` ใน style.css, ปิดได้ `settings.colorText`
 ดอนปู่ตา (เควสต์รองหลังยิม 3): ทางเข้าบนสุดของหมู่บ้านข้างศาล (warp village 3,1 → แมพ `donputa`), เฒ่าจ้ำ `jam2` ให้เควสต์ s_putata → ปู่ตา `puta` → ไล่คนตัดไม้ 3 คน (trainer `after: loggers_check` → `loggers_out`) → ปู่ตาฟื้นป่า `forest_healed` (ช่อง `ถ` ตอไม้แตกหน่อ, `ท` กองซุง) → s_naga พานาคน้อย (ตกปลาริมพอง) มาหาแม่นาค `naga_mom` เลือกคืนแม่/อยู่ต่อ ได้ `naga_scale` (ของถือ `for` = ธาตุ ×1.2 ใน `G.heldMult`); เพลง/ฉากต่อสู้ `forest`
 ฉากหลังตอนสู้: `js/backdrops.js` (`G.drawBackdrop(ctx,bg,now)`) ฉากกลางแจ้ง `OUT` (village field market kku phong amphoe city forest) วาดสีกลางวันแล้วย้อมตามช่วงเวลา/ฝน ไฟลงทะเบียน `P.lit` เรืองแสงทีหลัง, ฉากในตึก `IN` (ramen kku_shop hospital[ward/xray/lab] clinic arena netcafe hotel airport temple classroom shop wood) เลือกจาก bg → `ALIAS` → แมพ → `def.floor`; ของขยับอยู่ใน `<ชื่อ>_anim`; ชั้นนิ่งแคชตาม bg+แมพ+เวลา+ฝน+flag (boss1_done forest_healed xray_on)
+UI/ระบบรอบปรับปรุง: เมนูหลักไทล์ (`choose` รองรับ `cols` `header` `emoji` `badge` `onSide`), ตั้งค่าแบ่งหมวด `SETTINGS` ใน ui.js (+ `cbMode` ตาบอดสี คลาส body.cb), กระเป๋า `G.rarity` + ของใหม่ `S.seenItems`, `G.ui.monInfo` 3 แท็บ (กราฟหกเหลี่ยม `hexChart`), `G.showToast` ต่อคิว, ตัวเลขดาเมจ `V.pops` + หลอดจาง `V.pghost/fghost` ใน battleui.js, ความสำเร็จ `js/achieve.js` (`G.ACH`, `G.stat`, `G.checkAch` เรียกตอนจบการต่อสู้และ autosave, `S.stats` `S.ach`) + `G.PATCH` หน้ามีอะไรใหม่, สมุดเรื่องเล่า `js/codex.js` (`CHARS` ปลดตาม flag, `G.LORE` ตำนานผีโชว์ในข้อมูลสมาชิกด้วย, `PLACES` ปลดเมื่อเคยไป `S.seenMaps`), บทพูดเด็กตามที่/เวลา `G.kidLine` (story.js; ไปที่ใหม่ครั้งแรกเด้งเป็น toast)
 พี่ต้นน้ำถูกแทนด้วยพี่ม่อนแล้ว
 ไม่เอา: ระบบตราคุมความเชื่อฟัง

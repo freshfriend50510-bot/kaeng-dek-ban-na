@@ -9,6 +9,7 @@
   G.ui.key = (k) => { const top = stack[stack.length - 1]; if (top) top.onKey(k); };
   function push(m) { stack.push(m); $('#ui').appendChild(m.el); }
   function pop(m) { const i = stack.indexOf(m); if (i >= 0) stack.splice(i, 1); m.el.remove(); }
+  G.ui.pushTop = push; G.ui.closeTop = pop;   // ให้ไฟล์อื่นสร้างหน้าต่างเองได้
   G.ui.closeAll = () => { while (stack.length) pop(stack[stack.length - 1]); };
   const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 
@@ -392,7 +393,7 @@
         <div><b>${m.shiny ? '<span class="k-shiny">✨</span>' : ''}${esc(m.name)}</b> Lv${m.lv} ${G.ui.typeTag(sp.type)} ${G.ui.statusTag(m.status)} <small>${KIND_TH[sp.kind] || ''}${m.name !== sp.name && sp.kind !== 'eng' && sp.kind !== 'med' ? ' · ' + esc(sp.name) : ''}</small>
         <div class="mi-tabs">${TABS.map((t, i) => `<span class="${i === tab ? 'on' : ''}" data-t="${i}">${t}</span>`).join('')}<em>← →</em></div></div></div>`;
       const body = () => {
-        if (tab === 0) return `<div class="mi-body"><p>${esc(sp.desc)}</p>
+        if (tab === 0) return `<div class="mi-body"><p>${esc(sp.desc)}</p>${G.LORE && (G.LORE[m.sp] || G.LORE[m.sp.replace(/2$/, '')]) ? `<p class="mi-lore">📜 ${esc(G.LORE[m.sp] || G.LORE[m.sp.replace(/2$/, '')])}</p>` : ''}
           ${sp.ability ? `<p><b class="mi-k">ความสามารถ</b> ${esc(AB_SHORT[sp.ability])} — <small>${esc(G.AB_DESC[sp.ability])}</small></p>` : ''}
           <p><b class="mi-k">นิสัย</b> ${esc(G.natureText(m))} · <b class="mi-k">ความสนิท</b> <span class="tc-heart">${'♥'.repeat(G.hearts(m)) || '—'}</span>${G.hearts(m) >= 4 ? ' <small>(สนิทมาก บางทีจะทนหมัดสุดท้ายได้)</small>' : ''}</p>
           ${m.held ? `<p><b class="mi-k">ถือ</b> <canvas class="mi-ico" width="16" height="16" data-sprite="item:${m.held}"></canvas>${esc(G.DATA.items[m.held].name)}</p>` : ''}
@@ -866,6 +867,7 @@
     if (S.party.some((m) => m.hp > 0 && (m.hp < m.stats.hp || m.status))) add('ฟื้นทีมด่วน', '💊', 'ใช้ยาที่คุ้ม');
     if (F.starter_chosen) { const ks = Object.keys(G.DATA.species); add('สมุดบันทึก', '📖', `${ks.filter((k) => S.dex[k] === 2).length}/${ks.length}`); }
     if (F.intro_done) add('สมุดเควสต์', '📜', '');
+    if (F.intro_done && G.ui.codex) add('สมุดเรื่องเล่า', '📚', '');
     if (G.travelSpots().length > 1) add('เดินทาง', '🚌', '');
     if (G.ui.achievements) add('ความสำเร็จ', '🏆', G.ui.achCount ? G.ui.achCount() : '');
     add('ตารางธาตุ', '⚖️', ''); add('วิธีเล่น', '❓', ''); add('มีอะไรใหม่', '📰', ''); add('บันทึกเกม', '💾', `ช่อง ${G.slot}`); add('ตั้งค่า', '⚙️', ''); add('ปิด', '✖️', '');
@@ -881,6 +883,7 @@
     else if (pick === 'สมุดเควสต์') await G.ui.questLog();
     else if (pick === 'เดินทาง') await G.ui.travel();
     else if (pick === 'ความสำเร็จ') await G.ui.achievements();
+    else if (pick === 'สมุดเรื่องเล่า') await G.ui.codex();
     else if (pick === 'ตารางธาตุ') await G.ui.typeChart();
     else if (pick === 'วิธีเล่น') await G.ui.panel(G.HOWTO, 'tip-sheet');
     else if (pick === 'มีอะไรใหม่') await G.ui.whatsNew();
