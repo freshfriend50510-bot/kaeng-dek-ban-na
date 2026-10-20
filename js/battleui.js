@@ -194,64 +194,7 @@
     return result;
   };
 
-  // ---------- วาดฉาก ----------
-  function drawBackdrop(ctx, bg, night) {
-    const R = (c, x, y, w, h) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
-    const indoor = { ramen: ['#4a3028', '#6b4a34', '#b8875a', '#a07448'], kku_shop: ['#2a2e35', '#3a3f48', '#7d8794', '#6b7480'],
-      hospital: ['#dfe8ee', '#c8d8e4', '#e8ece8', '#d0d6d0'], clinic: ['#d8ecf0', '#bcdce4', '#e8ece8', '#d0d6d0'] }[bg]
-      || (G.world.def && G.world.def.indoor ? ['#d8c9a8', '#e8dcc0', '#b8875a', '#a07448'] : null);
-    if (indoor) {   // ฉากในตึก: ผนัง + พื้น
-      R(indoor[0], 0, 0, 240, 74); R(indoor[1], 0, 60, 240, 14); R(indoor[2], 0, 74, 240, 86);
-      for (let y = 80; y < 160; y += 10) R(indoor[3], 0, y, 240, 1);
-      if (bg === 'kku_shop') { R('#f2d24b', 0, 70, 240, 3); for (let x = 0; x < 240; x += 12) R('#2a2a2a', x, 70, 6, 3); R('#5f6873', 20, 20, 40, 40); R('#5f6873', 180, 24, 36, 36); R('#9aa3ae', 30, 30, 20, 4); }
-      if (bg === 'hospital') { R('#4fb05a', 0, 116, 240, 4); R('#3a8ad8', 0, 124, 240, 4); R('#d9455a', 0, 132, 240, 4); R('#f4f4ec', 20, 18, 40, 30); R('#d9455a', 36, 22, 8, 22); R('#d9455a', 29, 29, 22, 8); R('#9fc4dc', 170, 16, 50, 34); R('#f4f4ec', 194, 16, 2, 34); }
-      if (bg === 'clinic') { R('#f4f4ec', 14, 14, 30, 50); R('#9fc4dc', 17, 18, 24, 20); R('#2f8f86', 0, 60, 240, 3); R('#f4f4ec', 182, 10, 34, 50); for (let y = 16; y < 56; y += 9) R('#d9455a', 186, y, 6, 5), R('#5fb8e0', 196, y, 6, 5), R('#f2d24b', 206, y, 6, 5); R('#6cc04a', 100, 40, 10, 20); R('#b5502f', 98, 56, 14, 8); }
-      if (bg === 'arena') {   // สนามอีสปอร์ต: ผนังมืด จอ LED ไฟเวทีม่วงฟ้า
-        R('#141220', 0, 0, 240, 74); R('#1d1a2e', 0, 60, 240, 14); R('#16141f', 0, 74, 240, 86); for (let y = 80; y < 160; y += 10) R('#2a2542', 0, y, 240, 1);
-        R('#0c0d14', 60, 8, 120, 44); R('#7a2ad0', 63, 11, 114, 38); R('#e05ad0', 63, 30, 114, 4); R('#ffffff', 80, 18, 50, 3); R('#ffffff', 80, 24, 30, 3);
-        R('#b04ae8', 0, 70, 240, 2); R('#5fe0f0', 0, 73, 240, 1);
-        for (const x of [14, 40, 196, 222]) { R('#2a2542', x, 0, 6, 60); R(x % 4 ? '#5fe0f0' : '#ff4fb0', x + 1, 4, 4, 4); }
-      }
-      if (bg === 'ramen') { R('#2b3f8a', 0, 0, 240, 22); for (let x = 10; x < 240; x += 40) R('#f4f4ec', x, 6, 8, 8); R('#c5482b', 100, 30, 40, 26); }
-      return;
-    }
-    const sky = ctx.createLinearGradient(0, 0, 0, 90);
-    if (bg === 'market') { sky.addColorStop(0, night ? '#2a2f5a' : '#e8b07a'); sky.addColorStop(1, night ? '#4a3a5a' : '#f2d2a0'); }
-    else { sky.addColorStop(0, night ? '#1d2650' : '#8fc3d6'); sky.addColorStop(1, night ? '#3d3a6a' : '#e8e2c0'); }
-    ctx.fillStyle = sky; ctx.fillRect(0, 0, 240, 160);
-    if (bg === 'forest') {   // ดอนปู่ตา: ป่าทึบสองชั้น ตูบปู่ตาเล็กๆ กลางป่า แสงลอดใบไม้
-      for (let x = -10; x < 250; x += 22) { ctx.fillStyle = night ? '#14261c' : '#2a4a30'; ctx.beginPath(); ctx.arc(x, 44 + (x % 3) * 4, 20, 0, 7); ctx.fill(); }
-      for (let x = 0; x < 250; x += 30) { ctx.fillStyle = night ? '#1c3424' : '#3f6b3a'; ctx.beginPath(); ctx.arc(x + 8, 60, 18, 0, 7); ctx.fill(); R(night ? '#2a1d14' : '#5a3a22', x + 6, 66, 4, 10); }
-      R('#8a5a34', 112, 52, 16, 12); R('#c5482b', 108, 48, 24, 5); R('#f2d24b', 118, 56, 4, 4);
-      if (!night) for (let i = 0; i < 4; i++) { ctx.fillStyle = 'rgba(255,248,200,0.12)'; ctx.beginPath(); ctx.moveTo(30 + i * 55, 0); ctx.lineTo(44 + i * 55, 0); ctx.lineTo(60 + i * 55, 80); ctx.lineTo(40 + i * 55, 80); ctx.fill(); }
-    }
-    if (bg === 'phong') {   // ลำน้ำพองกับสะพาน
-      R(night ? '#2a3a6a' : '#4f8fb0', 0, 56, 240, 16); R(night ? '#3a4a7a' : '#7cb6cf', 30, 60, 30, 2); R(night ? '#3a4a7a' : '#7cb6cf', 150, 64, 40, 2);
-      R(night ? '#3a2f28' : '#8a6440', 0, 46, 240, 3); for (let x = 6; x < 240; x += 24) R(night ? '#3a2f28' : '#6b4a2f', x, 46, 3, 12);
-    }
-    if (bg === 'amphoe') {   // ตึกแถวกับหอนาฬิกา
-      for (let x = 0; x < 240; x += 40) { R(night ? '#3a3f58' : '#d8c9a8', x + 2, 34, 36, 36); R(night ? '#2a2f48' : '#9a3a2a', x, 30, 40, 5); R(night && x % 80 ? '#f2d27a' : '#5a7a9a', x + 10, 44, 8, 8); R(night ? '#f2d27a' : '#5a7a9a', x + 24, 44, 8, 8); }
-      R(night ? '#4a4f68' : '#e6dcc8', 110, 10, 20, 60); R(night ? '#5a3a3a' : '#a63a2a', 106, 4, 28, 8); ctx.fillStyle = '#f4f4ec'; ctx.beginPath(); ctx.arc(120, 24, 6, 0, 7); ctx.fill(); R('#2a2a2a', 120, 19, 1, 5); R('#2a2a2a', 120, 24, 4, 1);
-    }
-    if (bg === 'city') {   // ตึกสูงในเมือง ป้ายไฟนีออน และสนามอีสปอร์ตแสงม่วง
-      for (const [x, w, h] of [[0, 34, 46], [36, 26, 60], [150, 30, 54], [184, 24, 40], [210, 30, 58]]) {
-        R(night ? '#2a2f48' : '#a8adb8', x, 70 - h, w, h);
-        for (let yy = 76 - h; yy < 66; yy += 8) for (let xx = x + 4; xx < x + w - 4; xx += 7) R(night && (xx + yy) % 3 ? '#f2d27a' : night ? '#3a3f58' : '#6b8fa8', xx, yy, 4, 4);
-      }
-      R(night ? '#1b2036' : '#3e4c8a', 70, 22, 76, 48); R('#b04ae8', 70, 22, 76, 3); R(night ? '#7a2ad0' : '#5a3aa0', 80, 30, 56, 20); R('#ffffff', 90, 36, 30, 2); R('#5fe0f0', 90, 41, 18, 2);
-      R('#55555e', 0, 70, 240, 90); for (let x = 0; x < 240; x += 24) R('#f2d24b', x, 112, 12, 2);
-      return;
-    }
-    if (bg === 'kku') {   // ตึกคณะกับโรงช็อปเป็นฉากหลัง
-      R(night ? '#3a3f58' : '#c9c0b0', 6, 30, 70, 40); R(night ? '#2a2f48' : '#8f949e', 6, 26, 70, 5);
-      for (let x = 12; x < 72; x += 12) for (let y = 36; y < 66; y += 12) R(night && (x + y) % 3 ? '#f2d27a' : '#5a7a9a', x, y, 7, 7);
-      R(night ? '#2f3448' : '#7d8794', 160, 38, 76, 32); for (let x = 160; x < 236; x += 12) { ctx.fillStyle = night ? '#252a3c' : '#9aa3ae'; ctx.beginPath(); ctx.moveTo(x, 38); ctx.lineTo(x + 12, 30); ctx.lineTo(x + 12, 38); ctx.fill(); }
-    }
-    ctx.fillStyle = night ? '#2f4a32' : '#6e9b3a'; ctx.fillRect(0, 70, 240, 90);
-    ctx.fillStyle = night ? '#3a5a3a' : '#87b04a';
-    for (let i = 0; i < 240; i += 6) ctx.fillRect(i, 70 + ((i * 7) % 5), 2, 6);
-    if (!['market', 'kku', 'amphoe'].includes(bg)) { ctx.fillStyle = night ? '#24402a' : '#3f6b34'; for (const [x, r] of [[20, 10], [50, 7], [200, 9], [225, 6]]) { ctx.beginPath(); ctx.arc(x, 68, r, Math.PI, 0); ctx.fill(); } }
-  }
+  // ---------- วาดฉาก ---------- (ฉากหลังอยู่ใน backdrops.js)
   // เอฟเฟกต์ท่าตามธาตุ: น้ำ = ฟองน้ำลอยโค้งแล้วกระเซ็น, ดิน = ก้อนดินพุ่งแล้วฝุ่นตลบ, สายฟ้า = ฟ้าผ่าซิกแซก,
   // ลม = ลมหมุนวนพร้อมใบไม้, ปกติ = ดาวกระแทก, ท่าสถานะ = ประกายลอยรอบตัวผู้ใช้
   const FXC = { water: ['#7cc6de', '#e8f8ff'], earth: ['#8a5a34', '#d8b47a'], electric: ['#fff2a8', '#f2d24b'], wind: ['#c8f0b0', '#5fae4a'], normal: ['#ffffff', '#f2d24b'] };
@@ -815,9 +758,7 @@
   G.drawBattle = function (ctx) {
     if (!V.active) return;
     const night = G.isNight();
-    drawBackdrop(ctx, V.bg, night);
-    const tn = !(G.world.def && G.world.def.indoor) && G.tint();   // แสงเช้า/เย็นบนฉากหลัง
-    if (tn) { ctx.fillStyle = tn; ctx.fillRect(0, 0, 240, 160); }
+    G.drawBackdrop(ctx, V.bg, performance.now());
     const plat = (x, y, w) => { ctx.fillStyle = 'rgba(70,45,25,0.35)'; ctx.beginPath(); ctx.ellipse(x, y, w, w / 4, 0, 0, 7); ctx.fill(); };
     plat(178, 64, 34); plat(62, 112, 38);
     const now = performance.now();

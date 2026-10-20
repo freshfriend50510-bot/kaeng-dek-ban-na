@@ -4,7 +4,7 @@
 
 ## โครงสร้าง
 - `index.html` เปิดตรงๆ ได้ (file://) ใช้ classic script บน `window.G` ห้ามเปลี่ยนเป็น ES module
-- ลำดับ script: data, formulas, battle, sprites, audio, ui, world, battleui, story, guide, hud, main
+- ลำดับ script: data, formulas, battle, sprites, audio, ui, world, backdrops, battleui, story, guide, hud, main
 - `data_src/` (CSV/txt/json) → `python3 tools/build_data.py` → `js/data.js` ห้ามแก้ `js/data.js` ด้วยมือ
 - `js/battle.js` = ตรรกะล้วน คืน event list, `js/battleui.js` = เล่น event บนจอ
 - `js/story.js` = สคริปต์เนื้อเรื่อง (async), `js/guide.js` = เควสต์/ลูกศรนำทาง, `js/hud.js` = แผงทีม มินิแมพ แผนที่ใหญ่
@@ -30,5 +30,6 @@
 ความสวย: `decor()` ใน world.js วาดทับทุกเฟรม (เงาตึก/ต้นไม้ทอดลงล่างขวาตาม `TALL`, ขอบน้ำหาด+ฟอง, หญ้าแซมทางดิน, ขอบถนน, ไฟหน้าต่างกลางคืน, ขอบพรมแดง/พรมนีออน); ของที่ขึ้นกับช่องข้างๆ ห้ามวาดใน tileCanvas เพราะแคชตาม ch+v+vr; เฟอร์นิเจอร์ใช้อักษรไทยเป็นรหัสช่อง (ก โซฟา ค ต้นไม้ ง ตู้กุญแจ ฉ เคาน์เตอร์หินอ่อน ช รถเข็นกระเป๋า ซ โต๊ะดอกไม้ ฌ พรมแดง* ฏ ตู้แช่ ฑ ตู้เกม ฒ บีนแบก ณ ถังขยะ ด ตู้น้ำ ต พรมนีออน* (*เดินได้)); `floor` ของแมพ: `-` กระเบื้อง `{` สนามอีสปอร์ต (พื้นขาวเทา ผนังม่วง) `n` ร้านเน็ต `*` หินอ่อนโรงแรม (ผนังเปลี่ยนตาม)
 สีคำสำคัญ: `G.ui.colorize`/`colorHTML` ใน ui.js ระบายสีทุกข้อความใน say และ info ของตัวเลือกอัตโนมัติ (ชื่อจาก species/party/NPC พี่-น้อง-ลุง..., ท่า, ไอเท็ม, เงิน `บาท`, ธาตุ, สถานะ, ได้ผลดี/หมดแรง, "ชื่อเควสต์") คลาส `k-*` ใน style.css, ปิดได้ `settings.colorText`
 ดอนปู่ตา (เควสต์รองหลังยิม 3): ทางเข้าบนสุดของหมู่บ้านข้างศาล (warp village 3,1 → แมพ `donputa`), เฒ่าจ้ำ `jam2` ให้เควสต์ s_putata → ปู่ตา `puta` → ไล่คนตัดไม้ 3 คน (trainer `after: loggers_check` → `loggers_out`) → ปู่ตาฟื้นป่า `forest_healed` (ช่อง `ถ` ตอไม้แตกหน่อ, `ท` กองซุง) → s_naga พานาคน้อย (ตกปลาริมพอง) มาหาแม่นาค `naga_mom` เลือกคืนแม่/อยู่ต่อ ได้ `naga_scale` (ของถือ `for` = ธาตุ ×1.2 ใน `G.heldMult`); เพลง/ฉากต่อสู้ `forest`
+ฉากหลังตอนสู้: `js/backdrops.js` (`G.drawBackdrop(ctx,bg,now)`) ฉากกลางแจ้ง `OUT` (village field market kku phong amphoe city forest) วาดสีกลางวันแล้วย้อมตามช่วงเวลา/ฝน ไฟลงทะเบียน `P.lit` เรืองแสงทีหลัง, ฉากในตึก `IN` (ramen kku_shop hospital[ward/xray/lab] clinic arena netcafe hotel airport temple classroom shop wood) เลือกจาก bg → `ALIAS` → แมพ → `def.floor`; ของขยับอยู่ใน `<ชื่อ>_anim`; ชั้นนิ่งแคชตาม bg+แมพ+เวลา+ฝน+flag (boss1_done forest_healed xray_on)
 พี่ต้นน้ำถูกแทนด้วยพี่ม่อนแล้ว
 ไม่เอา: ระบบตราคุมความเชื่อฟัง
