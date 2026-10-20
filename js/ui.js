@@ -209,7 +209,7 @@
   G.ui.panel = function (html, cls) {
     return new Promise((resolve) => {
       const box = el('div', 'panel sheet ' + (cls || ''), html);
-      const m = { el: box, onKey: (k) => { if (k === 'ok' || k === 'back') { pop(m); resolve(); } } };
+      const m = { el: box, onKey: (k) => { if (k === 'ok' || k === 'back') { pop(m); resolve(); } else if (k === 'up' || k === 'down') box.scrollBy({ top: (k === 'up' ? -1 : 1) * box.clientHeight * 0.4, behavior: 'smooth' }); } };   // ↑↓ เลื่อนดู
       push(m);
     });
   };
@@ -868,7 +868,7 @@
     if (F.intro_done) add('สมุดเควสต์', '📜', '');
     if (G.travelSpots().length > 1) add('เดินทาง', '🚌', '');
     if (G.ui.achievements) add('ความสำเร็จ', '🏆', G.ui.achCount ? G.ui.achCount() : '');
-    add('ตารางธาตุ', '⚖️', ''); add('วิธีเล่น', '❓', ''); add('บันทึกเกม', '💾', `ช่อง ${G.slot}`); add('ตั้งค่า', '⚙️', ''); add('ปิด', '✖️', '');
+    add('ตารางธาตุ', '⚖️', ''); add('วิธีเล่น', '❓', ''); add('มีอะไรใหม่', '📰', ''); add('บันทึกเกม', '💾', `ช่อง ${G.slot}`); add('ตั้งค่า', '⚙️', ''); add('ปิด', '✖️', '');
     const where = (G.world.def && G.world.def.name) || '';
     const header = `<div class="mm-head"><canvas width="16" height="16" data-sprite="${esc(S.look || 'player')}"></canvas><div><b>${esc(S.name)}</b><small>📍 ${esc(where)}</small></div>
       <div class="mm-stats"><span>💰 ${S.money} บาท</span><span>⏱ ${playTime(S.playMs || 0)}</span><span class="mm-badges">${BADGES.slice(0, 3).map(([f, n]) => `<canvas width="16" height="16" class="${F[f + '_done'] ? '' : 'off'}" title="${esc(n)}" data-sprite="badge:${f}"></canvas>`).join('')}</span></div></div>`;
@@ -883,6 +883,7 @@
     else if (pick === 'ความสำเร็จ') await G.ui.achievements();
     else if (pick === 'ตารางธาตุ') await G.ui.typeChart();
     else if (pick === 'วิธีเล่น') await G.ui.panel(G.HOWTO, 'tip-sheet');
+    else if (pick === 'มีอะไรใหม่') await G.ui.whatsNew();
     else if (pick === 'บันทึกเกม') { if (await G.ui.saveMenu()) { G.sfx('buy'); await G.ui.say(`บันทึกเกมลงช่อง ${G.slot} แล้ว`); } }
     else if (pick === 'ตั้งค่า') await G.ui.settings();
   };

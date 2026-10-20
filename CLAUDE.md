@@ -4,7 +4,7 @@
 
 ## โครงสร้าง
 - `index.html` เปิดตรงๆ ได้ (file://) ใช้ classic script บน `window.G` ห้ามเปลี่ยนเป็น ES module
-- ลำดับ script: data, formulas, battle, sprites, audio, ui, world, backdrops, battleui, story, guide, hud, main
+- ลำดับ script: data, formulas, battle, sprites, audio, ui, world, backdrops, battleui, story, guide, hud, achieve, main
 - `data_src/` (CSV/txt/json) → `python3 tools/build_data.py` → `js/data.js` ห้ามแก้ `js/data.js` ด้วยมือ
 - `js/battle.js` = ตรรกะล้วน คืน event list, `js/battleui.js` = เล่น event บนจอ
 - `js/story.js` = สคริปต์เนื้อเรื่อง (async), `js/guide.js` = เควสต์/ลูกศรนำทาง, `js/hud.js` = แผงทีม มินิแมพ แผนที่ใหญ่

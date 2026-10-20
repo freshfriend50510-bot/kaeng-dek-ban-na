@@ -42,10 +42,10 @@
           if (e.reward && skip) break;
           await G.ui.say(e.text, null, { battle: true, auto: 650, onDouble: e.reward ? () => { skip = true; } : null });
           break;
-        case 'anim': if (e.id && e.id.startsWith('ult_')) { V.cutin = { t0: performance.now(), text: G.DATA.moves[e.id].name, side: e.side }; G.sfx('power'); await wait(900); }
+        case 'anim': if (e.id && e.id.startsWith('ult_')) { if (e.side === 'p') G.stat('ults'); V.cutin = { t0: performance.now(), text: G.DATA.moves[e.id].name, side: e.side }; G.sfx('power'); await wait(900); }
           startAct(e.side, e.type, e.cat, e.id, 0); V.fx = { side: e.side, type: e.type, cat: e.cat, id: e.id, t0: performance.now() }; G.sfx(e.cat === 'status' ? 'status' : 'attack'); await wait(SIG[e.id] ? Math.round(durOf(e.id) * 0.566) : e.cat === 'status' ? 300 : 260); break;
-        case 'hit': V.lastEff = e.eff || 1; V.lastCrit = !!e.crit; V.shake = { side: e.side, t: 0 }; V.knock = { side: e.side, t0: performance.now() }; G.sfx(e.eff > 1 ? 'super' : 'hit'); await wait(200); break;
-        case 'crit': V.critFlash = 10; V.shake = { side: e.side, t: 0 }; G.sfx('super'); await wait(160); break;
+        case 'hit': if (e.side === 'f' && e.eff > 1) G.stat('supers'); V.lastEff = e.eff || 1; V.lastCrit = !!e.crit; V.shake = { side: e.side, t: 0 }; V.knock = { side: e.side, t0: performance.now() }; G.sfx(e.eff > 1 ? 'super' : 'hit'); await wait(200); break;
+        case 'crit': if (e.side === 'f') G.stat('crits'); V.critFlash = 10; V.shake = { side: e.side, t: 0 }; G.sfx('super'); await wait(160); break;
         case 'hp': await tweenHp(b, e.side, e.hp); break;
         case 'status': render(b); break;
         case 'faint': V.faint[e.side] = 0.001; G.sfx('faint'); await wait(450); break;
@@ -196,6 +196,8 @@
       }
     }
     if (result !== 'lose') for (const m of S.party.slice()) await G.ui.tryEvolve(m);   // วิวัฒนาการหลังจบการต่อสู้
+    if (result === 'win') G.stat('wins'); if (result === 'recruit') G.stat('recruits'); if (opt.raid && result !== 'lose') G.stat('raids');
+    G.checkAch();
     return result;
   };
 

@@ -366,3 +366,11 @@ body.cb .hpbar i.yellow { background-color: #e0b830; } body.cb .hpbar i.red { ba
 /* หลอดจาง: ส่วนที่เพิ่งเสียไป */
 .hpbar { position: relative; } .hpbar i { position: relative; z-index: 1; }
 .hpbar b { position: absolute; left: 0; top: 0; bottom: 0; background: #f2a0a0; opacity: 0.85; }
+/* ความสำเร็จ + มีอะไรใหม่ */
+.ach-grid { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 2); }
+.ach { display: flex; gap: calc(var(--u) * 3); align-items: flex-start; padding: calc(var(--u) * 2); border-radius: calc(var(--u) * 2); background: rgba(246,238,216,.04); opacity: 0.75; font-size: 0.85em; }
+.ach.on { opacity: 1; background: rgba(217,178,90,.14); } .ach.on.t3 { background: rgba(242,210,75,.22); box-shadow: inset 0 0 0 calc(var(--u) * 0.5) var(--gold); }
+.ach i { font-style: normal; font-size: 1.4em; line-height: 1; } .ach b { display: block; } .ach small { font-size: 0.8em; }
+.ach-bar { position: relative; height: calc(var(--u) * 4); background: var(--indigo-deep); border-radius: calc(var(--u) * 2); margin-top: calc(var(--u) * 1); overflow: hidden; }
+.ach-bar u { position: absolute; left: 0; top: 0; bottom: 0; background: #5fb8e0; text-decoration: none; } .ach-bar span { position: relative; font-size: 0.65em; padding-left: calc(var(--u) * 2); line-height: calc(var(--u) * 4); display: block; }
+.pn b { color: var(--gold); } .pn ul { margin: calc(var(--u) * 1) 0 calc(var(--u) * 3); padding-left: calc(var(--u) * 8); font-size: 0.85em; }
