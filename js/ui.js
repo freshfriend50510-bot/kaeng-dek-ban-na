@@ -165,11 +165,12 @@
     return new Promise((resolve) => {
       const box = el('div', 'panel choice ' + (opt.cls || ''));
       if (opt.title) box.appendChild(el('div', 'choice-title', esc(opt.title)));
+      if (opt.header) box.appendChild(el('div', 'choice-header', opt.header));   // html สรุปบนหัวเมนู
       const items = options.map((o) => (typeof o === 'string' ? { label: o } : o));
-      const list = el('div', 'choice-list' + (opt.grid ? ' grid' : ''));
+      const list = el('div', 'choice-list' + (opt.grid || opt.cols ? ' grid' : '') + (opt.cols ? ' cols' + opt.cols : ''));
       const rows = items.map((it, i) => {
-        const r = el('div', 'choice-item' + (it.disabled ? ' disabled' : '') + (it.cls ? ' ' + it.cls : ''));
-        r.innerHTML = `${it.icon ? `<canvas width="16" height="16" class="ico" data-sprite="${esc(it.icon)}"></canvas>` : ''}<span class="lbl">${esc(it.label)}</span>${it.sub ? `<span class="sub">${esc(it.sub)}</span>` : ''}`;
+        const r = el('div', 'choice-item' + (it.disabled ? ' disabled' : '') + (it.cls ? ' ' + it.cls : '') + (it.emoji ? ' tile' : ''));
+        r.innerHTML = `${it.icon ? `<canvas width="16" height="16" class="ico" data-sprite="${esc(it.icon)}"></canvas>` : ''}${it.emoji ? `<span class="emo">${it.emoji}</span>` : ''}<span class="lbl">${esc(it.label)}</span>${it.sub ? `<span class="sub">${esc(it.sub)}</span>` : ''}${it.badge ? `<span class="nbadge">${esc(it.badge)}</span>` : ''}`;
         r.addEventListener('click', () => { sel = i; draw(); pick(); });
         list.appendChild(r); return r;
       });
@@ -182,12 +183,14 @@
         if (opt.info) { const t = opt.info(sel) || ''; info.innerHTML = G.settings.colorText === false ? esc(t) : G.ui.colorHTML(G.ui.colorize(t)); }
       };
       const pick = () => { if (items[sel].disabled) { G.sfx('bump'); return; } G.sfx('tick'); if (opt.remember) MEM[opt.remember] = sel; pop(m); resolve(sel); };
-      const cols = opt.grid ? 2 : 1;
+      const cols = opt.cols || (opt.grid ? 2 : 1), n = items.length;
       const m = { el: box, onKey: (k) => {
-        if (k === 'up') sel = (sel - cols + items.length) % items.length;
-        else if (k === 'down') sel = (sel + cols) % items.length;
-        else if (k === 'left' && cols > 1) sel = sel % 2 ? sel - 1 : sel;
-        else if (k === 'right' && cols > 1) sel = sel % 2 ? sel : Math.min(items.length - 1, sel + 1);
+        if (k === 'up') sel = sel - cols >= 0 ? sel - cols : cols > 1 ? Math.min(n - 1, sel + Math.floor((n - 1 - sel) / cols) * cols) : n - 1;
+        else if (k === 'down') sel = sel + cols < n ? sel + cols : cols > 1 ? sel % cols : 0;
+        else if (k === 'left' && cols > 1) sel = sel % cols ? sel - 1 : Math.min(n - 1, sel + cols - 1);
+        else if (k === 'right' && cols > 1) sel = sel % cols < cols - 1 && sel + 1 < n ? sel + 1 : sel - (sel % cols);
+        else if (k === 'left' && opt.onSide) { pop(m); resolve(-2); return; }
+        else if (k === 'right' && opt.onSide) { pop(m); resolve(-3); return; }
         else if (k === 'ok') return pick();
         else if (k === 'back' && opt.cancel !== false) { G.sfx('tick'); pop(m); resolve(-1); return; }
         draw();
@@ -358,17 +361,59 @@
     inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); done(inp.value.trim() || null); } else if (e.key === 'Escape') done(null); e.stopPropagation(); });
   });
 
+  // ข้อมูลสมาชิก: 3 แท็บ (ประวัติ · ค่าพลังกราฟหกเหลี่ยม · ท่า) ← → เปลี่ยนแท็บ
+  const STAT_TH = [['hp', 'HP'], ['atk', 'โจมตี'], ['def', 'ป้องกัน'], ['spe', 'ความเร็ว'], ['spd', 'ป้องกันพิเศษ'], ['spa', 'พิเศษ']];
+  function hexChart(cv, m) {
+    const g = cv.getContext('2d'), W = cv.width, H = cv.height, cx = W / 2, cy = H / 2 + 2, R = Math.min(W, H) * 0.3;
+    const sp = G.DATA.species[m.sp], nt = G.NATURES[m.nature] || {};
+    const pt = (i, r) => [cx + Math.sin((i / 6) * Math.PI * 2) * r, cy - Math.cos((i / 6) * Math.PI * 2) * r];
+    const poly = (r, fill, stroke) => { g.beginPath(); for (let i = 0; i < 6; i++) { const [x, y] = pt(i, typeof r === 'function' ? r(i) : r); i ? g.lineTo(x, y) : g.moveTo(x, y); } g.closePath(); if (fill) { g.fillStyle = fill; g.fill(); } if (stroke) { g.strokeStyle = stroke; g.stroke(); } };
+    g.lineWidth = 1;
+    for (const k of [1, 0.75, 0.5, 0.25]) poly(R * k, k === 1 ? 'rgba(246,238,216,0.06)' : null, 'rgba(246,238,216,0.18)');
+    for (let i = 0; i < 6; i++) { const [x, y] = pt(i, R); g.strokeStyle = 'rgba(246,238,216,0.12)'; g.beginPath(); g.moveTo(cx, cy); g.lineTo(x, y); g.stroke(); }
+    const base = (i) => R * Math.min(1, (sp[STAT_TH[i][0]] || 0) / 130);
+    const cap = (k) => Math.floor((291 * m.lv) / 100) + (k === 'hp' ? m.lv + 10 : 5);   // ค่าที่ได้ถ้าค่าพื้นฐาน 130 ที่เลเวลนี้
+    const cur = (i) => { const k = STAT_TH[i][0]; return R * Math.max(0.08, Math.min(1.1, m.stats[k] / cap(k))); };
+    poly(base, 'rgba(95,184,224,0.25)', 'rgba(95,184,224,0.7)');   // ค่าพื้นฐานของสายพันธุ์
+    poly(cur, 'rgba(217,178,90,0.45)', '#f2d24b');                   // ค่าจริงตอนนี้ (เทียบเพดานที่เลเวลเดียวกัน)
+    g.font = `${Math.round(H / 15)}px Itim, Tahoma, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    STAT_TH.forEach(([k, n], i) => {
+      const [x, y] = pt(i, R + H * 0.11);
+      g.fillStyle = nt[1] === k ? '#ff9a8a' : nt[2] === k ? '#8ab8ff' : '#f6eed8';
+      g.fillText(`${n}${nt[1] === k ? '▲' : nt[2] === k ? '▼' : ''}`, x, y - H * 0.035); g.fillStyle = '#d9b25a'; g.fillText(k === 'hp' ? `${m.hp}/${m.stats.hp}` : m.stats[k], x, y + H * 0.04);
+    });
+  }
   G.ui.monInfo = function (m) {
-    const sp = G.DATA.species[m.sp];
-    const moves = m.moves.map((s) => { const mv = G.DATA.moves[s.id];
-      return `<tr><td>${esc(mv.name)}</td><td>${G.ui.typeTag(mv.type)}</td><td>${mv.power || '—'}</td><td>${s.pp}/${mv.pp}</td></tr>`; }).join('');
-    const st = m.stats;
-    return G.ui.panel(`
-      <div class="info-head"><canvas class="info-sprite" width="16" height="16" data-sprite="${G.monLook(m)}"></canvas>
-        <div><b>${esc(m.name)}</b> Lv${m.lv} ${G.ui.typeTag(sp.type)} ${G.ui.statusTag(m.status)} <small>${KIND_TH[sp.kind] || ''}${m.name !== sp.name && sp.kind !== 'eng' && sp.kind !== 'med' ? ' · ' + esc(sp.name) : ''}</small><br>
-        <small>${esc(sp.desc)}</small>${sp.ability ? `<br><small>ความสามารถ: ${esc(AB_SHORT[sp.ability] + ' — ' + G.AB_DESC[sp.ability])}</small>` : ''}${(m.ribbons || []).length ? `<br><small>ริบบิ้น: ${m.ribbons.map((r) => ({ champ: '🏆 แชมป์อีสาน', tower: '🗼 หอท้าสู้ 20 ชนะ' }[r] || r)).join(' ')}</small>` : ''}${m.traded ? '<br><small>ได้มาจากการแลก (EXP ×1.5)</small>' : ''}<br><small>นิสัย: ${esc(G.natureText(m))} · ความสนิท ${'♥'.repeat(G.hearts(m)) || '—'}${G.hearts(m) >= 4 ? ' (สนิทมาก บางทีจะทนหมัดสุดท้ายได้)' : ''}</small>${m.held ? `<br><small>ถือ: ${esc(G.DATA.items[m.held].name)}</small>` : ''}</div></div>
-      <div class="stats">HP ${m.hp}/${st.hp} · โจมตี ${st.atk} · ป้องกัน ${st.def} · พิเศษ ${st.spa} · ป้องกันพิเศษ ${st.spd} · ความเร็ว ${st.spe}</div>
-      <table class="moves"><tr><th>ท่า</th><th>ธาตุ</th><th>พลัง</th><th>PP</th></tr>${moves}</table>`, 'mon-info');
+    const sp = G.DATA.species[m.sp], TABS = ['ประวัติ', 'ค่าพลัง', 'ท่า'];
+    let tab = 0;
+    return new Promise((resolve) => {
+      const box = el('div', 'panel sheet mon-info');
+      const head = () => `<div class="info-head"><canvas class="info-sprite" width="16" height="16" data-sprite="${G.monLook(m)}"></canvas>
+        <div><b>${m.shiny ? '<span class="k-shiny">✨</span>' : ''}${esc(m.name)}</b> Lv${m.lv} ${G.ui.typeTag(sp.type)} ${G.ui.statusTag(m.status)} <small>${KIND_TH[sp.kind] || ''}${m.name !== sp.name && sp.kind !== 'eng' && sp.kind !== 'med' ? ' · ' + esc(sp.name) : ''}</small>
+        <div class="mi-tabs">${TABS.map((t, i) => `<span class="${i === tab ? 'on' : ''}" data-t="${i}">${t}</span>`).join('')}<em>← →</em></div></div></div>`;
+      const body = () => {
+        if (tab === 0) return `<div class="mi-body"><p>${esc(sp.desc)}</p>
+          ${sp.ability ? `<p><b class="mi-k">ความสามารถ</b> ${esc(AB_SHORT[sp.ability])} — <small>${esc(G.AB_DESC[sp.ability])}</small></p>` : ''}
+          <p><b class="mi-k">นิสัย</b> ${esc(G.natureText(m))} · <b class="mi-k">ความสนิท</b> <span class="tc-heart">${'♥'.repeat(G.hearts(m)) || '—'}</span>${G.hearts(m) >= 4 ? ' <small>(สนิทมาก บางทีจะทนหมัดสุดท้ายได้)</small>' : ''}</p>
+          ${m.held ? `<p><b class="mi-k">ถือ</b> <canvas class="mi-ico" width="16" height="16" data-sprite="item:${m.held}"></canvas>${esc(G.DATA.items[m.held].name)}</p>` : ''}
+          ${(m.ribbons || []).length ? `<p><b class="mi-k">ริบบิ้น</b> ${m.ribbons.map((r) => ({ champ: '🏆 แชมป์อีสาน', tower: '🗼 หอท้าสู้ 20 ชนะ' }[r] || r)).join(' ')}</p>` : ''}
+          ${m.traded ? '<p><small>ได้มาจากการแลก (EXP ×1.5)</small></p>' : ''}
+          <p><b class="mi-k">EXP</b> อีก ${Math.max(0, G.expFor(m.lv + 1) - m.exp)} ถึง Lv${m.lv + 1}</p><div class="expbar"><i style="width:${Math.min(100, ((m.exp - G.expFor(m.lv)) / (G.expFor(m.lv + 1) - G.expFor(m.lv))) * 100)}%"></i></div></div>`;
+        if (tab === 1) return `<div class="mi-body mi-stat"><canvas class="mi-hex" width="520" height="300"></canvas><small class="mi-legend"><i class="lg-cur"></i>ค่าตอนนี้ <i class="lg-base"></i>ค่าพื้นฐานสายพันธุ์ · ▲▼ ผลของนิสัย</small></div>`;
+        return `<table class="moves"><tr><th>ท่า</th><th>ธาตุ</th><th>พลัง</th><th>PP</th></tr>${m.moves.map((s) => { const mv = G.DATA.moves[s.id];
+          return `<tr><td>${esc(mv.name)}<br><small>${esc(G.gimmickText ? G.gimmickText(s.id) || '' : '')}</small></td><td>${G.ui.typeTag(mv.type)}</td><td>${mv.power || '—'}</td><td>${s.pp}/${mv.pp}</td></tr>`; }).join('')}</table>`;
+      };
+      const render = () => {
+        box.innerHTML = head() + body() + '<div class="hint">← → เปลี่ยนแท็บ · Z/X ปิด</div>';
+        const cv = box.querySelector('.mi-hex'); if (cv) hexChart(cv, m);
+        box.querySelectorAll('[data-t]').forEach((e) => e.addEventListener('click', (ev) => { ev.stopPropagation(); tab = +e.dataset.t; G.sfx('tick'); render(); }));
+      };
+      const mm = { el: box, onKey: (k) => {
+        if (k === 'left' || k === 'right') { tab = (tab + (k === 'left' ? 2 : 1)) % 3; G.sfx('tick'); render(); }
+        else if (k === 'ok' || k === 'back') { pop(mm); resolve(); }
+      } };
+      push(mm); render();
+    });
   };
 
   // ---------- กระเป๋า ----------
@@ -385,6 +430,13 @@
     const eng = G.isPerson(foe), fits = it.for === (eng ? G.DATA.species[foe.sp].kind : 'ghost');
     return Math.min(100, Math.round((G.recruitValue(foe, it.value * (fits ? 1 : 0.5) * G.recruitSit(id, foe, (G.battleTurn ? G.battleTurn() : 0) + 1)) / 256) * 100));
   };
+  // ความหายาก: ของสำคัญ = ทอง, ของถือ/ท่าลับ/ไอเทมเลเวล = ม่วง, ของแพง = ฟ้า, ที่เหลือธรรมดา
+  G.rarity = (id) => { const it = G.DATA.items[id]; if (!it) return 'c';
+    if (it.kind === 'key' || it.kind === 'kit') return 'l'; if (['held', 'tm', 'lvup', 'mint'].includes(it.kind)) return 'r'; return (+it.price || 0) >= 300 ? 'u' : 'c'; };
+  const RARE_TH = { c: 'ธรรมดา', u: 'ดี', r: 'หายาก', l: 'ของสำคัญ' };
+  // ของใหม่: ได้มาแต่ยังไม่เคยเปิดดูในกระเป๋า (S.seenItems)
+  const isNew = (id) => G.state && G.state.bag[id] > 0 && !(G.state.seenItems || {})[id];
+  G.ui.newItemCount = () => (G.state ? Object.keys(G.state.bag).filter((k) => G.DATA.items[k] && isNew(k)).length : 0);
   G.ui.bagScreen = function (opt = {}) {
     const chance = (id) => chanceOf(opt.foe, id);
     const S = G.state, I = G.DATA.items;
@@ -396,7 +448,7 @@
       const box = el('div', 'panel sheet bag-sheet');
       const render = () => {
         const [, ids] = tabs[t];
-        const head = `<div class="bag-tabs">${tabs.map(([n, l], i) => `<span class="${i === t ? 'on' : ''}" data-t="${i}">${n}${l ? ` <small>${l.length}</small>` : ''}</span>`).join('')}</div>`;
+        const head = `<div class="bag-tabs">${tabs.map(([n, l], i) => `<span class="${i === t ? 'on' : ''}" data-t="${i}">${n}${l ? ` <small>${l.length}</small>` : ''}${l && l.some(isNew) ? '<i class="ndot"></i>' : ''}</span>`).join('')}</div>`;
         let list, detail;
         if (!ids) {   // ตรายิม
           const b = BADGES[sel];
@@ -406,8 +458,9 @@
         } else if (!ids.length) { list = '<div class="bag-empty">ยังไม่มีของในหมวดนี้</div>'; detail = ''; }
         else {
           const id = ids[sel], it = I[id];
-          list = ids.map((k, i) => `<div class="bag-item ${i === sel ? 'sel' : ''}" data-i="${i}"><canvas width="16" height="16" data-sprite="item:${k}"></canvas><span>${esc(I[k].name)}</span><em>${I[k].kind === 'tm' ? '' : '×' + S.bag[k]}${chance(k) !== null ? ` · ${chance(k)}%` : ''}</em></div>`).join('');
-          detail = `<canvas class="bag-big" width="16" height="16" data-sprite="item:${id}"></canvas><b>${esc(it.name)}</b>${it.kind === 'tm' ? '' : `<span class="bag-count">มี ${S.bag[id]} ชิ้น</span>`}<p>${esc(it.desc)}</p>${chance(id) !== null ? `<p class="bag-chance">โอกาสชวนสำเร็จตอนนี้ ${chance(id)}%</p>` : ''}${SOURCE[id] ? `<p class="bag-src">${SOURCE[id]}</p>` : ''}${it.price && it.kind !== 'tm' && it.kind !== 'held' ? `<p class="bag-src">ราคาร้าน ${it.price} บาท</p>` : ''}`;
+          if (!opt.inBattle) { S.seenItems = S.seenItems || {}; setTimeout(() => { S.seenItems[id] = 1; }, 0); }
+          list = ids.map((k, i) => `<div class="bag-item rar-${G.rarity(k)} ${i === sel ? 'sel' : ''}" data-i="${i}"><canvas width="16" height="16" data-sprite="item:${k}"></canvas><span>${esc(I[k].name)}${isNew(k) && k !== id ? '<i class="nbadge">ใหม่</i>' : ''}</span><em>${I[k].kind === 'tm' ? '' : '×' + S.bag[k]}${chance(k) !== null ? ` · ${chance(k)}%` : ''}</em></div>`).join('');
+          detail = `<canvas class="bag-big rar-${G.rarity(id)}" width="16" height="16" data-sprite="item:${id}"></canvas><b>${esc(it.name)}</b><span class="rar-tag rar-${G.rarity(id)}">${RARE_TH[G.rarity(id)]}</span>${it.kind === 'tm' ? '' : `<span class="bag-count">มี ${S.bag[id]} ชิ้น</span>`}<p>${esc(it.desc)}</p>${chance(id) !== null ? `<p class="bag-chance">โอกาสชวนสำเร็จตอนนี้ ${chance(id)}%</p>` : ''}${SOURCE[id] ? `<p class="bag-src">${SOURCE[id]}</p>` : ''}${it.price && it.kind !== 'tm' && it.kind !== 'held' ? `<p class="bag-src">ราคาร้าน ${it.price} บาท</p>` : ''}`;
         }
         box.innerHTML = `<div class="choice-title">${esc(opt.title || 'กระเป๋า')} · เงิน ${S.money} บาท</div>${head}<div class="bag-body"><div class="bag-list">${list}</div><div class="bag-detail">${detail}</div></div>
           <div class="hint">← → เปลี่ยนหมวด · ↑ ↓ เลือก · Z ${opt.inBattle ? 'ใช้' : opt.pickOnly ? 'เลือก' : 'ใช้/ดู'} · X ปิด</div>`;
@@ -802,60 +855,76 @@
     return G.ui.panel(`<div class="choice-title">ตารางธาตุ</div><div class="tchart-wrap"><table class="tchart"><tr><th class="corner">ท่า ↓ / โดน →</th>${head}</tr>${rows}</table><ul class="howto tchart-tips">${tips}<li>ท่าธาตุเดียวกับตัวเองแรงขึ้น ×1.5</li></ul></div>`, 'tchart-sheet');
   };
   let lastMain = '';
+  // ---------- เมนูหลัก: ไทล์ไอคอน 3 คอลัมน์ + หัวสรุป (ชื่อ เงิน เวลาเล่น ตรา สมุด ที่อยู่) ----------
+  const playTime = (ms) => { const m = Math.floor(ms / 60000); return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`; };
   G.ui.mainMenu = async function () {
-    const S = G.state;
-    const items = [];
-    if (S.party.length) items.push('ทีม');
-    items.push('กระเป๋า');
-    if (S.party.some((m) => m.hp > 0 && (m.hp < m.stats.hp || m.status))) items.push('ฟื้นทีมด่วน');
-    if (S.flags.starter_chosen) items.push('สมุดบันทึก');
-    if (S.flags.intro_done) items.push('สมุดเควสต์');
-    if (G.travelSpots().length > 1) items.push('เดินทาง');
-    items.push('ตรา', 'ตารางธาตุ', 'วิธีเล่น', 'บันทึกเกม', 'ตั้งค่า', 'ปิด');
-    const i = await G.ui.choose(items, { cls: 'mainmenu', title: `${S.name} · ${S.money} บาท`, start: Math.max(0, items.indexOf(lastMain)) });
-    const pick = items[i]; if (pick && pick !== 'ปิด') lastMain = pick;
+    const S = G.state, F = S.flags;
+    const T = [];
+    const add = (key, emoji, sub, badge) => T.push({ key, label: key, emoji, sub, badge });
+    if (S.party.length) add('ทีม', '👥', `${S.party.length}/6`);
+    add('กระเป๋า', '🎒', '', G.ui.newItemCount() ? 'ใหม่' : '');
+    if (S.party.some((m) => m.hp > 0 && (m.hp < m.stats.hp || m.status))) add('ฟื้นทีมด่วน', '💊', 'ใช้ยาที่คุ้ม');
+    if (F.starter_chosen) { const ks = Object.keys(G.DATA.species); add('สมุดบันทึก', '📖', `${ks.filter((k) => S.dex[k] === 2).length}/${ks.length}`); }
+    if (F.intro_done) add('สมุดเควสต์', '📜', '');
+    if (G.travelSpots().length > 1) add('เดินทาง', '🚌', '');
+    if (G.ui.achievements) add('ความสำเร็จ', '🏆', G.ui.achCount ? G.ui.achCount() : '');
+    add('ตารางธาตุ', '⚖️', ''); add('วิธีเล่น', '❓', ''); add('บันทึกเกม', '💾', `ช่อง ${G.slot}`); add('ตั้งค่า', '⚙️', ''); add('ปิด', '✖️', '');
+    const where = (G.world.def && G.world.def.name) || '';
+    const header = `<div class="mm-head"><canvas width="16" height="16" data-sprite="${esc(S.look || 'player')}"></canvas><div><b>${esc(S.name)}</b><small>📍 ${esc(where)}</small></div>
+      <div class="mm-stats"><span>💰 ${S.money} บาท</span><span>⏱ ${playTime(S.playMs || 0)}</span><span class="mm-badges">${BADGES.slice(0, 3).map(([f, n]) => `<canvas width="16" height="16" class="${F[f + '_done'] ? '' : 'off'}" title="${esc(n)}" data-sprite="badge:${f}"></canvas>`).join('')}</span></div></div>`;
+    const i = await G.ui.choose(T, { cls: 'mainmenu', cols: 3, header, start: Math.max(0, T.findIndex((t) => t.key === lastMain)) });
+    const pick = T[i] && T[i].key; if (pick && pick !== 'ปิด') lastMain = pick;
     if (pick === 'ทีม') await G.ui.partyMenu();
     else if (pick === 'กระเป๋า') await G.ui.bagMenu();
     else if (pick === 'ฟื้นทีมด่วน') await G.ui.quickHeal();
     else if (pick === 'สมุดบันทึก') await G.ui.notebook();
     else if (pick === 'สมุดเควสต์') await G.ui.questLog();
     else if (pick === 'เดินทาง') await G.ui.travel();
+    else if (pick === 'ความสำเร็จ') await G.ui.achievements();
     else if (pick === 'ตารางธาตุ') await G.ui.typeChart();
-    else if (pick === 'ตรา') await G.ui.panel(`<div class="choice-title">ตรายิม</div><div class="badges">${
-      [['gym1', 'ผ้าโพก'], ['gym2', 'เฟือง'], ['gym3', 'หูฟัง'], ['gym4', 'ไม้เรียว']].map(([f, n]) =>
-        `<div class="badge ${S.flags[f + '_done'] ? 'on' : ''}"><canvas width="16" height="16" data-sprite="badge:${f}"></canvas>ตรา${n}</div>`).join('')}</div>`);
     else if (pick === 'วิธีเล่น') await G.ui.panel(G.HOWTO, 'tip-sheet');
     else if (pick === 'บันทึกเกม') { if (await G.ui.saveMenu()) { G.sfx('buy'); await G.ui.say(`บันทึกเกมลงช่อง ${G.slot} แล้ว`); } }
-    else if (pick === 'ตั้งค่า') {
-      const on = (b) => (b ? 'เปิด' : 'ปิด');
-      const s = await G.ui.choose([`ความเร็วข้อความ: ${['ช้า', 'กลาง', 'เร็ว'][G.settings.textSpeed - 1]}`, `เพลง: ${on(G.settings.music)}`,
-        `เสียงเอฟเฟกต์: ${on(G.settings.sound)}`, `ไกด์และลูกศรชี้ทาง: ${on(G.settings.guide)}`, `แถบทีมและมินิแมพ: ${on(G.settings.hud !== false)}`, `เก็บเวลเร็ว + ติดคริง่าย: ${on(G.settings.easy !== false)}`, 'สำรองเซฟเป็นไฟล์', 'ใส่รหัสลับ', `บันทึกอัตโนมัติ: ${on(G.settings.autosave !== false)}`,
-        `เสียงบรรยากาศ: ${on(G.settings.ambient !== false)}`, `ลดการสั่นจอและแฟลช: ${on(G.settings.calm)}`, `ข้ามบทที่เคยอ่าน (ปุ่ม X): ${on(G.settings.skipRead !== false)}`, `ความเร็วการต่อสู้: ${G.settings.fast ? '×2 เร็ว' : 'ปกติ'}`, `สีคำสำคัญในข้อความ: ${on(G.settings.colorText !== false)}`, `วิ่งตลอด (กด X ค้างเพื่อเดินช้า): ${on(G.settings.autoRun !== false)}`, `ระดับเพลง: ${G.settings.volMusic ?? 100}%`, `ระดับเสียงประกอบ: ${G.settings.volSfx ?? 100}%`, `ไล่ผีอ่อนแบบรวบรัด: ${on(G.settings.quickWild !== false)}`, `ขนาดตัวอักษร: ${['ปกติ', 'ใหญ่', 'ใหญ่มาก'][G.settings.textSize || 0]}`], { cls: 'small', remember: 'settings',
-        info: (k) => ({ 5: 'เปิด: EXP ×3 แบ่งให้ทั้งแก๊ง และฝั่งเราติดคริ 25%', 8: `บันทึกลงช่อง ${G.slot} เองหลังเหตุการณ์ การต่อสู้ เปลี่ยนแผนที่ และทุก 1 นาที`,
-          9: 'จิ้งหรีดกับกบตอนกลางคืน นกตอนเช้า ลมในทุ่งนา และเสียงฝน', 10: 'สำหรับคนที่ตาล้าง่าย: ตอนตีโดนสั่นน้อยลง และไม่กะพริบจอตอนเข้าต่อสู้',
-          11: 'บทที่เคยอ่านแล้วจะมีป้าย "X ข้าม" กด X แล้วข้ามรวดจนถึงบทใหม่หรือตัวเลือก', 12: '×2: ข้อความและท่าทางในการต่อสู้เร็วขึ้นเท่าตัว เก็บเลเวลได้ไวขึ้น', 14: 'เปิด: เดินเร็วเป็นค่าเริ่มต้น กด X ค้างไว้ถ้าอยากเดินช้าๆ', 15: 'กดเพื่อปรับ 100 → 75 → 50 → 25 → 0', 16: 'กดเพื่อปรับ 100 → 75 → 50 → 25 → 0', 17: 'ผีป่าที่อ่อนกว่าแก๊งมาก (ห่าง 8 เลเวล) และเคยชวนแล้ว จะถามว่าจะไล่ไปเลยไหม ได้ EXP ไม่ต้องเข้าฉากสู้', 18: 'ขยายตัวหนังสือในกล่องข้อความและเมนู', 13: 'ชื่อตัวละคร = ฟ้า · ท่า = ส้ม · ไอเท็ม = เหลือง · เงิน = เขียวอ่อน · ได้ผลดีมาก/ฟื้นพลัง = เขียว · หมดแรง/ลดลง = แดง · ไม่ค่อยได้ผล = เทา · ธาตุน้ำ ธาตุดิน ธาตุสายฟ้า ธาตุลม ตามสีธาตุ · หลับ อัมพาต ท้องเสีย มึนหัว แยกสี' }[k] || '') });
-      if (s === 0) G.settings.textSpeed = (G.settings.textSpeed % 3) + 1;
-      if (s === 1) { G.settings.music = !G.settings.music; G.restartMusic(); }
-      if (s === 2) { G.settings.sound = !G.settings.sound; G.restartMusic(); }
-      if (s === 3) G.settings.guide = !G.settings.guide;
-      if (s === 4) G.settings.hud = G.settings.hud === false;
-      if (s === 5) G.settings.easy = G.settings.easy === false;
-      if (s === 6) await G.exportSave();
-      if (s === 7) await G.ui.secretCode();
-      if (s === 8) G.settings.autosave = G.settings.autosave === false;
-      if (s === 9) G.settings.ambient = G.settings.ambient === false;
-      if (s === 10) G.settings.calm = !G.settings.calm;
-      if (s === 11) G.settings.skipRead = G.settings.skipRead === false;
-      if (s === 12) G.settings.fast = !G.settings.fast;
-      if (s === 13) G.settings.colorText = G.settings.colorText === false;
-      const vol = (v) => ((v ?? 100) + 75) % 125;   // 100 → 75 → 50 → 25 → 0 → 100
-      if (s === 14) G.settings.autoRun = G.settings.autoRun === false;
-      if (s === 15) { G.settings.volMusic = vol(G.settings.volMusic); G.setVolume(); }
-      if (s === 16) { G.settings.volSfx = vol(G.settings.volSfx); G.setVolume(); G.sfx('buy'); }
-      if (s === 17) G.settings.quickWild = G.settings.quickWild === false;
-      if (s === 18) { G.settings.textSize = ((G.settings.textSize || 0) + 1) % 3; G.applyTextSize(); }
-      G.saveSettings();
+    else if (pick === 'ตั้งค่า') await G.ui.settings();
+  };
+
+  // ---------- ตั้งค่า: แบ่งหมวด (← → เปลี่ยนหมวด) ----------
+  const on = (b) => (b ? 'เปิด' : 'ปิด');
+  const vol = (v) => ((v ?? 100) + 75) % 125;   // 100 → 75 → 50 → 25 → 0 → 100
+  const SETTINGS = [
+    ['เสียง', () => `เพลง: ${on(G.settings.music)}`, '', () => { G.settings.music = !G.settings.music; G.restartMusic(); }],
+    ['เสียง', () => `ระดับเพลง: ${G.settings.volMusic ?? 100}%`, 'กดเพื่อปรับ 100 → 75 → 50 → 25 → 0', () => { G.settings.volMusic = vol(G.settings.volMusic); G.setVolume(); }],
+    ['เสียง', () => `เสียงเอฟเฟกต์: ${on(G.settings.sound)}`, '', () => { G.settings.sound = !G.settings.sound; G.restartMusic(); }],
+    ['เสียง', () => `ระดับเสียงประกอบ: ${G.settings.volSfx ?? 100}%`, 'กดเพื่อปรับ 100 → 75 → 50 → 25 → 0', () => { G.settings.volSfx = vol(G.settings.volSfx); G.setVolume(); G.sfx('buy'); }],
+    ['เสียง', () => `เสียงบรรยากาศ: ${on(G.settings.ambient !== false)}`, 'จิ้งหรีดกับกบตอนกลางคืน นกตอนเช้า ลมในทุ่งนา และเสียงฝน', () => { G.settings.ambient = G.settings.ambient === false; }],
+    ['หน้าจอ', () => `ความเร็วข้อความ: ${['ช้า', 'กลาง', 'เร็ว'][G.settings.textSpeed - 1]}`, '', () => { G.settings.textSpeed = (G.settings.textSpeed % 3) + 1; }],
+    ['หน้าจอ', () => `ขนาดตัวอักษร: ${['ปกติ', 'ใหญ่', 'ใหญ่มาก'][G.settings.textSize || 0]}`, 'ขยายตัวหนังสือในกล่องข้อความและเมนู', () => { G.settings.textSize = ((G.settings.textSize || 0) + 1) % 3; G.applyTextSize(); }],
+    ['หน้าจอ', () => `สีคำสำคัญในข้อความ: ${on(G.settings.colorText !== false)}`, 'ชื่อตัวละคร = ฟ้า · ท่า = ส้ม · ไอเท็ม = เหลือง · เงิน = เขียวอ่อน · ได้ผลดีมาก/ฟื้นพลัง = เขียว · หมดแรง/ลดลง = แดง · ไม่ค่อยได้ผล = เทา · ธาตุ ตามสีธาตุ · อาการผิดปกติแยกสี', () => { G.settings.colorText = G.settings.colorText === false; }],
+    ['หน้าจอ', () => `ไกด์และลูกศรชี้ทาง: ${on(G.settings.guide)}`, '', () => { G.settings.guide = !G.settings.guide; }],
+    ['หน้าจอ', () => `แถบทีมและมินิแมพ: ${on(G.settings.hud !== false)}`, '', () => { G.settings.hud = G.settings.hud === false; }],
+    ['หน้าจอ', () => `ลดการสั่นจอและแฟลช: ${on(G.settings.calm)}`, 'สำหรับคนที่ตาล้าง่าย: ตอนตีโดนสั่นน้อยลง และไม่กะพริบจอตอนเข้าต่อสู้', () => { G.settings.calm = !G.settings.calm; }],
+    ['หน้าจอ', () => `โหมดสีสำหรับคนตาบอดสี: ${on(G.settings.cbMode)}`, 'เพิ่มลายบนหลอดพลังและป้ายธาตุ เปลี่ยนแดง/เขียวเป็นส้ม/ฟ้า', () => { G.settings.cbMode = !G.settings.cbMode; G.applyTextSize(); }],
+    ['การเล่น', () => `เก็บเวลเร็ว + ติดคริง่าย: ${on(G.settings.easy !== false)}`, 'เปิด: EXP ×3 แบ่งให้ทั้งแก๊ง และฝั่งเราติดคริ 25%', () => { G.settings.easy = G.settings.easy === false; }],
+    ['การเล่น', () => `ความเร็วการต่อสู้: ${G.settings.fast ? '×2 เร็ว' : 'ปกติ'}`, '×2: ข้อความและท่าทางในการต่อสู้เร็วขึ้นเท่าตัว เก็บเลเวลได้ไวขึ้น', () => { G.settings.fast = !G.settings.fast; }],
+    ['การเล่น', () => `วิ่งตลอด (กด X ค้างเพื่อเดินช้า): ${on(G.settings.autoRun !== false)}`, 'เปิด: เดินเร็วเป็นค่าเริ่มต้น กด X ค้างไว้ถ้าอยากเดินช้าๆ', () => { G.settings.autoRun = G.settings.autoRun === false; }],
+    ['การเล่น', () => `ไล่ผีอ่อนแบบรวบรัด: ${on(G.settings.quickWild !== false)}`, 'ผีป่าที่อ่อนกว่าแก๊งมาก (ห่าง 8 เลเวล) และเคยชวนแล้ว จะถามว่าจะไล่ไปเลยไหม ได้ EXP ไม่ต้องเข้าฉากสู้', () => { G.settings.quickWild = G.settings.quickWild === false; }],
+    ['การเล่น', () => `ข้ามบทที่เคยอ่าน (ปุ่ม X): ${on(G.settings.skipRead !== false)}`, 'บทที่เคยอ่านแล้วจะมีป้าย "X ข้าม" กด X แล้วข้ามรวดจนถึงบทใหม่หรือตัวเลือก', () => { G.settings.skipRead = G.settings.skipRead === false; }],
+    ['เซฟ', () => `บันทึกอัตโนมัติ: ${on(G.settings.autosave !== false)}`, () => `บันทึกลงช่อง ${G.slot} เองหลังเหตุการณ์ การต่อสู้ เปลี่ยนแผนที่ และทุก 1 นาที`, () => { G.settings.autosave = G.settings.autosave === false; }],
+    ['เซฟ', () => 'สำรองเซฟเป็นไฟล์', 'ดาวน์โหลดเซฟทุกช่องเก็บไว้ในเครื่อง', () => G.exportSave()],
+    ['เซฟ', () => 'ใส่รหัสลับ', '', () => G.ui.secretCode()],
+  ];
+  const CATS = ['เสียง', 'หน้าจอ', 'การเล่น', 'เซฟ'];
+  let lastCat = 0;
+  G.ui.settings = async function () {
+    for (;;) {
+      const rows = SETTINGS.filter((r) => r[0] === CATS[lastCat]);
+      const header = `<div class="set-tabs">${CATS.map((c, i) => `<span class="${i === lastCat ? 'on' : ''}">${c}</span>`).join('')}</div>`;
+      const k = await G.ui.choose(rows.map((r) => r[1]()), { cls: 'small settings', header, onSide: true, remember: 'set' + lastCat,
+        info: (j) => { const t = rows[j] && rows[j][2]; return typeof t === 'function' ? t() : t || ''; } });
+      if (k === -2 || k === -3) { lastCat = (lastCat + (k === -2 ? CATS.length - 1 : 1)) % CATS.length; G.sfx('tick'); continue; }
+      if (k < 0) break;
+      await rows[k][3](); G.saveSettings();
     }
+    G.saveSettings();
   };
 
   // ---------- รหัสลับ ----------

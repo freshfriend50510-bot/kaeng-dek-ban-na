@@ -308,3 +308,58 @@ table.moves td, table.moves th { padding: calc(var(--u) * 0.5) calc(var(--u) * 2
 .tc-up { background: rgba(108,192,74,.35); color: #c8ffb0; font-weight: bold; } .tc-down { background: rgba(217,69,90,.3); color: #ffc0c8; } .tc-eq { opacity: .4; }
 .tchart-tips { font-size: .75em; max-width: 40%; }
 .nb-star { color: #f2d24b; letter-spacing: 1px; }
+
+/* ---------- เมนูหลักแบบไทล์ ---------- */
+.choice.mainmenu { left: 50%; right: auto; transform: translateX(-50%); top: calc(var(--u) * 6); width: calc(var(--u) * 196); max-height: none; }
+.choice-header { margin-bottom: calc(var(--u) * 3); }
+.mm-head { display: flex; align-items: center; gap: calc(var(--u) * 4); padding-bottom: calc(var(--u) * 2); border-bottom: calc(var(--u) * 0.5) dashed rgba(246,238,216,.3); }
+.mm-head canvas { width: calc(var(--u) * 24) !important; height: calc(var(--u) * 24) !important; background: rgba(246,238,216,.08); border-radius: calc(var(--u) * 2); }
+.mm-head b { display: block; color: var(--gold); } .mm-head small { font-size: 0.75em; color: #c9cfe6; }
+.mm-stats { margin-left: auto; display: flex; flex-direction: column; align-items: flex-end; font-size: 0.75em; }
+.mm-badges { display: flex; gap: calc(var(--u) * 1); }
+.mm-badges canvas { width: calc(var(--u) * 10) !important; height: calc(var(--u) * 10) !important; }
+.mm-badges canvas.off { filter: grayscale(1) brightness(0.35); }
+.choice-list.cols3 { grid-template-columns: repeat(3, 1fr); gap: calc(var(--u) * 2); }
+.choice-item.tile { flex-direction: column; align-items: center; justify-content: center; gap: 0; padding: calc(var(--u) * 2) calc(var(--u) * 1); background: rgba(246,238,216,.05); border: calc(var(--u) * 0.5) solid rgba(246,238,216,.12); border-radius: calc(var(--u) * 2); min-height: calc(var(--u) * 26); }
+.choice-item.tile::before { display: none; }
+.choice-item.tile.sel { background: rgba(217,178,90,.22); border-color: var(--gold); transform: translateY(calc(var(--u) * -0.5)); box-shadow: 0 calc(var(--u)) 0 rgba(0,0,0,.3); }
+.choice-item.tile .emo { font-size: 1.3em; line-height: 1.1; }
+.choice-item.tile .lbl { font-size: 0.85em; }
+.choice-item.tile .sub { font-size: 0.65em; min-height: 1em; }
+.nbadge { position: absolute; top: calc(var(--u) * -1.5); right: calc(var(--u) * 1); background: #d9455a; color: #fff; font-size: 0.6em; padding: 0 calc(var(--u) * 1.5); border-radius: calc(var(--u) * 2); }
+.choice-item:not(.tile) .nbadge { position: static; margin-left: calc(var(--u) * 2); }
+/* ตั้งค่าแบ่งหมวด */
+.set-tabs { display: flex; gap: calc(var(--u) * 1.5); margin-bottom: calc(var(--u) * 1); }
+.set-tabs span { padding: 0 calc(var(--u) * 3); border-radius: calc(var(--u) * 1.5); background: rgba(246,238,216,.08); font-size: 0.8em; color: #b9c0dc; }
+.set-tabs span.on { background: var(--laterite); color: var(--cream); }
+.set-tabs::after { content: "← →"; margin-left: auto; font-size: 0.7em; color: #8a92b8; align-self: center; }
+.choice.settings { min-width: calc(var(--u) * 150); }
+/* โหมดตาบอดสี: หลอดพลังฟ้า/ส้ม มีลาย */
+body.cb .hpbar i { background: #3a8ad8 repeating-linear-gradient(90deg, transparent 0 calc(var(--u) * 3), rgba(255,255,255,.25) 0 calc(var(--u) * 4)); }
+body.cb .hpbar i.yellow { background-color: #e0b830; } body.cb .hpbar i.red { background-color: #f08a24; }
+/* กระเป๋า: กรอบตามความหายาก ป้ายของใหม่ */
+.bag-item { position: relative; border-left: calc(var(--u) * 1) solid transparent; }
+.bag-item.rar-u { border-left-color: #5fb8e0; } .bag-item.rar-r { border-left-color: #b06aff; } .bag-item.rar-l { border-left-color: var(--gold); }
+.bag-item canvas { border-radius: calc(var(--u) * 1.5); }
+.bag-item.rar-r canvas { background: radial-gradient(circle, rgba(176,106,255,.35), transparent 70%); } .bag-item.rar-l canvas { background: radial-gradient(circle, rgba(217,178,90,.4), transparent 70%); }
+.bag-big.rar-u { box-shadow: 0 0 0 calc(var(--u) * 1) #5fb8e0; } .bag-big.rar-r { box-shadow: 0 0 0 calc(var(--u) * 1) #b06aff, 0 0 calc(var(--u) * 6) rgba(176,106,255,.6); } .bag-big.rar-l { box-shadow: 0 0 0 calc(var(--u) * 1) var(--gold), 0 0 calc(var(--u) * 6) rgba(217,178,90,.7); }
+.rar-tag { display: inline-block; font-size: 0.65em; padding: 0 calc(var(--u) * 2); margin-left: calc(var(--u) * 2); border-radius: calc(var(--u) * 1); background: #5a6080; vertical-align: middle; }
+.rar-tag.rar-u { background: #2a7ab0; } .rar-tag.rar-r { background: #7a3ad0; } .rar-tag.rar-l { background: #a8822a; }
+.bag-item .nbadge, .bag-tabs .ndot { font-style: normal; }
+.bag-tabs .ndot { display: inline-block; width: calc(var(--u) * 2); height: calc(var(--u) * 2); border-radius: 50%; background: #d9455a; margin-left: calc(var(--u) * 1); vertical-align: top; }
+/* ข้อมูลสมาชิกแบบแท็บ */
+.mi-tabs { display: flex; gap: calc(var(--u) * 1.5); margin-top: calc(var(--u) * 2); align-items: center; }
+.mi-tabs span { padding: 0 calc(var(--u) * 3); border-radius: calc(var(--u) * 1.5); background: rgba(246,238,216,.08); font-size: 0.8em; color: #b9c0dc; cursor: pointer; }
+.mi-tabs span.on { background: var(--laterite); color: var(--cream); }
+.mi-tabs em { font-size: 0.65em; color: #8a92b8; font-style: normal; }
+.mi-body { margin-top: calc(var(--u) * 3); font-size: 0.9em; } .mi-body p { margin: calc(var(--u) * 1.5) 0; }
+.mi-k { color: var(--gold); font-weight: normal; margin-right: calc(var(--u) * 1); }
+.mi-ico { width: calc(var(--u) * 12) !important; height: calc(var(--u) * 12) !important; vertical-align: middle; }
+.mi-stat { display: flex; flex-direction: column; align-items: center; }
+.mi-hex { width: calc(var(--u) * 156); height: calc(var(--u) * 86); }
+.mon-info .mi-stat ~ .hint, .mon-info .hint { font-size: 0.7em; color: #8a92b8; text-align: center; }
+.mi-legend i { display: inline-block; width: calc(var(--u) * 3); height: calc(var(--u) * 3); margin: 0 calc(var(--u) * 1); vertical-align: middle; }
+.mi-legend .lg-cur { background: #f2d24b; } .mi-legend .lg-base { background: #5fb8e0; }
+.mon-info table.moves small { font-size: 0.7em; color: #b9c0dc; }
+.mon-info .info-sprite { width: calc(var(--u) * 34) !important; height: calc(var(--u) * 34) !important; }
+.mon-info { top: calc(var(--u) * 6); bottom: calc(var(--u) * 6); }

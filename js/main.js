@@ -123,6 +123,7 @@
     s.chain = s.chain && D.species[s.chain.sp] ? { sp: s.chain.sp, n: num(s.chain.n, 0, 999, 0) } : null;
     s.shinyDex = s.shinyDex && typeof s.shinyDex === 'object' ? s.shinyDex : {}; s.newsDay = Number(s.newsDay) || 0;
     s.research = s.research && typeof s.research === 'object' ? s.research : {}; s.towerBest = num(s.towerBest, 0, 9999, 0); s.hof = Array.isArray(s.hof) ? s.hof.slice(-20) : [];
+    if (!s.seenItems || typeof s.seenItems !== 'object') { s.seenItems = {}; for (const k in s.bag || {}) s.seenItems[k] = 1; }   // เซฟเก่า: ของที่มีอยู่แล้วไม่นับเป็นของใหม่
     s.buff = s.buff && ['exp', 'shiny', 'lure', 'money'].includes(s.buff.kind) ? { kind: s.buff.kind, steps: num(s.buff.steps, 0, 999, 0) } : null;
     const bag = {};
     for (const [k, v] of Object.entries(s.bag || {})) { if (!D.items[k]) { fix(); continue; } const n = num(v, 0, 999, 0); if (n) bag[k] = n; }
@@ -225,7 +226,7 @@
     if (!S.biking && G.world.def.indoor) { G.showToast('ปั่นในตึกไม่ได้นะ'); return; }
     S.biking = !S.biking; G.sfx(S.biking ? 'switch' : 'door'); G.showToast(S.biking ? '🚲 ขึ้นจักรยานแล้ว ปั่นเร็วขึ้นสองเท่า' : 'ลงจากจักรยานแล้ว');
   };
-  G.applyTextSize = () => document.documentElement.style.setProperty('--fs', [1, 1.15, 1.3][G.settings.textSize || 0]);
+  G.applyTextSize = () => { document.documentElement.style.setProperty('--fs', [1, 1.15, 1.3][G.settings.textSize || 0]); document.body.classList.toggle('cb', !!G.settings.cbMode); };
   window.addEventListener('keydown', (e) => {
     const k = KEYMAP[e.code]; if (!k) return;
     if (document.activeElement && document.activeElement.tagName === 'INPUT') { if (e.code === 'Enter') document.activeElement.blur(); return; }
@@ -274,7 +275,15 @@
     for (let i = 0; i < 3; i++) { fadeEl.classList.add('flash'); await G.wait(80); fadeEl.classList.remove('flash'); await G.wait(80); }
   };
   let toastT = null;
-  G.showToast = (text) => { const t = document.querySelector('#toast'); t.textContent = text; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1800); };
+  // ป้ายแจ้งเตือนต่อคิว: ไม่ทับกัน ข้อความซ้ำที่รอคิวอยู่ไม่เพิ่มซ้ำ
+  const toastQ = [];
+  const nextToast = () => {
+    const t = document.querySelector('#toast'), text = toastQ.shift();
+    if (text == null) { toastT = null; return; }
+    t.textContent = text; t.classList.remove('err'); t.classList.add('on');
+    toastT = setTimeout(() => { t.classList.remove('on'); toastT = setTimeout(nextToast, toastQ.length ? 260 : 0); }, toastQ.length ? 1400 : 1800);
+  };
+  G.showToast = (text) => { if (toastQ.includes(text)) return; toastQ.push(text); if (toastQ.length > 4) toastQ.shift(); if (!toastT) nextToast(); };
   G.rainFor = (min) => { G.state.rainLeft = Math.max(G.state.rainLeft || 0, min); };   // นาทีในเกม
   G.askName = () => new Promise((resolve) => {
     const box = document.createElement('div'); box.className = 'panel sheet namebox';
