@@ -378,3 +378,7 @@ body.cb .hpbar i.yellow { background-color: #e0b830; } body.cb .hpbar i.red { ba
 .codex .bag-item.locked { opacity: 0.45; } .cx-q { display: inline-flex; width: calc(var(--u) * 16); height: calc(var(--u) * 16); align-items: center; justify-content: center; font-style: normal; color: #8a92b8; background: rgba(246,238,216,.06); border-radius: calc(var(--u) * 1.5); }
 .cx-detail { text-align: left; overflow-y: auto; } .cx-detail p { font-size: 0.85em; margin: calc(var(--u) * 1.5) 0; line-height: 1.45; }
 .mi-lore { font-size: 0.8em; color: #d8cfae; background: rgba(217,178,90,.08); padding: calc(var(--u) * 2); border-radius: calc(var(--u) * 1.5); }
+body.menu-open #toast { top: auto; bottom: calc(var(--u) * 2); z-index: 40; }
+.choice.mainmenu { width: calc(var(--u) * 210); }
+.choice-list.cols4 { grid-template-columns: repeat(4, 1fr); gap: calc(var(--u) * 2); }
+.choice-list.cols4 .choice-item.tile { min-height: calc(var(--u) * 24); }

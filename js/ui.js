@@ -7,8 +7,9 @@
   G.ui = {};
   G.ui.active = () => stack.length > 0;
   G.ui.key = (k) => { const top = stack[stack.length - 1]; if (top) top.onKey(k); };
-  function push(m) { stack.push(m); $('#ui').appendChild(m.el); }
-  function pop(m) { const i = stack.indexOf(m); if (i >= 0) stack.splice(i, 1); m.el.remove(); }
+  const menuCls = () => document.body.classList.toggle('menu-open', stack.some((k) => k.el.classList.contains('sheet') || k.el.classList.contains('mainmenu')));   // ป้ายแจ้งเตือนหลบลงล่างตอนเปิดหน้าต่างใหญ่
+  function push(m) { stack.push(m); $('#ui').appendChild(m.el); menuCls(); }
+  function pop(m) { const i = stack.indexOf(m); if (i >= 0) stack.splice(i, 1); m.el.remove(); menuCls(); }
   G.ui.pushTop = push; G.ui.closeTop = pop;   // ให้ไฟล์อื่นสร้างหน้าต่างเองได้
   G.ui.closeAll = () => { while (stack.length) pop(stack[stack.length - 1]); };
   const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -870,11 +871,11 @@
     if (F.intro_done && G.ui.codex) add('สมุดเรื่องเล่า', '📚', '');
     if (G.travelSpots().length > 1) add('เดินทาง', '🚌', '');
     if (G.ui.achievements) add('ความสำเร็จ', '🏆', G.ui.achCount ? G.ui.achCount() : '');
-    add('ตารางธาตุ', '⚖️', ''); add('วิธีเล่น', '❓', ''); add('มีอะไรใหม่', '📰', ''); add('บันทึกเกม', '💾', `ช่อง ${G.slot}`); add('ตั้งค่า', '⚙️', ''); add('ปิด', '✖️', '');
+    add('ตารางธาตุ', '⚖️', ''); add('วิธีเล่น', '❓', ''); add('มีอะไรใหม่', '📰', ''); add('บันทึกเกม', '💾', `ช่อง ${G.slot}`); add('ตั้งค่า', '⚙️', '');
     const where = (G.world.def && G.world.def.name) || '';
     const header = `<div class="mm-head"><canvas width="16" height="16" data-sprite="${esc(S.look || 'player')}"></canvas><div><b>${esc(S.name)}</b><small>📍 ${esc(where)}</small></div>
       <div class="mm-stats"><span>💰 ${S.money} บาท</span><span>⏱ ${playTime(S.playMs || 0)}</span><span class="mm-badges">${BADGES.slice(0, 3).map(([f, n]) => `<canvas width="16" height="16" class="${F[f + '_done'] ? '' : 'off'}" title="${esc(n)}" data-sprite="badge:${f}"></canvas>`).join('')}</span></div></div>`;
-    const i = await G.ui.choose(T, { cls: 'mainmenu', cols: 3, header, start: Math.max(0, T.findIndex((t) => t.key === lastMain)) });
+    const i = await G.ui.choose(T, { cls: 'mainmenu', cols: 4, header, start: Math.max(0, T.findIndex((t) => t.key === lastMain)) });
     const pick = T[i] && T[i].key; if (pick && pick !== 'ปิด') lastMain = pick;
     if (pick === 'ทีม') await G.ui.partyMenu();
     else if (pick === 'กระเป๋า') await G.ui.bagMenu();
