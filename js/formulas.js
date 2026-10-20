@@ -133,7 +133,7 @@
   G.shinyOdds = function (sp, onMap) {
     const S = G.state || {}, ch = S.chain && S.chain.sp === sp ? Math.min(16, S.chain.n) : 0;
     const ob = G.outbreak && G.outbreak();
-    return (1 / 200) * (1 + ch * 0.25) * (ob && ob.sp === sp && ob.map === onMap ? 3 : 1) * ((S.bag || {}).lucky_charm ? 3 : 1) * (G.buffOn && G.buffOn('shiny') ? 2 : 1);
+    return (1 / 200) * (1 + ch * 0.25) * (ob && ob.sp === sp && ob.map === onMap ? 3 : 1) * ((S.bag || {}).lucky_charm ? 3 : 1) * (G.buffOn && G.buffOn('shiny') ? 2 : 1) * (G.festival && G.state && (G.festival() || {}).id === 'loykrathong' && G.isNight() ? 2 : 1);
   };
   // ท่าไม้ตายประจำตัว: เด็ก 4 คนมีท่าเฉพาะ ตัวอื่นตามธาตุ
   // ความสนิท 0–255 (เริ่ม 70): ชนะด้วยกัน เดินด้วยกัน เลเวลอัป ได้กินของ → เพิ่ม · หมดแรง → ลด

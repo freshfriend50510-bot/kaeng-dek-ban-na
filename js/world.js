@@ -340,7 +340,7 @@
     const firstVisit = !W.def.indoor && !(S.visited || {})[id];
     if (!W.def.indoor) (S.visited = S.visited || {})[id] = 1;   // ที่ที่เคยมาแล้ว ใช้เดินทางเร็วได้
     if (firstVisit && S.follower && S.party[0] && G.kidLine) { const ln = G.kidLine(S.party[0], true); if (ln) setTimeout(() => G.showToast(`${S.party[0].name}: ${ln}`), 1600); }   // คนเดินตามพูดถึงที่ใหม่
-    if (!W.def.indoor && S.newsDay !== G.gameDay()) { const ob = G.outbreak(); S.newsDay = G.gameDay(); if (ob) setTimeout(() => G.showToast(`📢 หอกระจายข่าว: วันนี้${G.DATA.species[ob.sp].name}ระบาดที่${G.DATA.world.maps[ob.map].name}!`), 900); }
+    if (!W.def.indoor && S.newsDay !== G.gameDay()) { const ob = G.outbreak(); S.newsDay = G.gameDay(); if (ob) setTimeout(() => G.showToast(`📢 หอกระจายข่าว: วันนี้${G.DATA.species[ob.sp].name}ระบาดที่${G.DATA.world.maps[ob.map].name}!`), 900);  const fe = G.festival(); if (fe) setTimeout(() => G.showToast(`🎉 วันนี้เทศกาล${fe.name}: ${fe.desc}`), 1200); }
     G.refreshNpcs();
     // คนเดินตามโผล่ข้างหลังเรา
     const [dx, dy] = DIRS[S.dir] || [0, 1];
@@ -508,7 +508,7 @@
       const table = G.DATA.encounters[W.map];
       const night = G.isNight(), wet = G.raining();
       const ob = G.outbreak();
-      const weight = (e) => Math.max(night ? e.night : e.day, ob && ob.map === W.map && ob.sp === e.sp ? 10 : 0) * (wet && G.DATA.species[e.sp].type === 'water' ? 2.5 : 1) * (ob && ob.map === W.map && ob.sp === e.sp ? 6 : 1);   // ฝนตก ผีน้ำออกมาเยอะ · ผีระบาด ×6
+      const weight = (e) => Math.max(night ? e.night : e.day, ob && ob.map === W.map && ob.sp === e.sp ? 10 : 0) * (wet && G.DATA.species[e.sp].type === 'water' ? 2.5 : 1) * ((G.festival() || {}).id === 'songkran' && G.DATA.species[e.sp].type === 'water' ? 2.5 : 1) * (ob && ob.map === W.map && ob.sp === e.sp ? 6 : 1);   // ฝนตก ผีน้ำออกมาเยอะ · ผีระบาด ×6
       const roll = G.rng() * table.reduce((a, e) => a + weight(e), 0);
       let acc = 0;
       for (const e of table) {
@@ -579,6 +579,10 @@
   G.raining = () => G.state.rainLeft > 0 && !W.def.indoor;
   // ผีระบาด: วันละหนึ่งแมพหนึ่งชนิด (เฉพาะแมพที่เคยไป) ออกบ่อย ×6 และโอกาสสีพิเศษ ×3 · ประกาศทางหอกระจายข่าว
   G.gameDay = () => Math.floor((G.state.playMs || 0) / 1440000);
+  // ปฏิทินเทศกาล: วนทุก 10 วันในเกม (วันละ 24 นาทีจริง)
+  //  สงกรานต์ = ผีน้ำออกเยอะ ×2.5 · บุญบั้งไฟ = เงินรางวัลจากการท้าสู้ ×1.5 บั้งไฟพุ่งตอนเย็น · ลอยกระทง = กลางคืนโอกาสผีสีพิเศษ ×2 กระทงลอยในน้ำ
+  const FESTS = { 3: ['songkran', 'สงกรานต์', 'ผีน้ำออกมาเล่นน้ำเยอะเป็นพิเศษ'], 6: ['bangfai', 'บุญบั้งไฟ', 'ท้าสู้ชนะได้เงินรางวัล ×1.5 · ตอนเย็นมีบั้งไฟขึ้นฟ้า'], 9: ['loykrathong', 'ลอยกระทง', 'กลางคืนโอกาสเจอผีสีพิเศษ ×2 · กระทงลอยเต็มน้ำ'] };
+  G.festival = () => { const d = G.gameDay(); const f = d >= 1 && FESTS[d % 10]; return f ? { id: f[0], name: f[1], desc: f[2] } : null; };
   // อาหารบัฟจากครัวแม่เติ้ล: exp · shiny · lure · money นับตามก้าวเดิน
   G.buffOn = (k) => { const b = G.state && G.state.buff; return !!(b && b.kind === k && b.steps > 0); };
   // ลานผียักษ์: วันละหนึ่งแมพ (เฉพาะแมพที่เคยไป)
@@ -833,6 +837,7 @@
       ctx.globalCompositeOperation = 'source-over';
     }
     if (W.amb && W.amb.bugs.length && !G.mapShot) drawBugs(ctx, cx, cy);
+    if (!W.def.indoor && !G.mapShot) drawFestival(ctx, cx, cy);
     if (!G.mapShot) ctx.drawImage(vignette(), 0, 0);   // mapShot = ถ่ายภาพแมพเต็มแผ่นตอนทดสอบ
   };
 
@@ -1017,6 +1022,28 @@
     }
   }
   // แมลงวาดหลังความมืด หิ่งห้อยจึงเรืองแสงชัดตอนกลางคืน
+  function drawFestival(ctx, cx, cy) {
+    const fe = G.festival(); if (!fe) return;
+    const t = performance.now(), p = G.period();
+    if (fe.id === 'loykrathong' && p === 'night') {   // กระทงใบตองจุดเทียน ลอยช้าๆ บนช่องน้ำที่เห็นในจอ
+      const x0 = Math.floor(cx / TS), y0 = Math.floor(cy / TS);
+      for (let y = y0; y <= y0 + VH; y++) for (let x = x0; x <= x0 + VW; x++) {
+        if (tileAt(x, y) !== 'w' || (x * 7 + y * 13) % 5) continue;
+        const dx = Math.sin(t * 0.0004 + x + y) * 4, sx = Math.round(x * TS - cx + 8 + dx), sy = Math.round(y * TS - cy + 9 + Math.sin(t * 0.002 + x) * 0.6);
+        ctx.fillStyle = 'rgba(255,200,110,0.18)'; ctx.beginPath(); ctx.arc(sx, sy - 2, 7, 0, 7); ctx.fill();
+        ctx.fillStyle = '#3f7a34'; ctx.fillRect(sx - 4, sy, 8, 2); ctx.fillStyle = '#6ab854'; ctx.fillRect(sx - 3, sy - 1, 6, 1);
+        ctx.fillStyle = '#f4e8f0'; ctx.fillRect(sx - 2, sy - 2, 4, 1); ctx.fillStyle = '#e86a8a'; ctx.fillRect(sx - 1, sy - 3, 2, 1);
+        ctx.fillStyle = '#f4f4ec'; ctx.fillRect(sx, sy - 5, 1, 2); ctx.fillStyle = Math.sin(t * 0.02 + x) > 0 ? '#ffd060' : '#fff2a8'; ctx.fillRect(sx, sy - 6, 1, 1);
+      }
+    }
+    if (fe.id === 'bangfai' && (p === 'evening' || p === 'night')) {   // บั้งไฟพุ่งขึ้นฟ้า หางควันยาว
+      for (let i = 0; i < 2; i++) {
+        const k = ((t / 5200 + i * 0.5) % 1), bx = 50 + i * 130 + Math.sin(i * 3 + Math.floor(t / 5200)) * 30, by = 170 - k * 200;
+        for (let j = 1; j < 14; j++) { ctx.fillStyle = `rgba(230,230,230,${(0.35 * (1 - j / 14)).toFixed(2)})`; ctx.fillRect(bx + Math.sin(j + t / 300) * j * 0.3, by + j * 4, 2 + j * 0.2, 4); }
+        ctx.fillStyle = '#f2c43a'; ctx.fillRect(bx, by - 4, 2, 6); ctx.fillStyle = '#ff9a3a'; ctx.fillRect(bx, by + 2, 2, 2); ctx.fillStyle = '#fff2a8'; ctx.fillRect(bx, by + 4, 2, 1);
+      }
+    }
+  }
   function drawBugs(ctx, cx, cy) {
     const t = performance.now(), night = G.isNight(), rain = G.raining();
     for (const b of W.amb.bugs) {

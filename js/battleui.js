@@ -167,7 +167,7 @@
     b.F.forEach((m, i) => { if (i <= b.fi) S.fought[m.sp] = 1; });   // สมุดบันทึก: เคยสู้แล้ว
     if (b.bonusMoney && result !== 'lose') { S.money += b.bonusMoney; await G.ui.say(`เหรียญที่เก็บได้ระหว่างสู้ ${b.bonusMoney} บาท`, null, { battle: true, auto: 700 }); }
     if (result === 'win' && opt.kind !== 'wild' && opt.money) {
-      const rich = S.party.some((m) => G.DATA.species[m.sp].ability === 'treasure'), got = Math.floor(opt.money * (rich ? 1.5 : 1) * (G.buffOn('money') ? 1.5 : 1));   // ปู่โสมเฝ้าทรัพย์ในทีม เงินรางวัล ×1.5
+      const rich = S.party.some((m) => G.DATA.species[m.sp].ability === 'treasure'), got = Math.floor(opt.money * (rich ? 1.5 : 1) * (G.buffOn('money') ? 1.5 : 1) * ((G.festival() || {}).id === 'bangfai' ? 1.5 : 1));   // ปู่โสมเฝ้าทรัพย์ในทีม เงินรางวัล ×1.5
       S.money += got;
       await G.ui.say(`ได้เงินรางวัล ${got} บาท${rich ? ' (ปู่โสมช่วยเฝ้าทรัพย์ ×1.5)' : ''}`, null, { battle: true, auto: 700 });
     }
